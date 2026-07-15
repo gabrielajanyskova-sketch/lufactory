@@ -332,6 +332,12 @@ body.cart-open { overflow: hidden; }
   aspect-ratio: 4/3;
   object-fit: cover;
 }
+#o-mne .intro-block img { aspect-ratio: 3/4; object-position: center top; }
+#o-mne .intro-block p a {
+  color: var(--tan-dark);
+  text-decoration: underline;
+}
+#o-mne .intro-block .script { font-size: 1.3rem; margin-top: 6px; }
 .img-placeholder {
   aspect-ratio: 4/3;
   background: url('/assets/img/loofah-texture.svg') center/cover no-repeat;
