@@ -303,6 +303,7 @@ body.cart-open { overflow: hidden; }
   font-weight: 600;
   margin-bottom: 14px;
 }
+.hero-btn { display: inline-block; }
 
 /* ---------- sections ---------- */
 .section { padding: 72px 0; }
@@ -348,9 +349,6 @@ body.cart-open { overflow: hidden; }
   font-size: 0.85rem;
   font-weight: 600;
 }
-
-/* ---------- hero cta ---------- */
-.hero-btn { display: inline-block; }
 
 .product-intro {
   max-width: 760px;
