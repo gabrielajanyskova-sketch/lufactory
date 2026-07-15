@@ -15,3 +15,38 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+  var productSelect = document.getElementById('product');
+  document.querySelectorAll('[data-product]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (productSelect) productSelect.value = btn.getAttribute('data-product');
+    });
+  });
+
+  var form = document.querySelector('.contact-form');
+  if (!form) return;
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = form.name.value.trim();
+    var email = form.email.value.trim();
+    var product = form.product.value;
+    var message = form.message.value.trim();
+
+    var subject = 'Poptávka z webu' + (product ? ' – ' + product : '');
+    var bodyLines = [
+      'Jméno: ' + name,
+      'E-mail: ' + email,
+      product ? 'Zájem o: ' + product : '',
+      '',
+      message
+    ].filter(function (line) { return line !== ''; });
+
+    var mailto = 'mailto:info@lufactory.cz'
+      + '?subject=' + encodeURIComponent(subject)
+      + '&body=' + encodeURIComponent(bodyLines.join('\n'));
+
+    window.location.href = mailto;
+  });
+});
