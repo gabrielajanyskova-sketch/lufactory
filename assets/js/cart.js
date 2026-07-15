@@ -36,13 +36,14 @@
     renderCartPage();
   }
 
-  function addToCart(id, name, price) {
+  function addToCart(id, name, price, qty) {
+    qty = Math.max(1, parseInt(qty, 10) || 1);
     var cart = getCart();
     var item = cart.find(function (i) { return i.id === id; });
     if (item) {
-      item.qty += 1;
+      item.qty += qty;
     } else {
-      cart.push({ id: id, name: name, price: price, qty: 1 });
+      cart.push({ id: id, name: name, price: price, qty: qty });
     }
     saveCart(cart);
     openCart();
@@ -98,6 +99,56 @@
     if (!entry) return 0;
     if (entry.type === 'percent') return Math.round(subtotal * entry.value / 100);
     return Math.min(entry.value, subtotal);
+  }
+
+  // ---------- stock ----------
+  // Dokud API nepotvrdí skutečný počet kusů, zůstává vše "Není skladem"
+  // (viz disabled tlačítka a text rovnou v HTML) — bezpečný výchozí stav.
+  function applyStock(stockMap) {
+    if (!stockMap) return;
+    document.querySelectorAll('[data-stock-badge]').forEach(function (el) {
+      var id = el.getAttribute('data-stock-badge');
+      var entry = stockMap[id];
+      var qty = entry ? entry.stockQty : 0;
+      var addBtn = document.querySelector('[data-add-to-cart][data-id="' + id + '"]');
+      var qtyInput = document.querySelector('[data-qty-for="' + id + '"] [data-qty-input]');
+      if (qty > 0) {
+        el.textContent = 'Skladem: ' + qty + ' ks';
+        el.className = 'stock-badge stock-badge--in';
+        if (addBtn) addBtn.disabled = false;
+        if (qtyInput) {
+          qtyInput.disabled = false;
+          qtyInput.setAttribute('max', qty);
+        }
+      }
+    });
+  }
+
+  function loadStock() {
+    if (!API_BASE) return;
+    fetch(API_BASE + '/api/products')
+      .then(function (r) { return r.json(); })
+      .then(applyStock)
+      .catch(function () {});
+  }
+
+  function wireQtySteppers() {
+    document.querySelectorAll('.qty-stepper').forEach(function (stepper) {
+      var input = stepper.querySelector('[data-qty-input]');
+      if (!input) return;
+      stepper.querySelectorAll('[data-action]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var val = parseInt(input.value, 10) || 1;
+          var max = parseInt(input.getAttribute('max'), 10);
+          if (btn.getAttribute('data-action') === 'inc') {
+            val = max ? Math.min(max, val + 1) : val + 1;
+          } else {
+            val = Math.max(1, val - 1);
+          }
+          input.value = val;
+        });
+      });
+    });
   }
 
   // ---------- cart drawer (header flyout) ----------
@@ -323,14 +374,16 @@
   document.addEventListener('DOMContentLoaded', function () {
     renderCart();
     renderCartPage();
+    wireQtySteppers();
+    loadStock();
 
     document.querySelectorAll('[data-add-to-cart]').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        addToCart(
-          btn.getAttribute('data-id'),
-          btn.getAttribute('data-name'),
-          parseFloat(btn.getAttribute('data-price'))
-        );
+        var id = btn.getAttribute('data-id');
+        var qtyInput = document.querySelector('[data-qty-for="' + id + '"] [data-qty-input]');
+        var qty = qtyInput ? qtyInput.value : 1;
+        addToCart(id, btn.getAttribute('data-name'), parseFloat(btn.getAttribute('data-price')), qty);
+        if (qtyInput) qtyInput.value = 1;
       });
     });
 

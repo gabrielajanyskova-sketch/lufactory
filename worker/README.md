@@ -55,10 +55,28 @@ se nic nikdy „nerozbije".
 
 Tabulky v `lufactory-orders`:
 
-- `products` — `product_id`, `title`, `price` (zdroj pravdy pro ceny při
-  objednávce, web si je stejně zobrazuje ze statického HTML)
+- `products` — `product_id`, `title`, `price`, `stock_qty` (zdroj pravdy pro
+  ceny a dostupnost při objednávce, web si je stejně zobrazuje ze statického
+  HTML)
 - `discount_codes` — `code`, `type` (`percent`/`fixed`), `value`, `active`
 - `orders`, `order_items` — uložené objednávky
+
+### Nastavení skladu (důležité!)
+
+Všech 6 produktů má `stock_qty` výchozí 0, takže na webu je zatím u všech
+„Není skladem" a tlačítko „Přidat do košíku" je neaktivní — dokud nenastavíš
+skutečné počty kusů, nejde nic objednat (schválně, ať se nic neobjedná dřív,
+než budeš mít reálné zásoby). Jakmile budeš mít houbičky připravené k prodeji:
+
+```bash
+npx wrangler d1 execute lufactory-orders --remote --command \
+  "UPDATE products SET stock_qty = 12 WHERE product_id = 'houbicka-mala'"
+```
+
+Tohle funguje ale jen po nasazení workeru (viz výše) — teprve pak web čte
+sklad přes `GET /api/products`. Při každé objednávce se sklad automaticky
+sníží o objednané množství; když někdo objedná víc, než je skladem, worker
+objednávku odmítne (`insufficient_stock`).
 
 ### Přidání/úprava slevového kódu
 

@@ -9,27 +9,26 @@ přímo z tohoto repozitáře.
 ```
 index.html              hlavní stránka (hero, produkty, o mně, o houbičkách, kontakt)
 produkty.html            plný katalog všech 6 produktů
+produkty/*.html          detail každého produktu (vlastní URL, vlastní popis)
 kosik.html               košík, doprava, platba, fakturační údaje, odeslání
 assets/css/style.css    veškeré styly (design tokeny v :root)
 assets/js/main.js       mobilní menu + odesílání kontaktního formuláře (mailto)
-assets/js/cart.js       košík na localStorage, checkout, volitelně napojený
-                         na worker/ (viz worker/README.md); bez něj vše dál
-                         funguje na mailto
-assets/img/             obrázky — logo.webp, hero.webp, luffa-plant.webp jsou
-                         reálné fotky, .img-placeholder bloky jsou zatím
-                         texturové placeholdery (viz níže)
-worker/                 Cloudflare Worker + D1 pro produkty, slevové kódy
-                         a objednávky — viz worker/README.md pro nasazení
+assets/js/cart.js       košík na localStorage, checkout, sklad, volitelně
+                         napojený na worker/ (viz worker/README.md); bez něj
+                         vše dál funguje na mailto a "Není skladem"
+assets/img/             obrázky — většina jsou reálné fotky; houbička "velká"
+                         zatím nemá fotku, používá texturový placeholder
+worker/                 Cloudflare Worker + D1 pro produkty, sklad, slevové
+                         kódy a objednávky — viz worker/README.md pro nasazení
 robots.txt, sitemap.xml, llms.txt   SEO/AI crawler soubory
 ```
 
-## Co je zatím jen placeholder
+## Sklad
 
-Fotky vlastní výroby (sekce „O mně") zatím nejsou k dispozici, takže tam
-`.img-placeholder` používá generovanou texturu (`assets/img/loofah-texture.svg`)
-místo reálné fotky — až bude fotka k dispozici, stačí ji nahrát do
-`assets/img/` a nahradit `.img-placeholder` `<img>` tagem stejně jako u
-ostatních fotek.
+Tlačítko „Přidat do košíku" je u všech produktů schválně needaktivní a
+zobrazuje se „Není skladem", dokud v D1 databázi nenastavíš skutečný počet
+kusů (`worker/README.md` → „Nastavení skladu") — a to funguje až po nasazení
+workeru. Bez workeru web zůstává v tomhle bezpečném výchozím stavu natrvalo.
 
 ## Košík a objednávka
 
@@ -54,10 +53,11 @@ krok není potřeba.
 
 ## Další kroky
 
-- Nasadit `worker/` podle `worker/README.md` (pár příkazů ve wrangleru) a
-  vyplnit `API_BASE` v `assets/js/cart.js`
-- Fotka pro „velká" houbičku na `produkty.html` zatím chybí (texturový
-  placeholder)
+- Nasadit `worker/` podle `worker/README.md` (pár příkazů ve wrangleru),
+  vyplnit `API_BASE` v `assets/js/cart.js` a nastavit skutečné počty kusů
+  na skladě — bez toho nejde nic objednat
+- Fotka pro „velká" houbičku zatím chybí (texturový placeholder na
+  `produkty.html` i na `produkty/houbicka-velka.html`)
 - Platby zatím řešené ručně (převod / hotově) — platební bránu (GoPay/Comgate)
   napojit později, až bude potřeba
 

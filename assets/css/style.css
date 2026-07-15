@@ -326,6 +326,7 @@ body.cart-open { overflow: hidden; }
 }
 .intro-block img {
   width: 100%;
+  height: auto;
   aspect-ratio: 4/3;
   object-fit: cover;
 }
@@ -384,6 +385,7 @@ body.cart-open { overflow: hidden; }
 .product-card--featured .btn--outline { border-color: var(--sage); color: var(--sage-dark); }
 .product-card--featured .btn--outline:hover { background: var(--sage); color: var(--white); }
 .product-img {
+  display: block;
   position: relative;
   aspect-ratio: 4/3;
   background: url('/assets/img/loofah-texture.svg') center/cover no-repeat;
@@ -413,6 +415,7 @@ body.cart-open { overflow: hidden; }
   flex: 1;
 }
 .product-body h3 { font-size: 1.15rem; margin-bottom: 0.25em; }
+.product-body h3 a:hover { color: var(--tan-dark); }
 .product-dim {
   display: block;
   font-size: 0.82rem;
@@ -692,6 +695,103 @@ body.cart-open { overflow: hidden; }
 .site-footer a { color: var(--cream-dark); text-decoration: underline; }
 .site-footer-credit { margin-top: 6px; opacity: 0.75; font-size: 0.8rem; }
 
+/* ---------- product detail page ---------- */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--tan-dark);
+  margin-bottom: 28px;
+}
+.back-link:hover { color: var(--brown-dark); }
+
+.product-detail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+.product-detail-img img,
+.product-detail-img .img-placeholder {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.product-detail-body h1 { font-size: 2rem; margin-bottom: 0.2em; }
+.product-detail-body .product-dim {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+.product-price-lg {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--tan-dark);
+  margin: 0 0 14px;
+}
+.product-detail-body p { color: var(--text); }
+
+/* ---------- stock badge ---------- */
+.stock-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.stock-badge--in { background: rgba(122, 139, 82, 0.15); color: var(--sage-dark); }
+.stock-badge--out { background: rgba(107, 77, 44, 0.12); color: var(--brown-dark); }
+
+/* ---------- quantity stepper ---------- */
+.qty-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 8px;
+}
+.qty-stepper button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--ink);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.qty-stepper button:hover { border-color: var(--tan-dark); color: var(--tan-dark); }
+.qty-stepper button:disabled { opacity: 0.4; cursor: not-allowed; }
+.qty-stepper input {
+  width: 32px;
+  border: none;
+  background: none;
+  text-align: center;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--ink);
+  -moz-appearance: textfield;
+}
+.qty-stepper input::-webkit-outer-spin-button,
+.qty-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.qty-stepper input:disabled { color: var(--text-muted); }
+
+.add-to-cart-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+.product-card .add-to-cart-row { margin-bottom: 4px; }
+[data-add-to-cart]:disabled { opacity: 0.5; cursor: not-allowed; }
+[data-add-to-cart]:disabled:hover { background: transparent; color: var(--tan-dark); }
+
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
   .intro-block { grid-template-columns: 1fr; }
@@ -700,6 +800,7 @@ body.cart-open { overflow: hidden; }
   .gallery { grid-template-columns: repeat(2, 1fr); }
   .checkout-layout { grid-template-columns: 1fr; }
   .checkout-summary { position: static; }
+  .product-detail { grid-template-columns: 1fr; }
 }
 @media (max-width: 720px) {
   .nav-toggle { display: block; }

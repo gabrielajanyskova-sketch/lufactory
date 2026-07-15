@@ -56,10 +56,10 @@ function escapeHtml(value) {
 // ---------- products ----------
 
 async function getProducts(env, cors) {
-  const { results } = await env.DB.prepare('SELECT product_id, title, price FROM products').all();
+  const { results } = await env.DB.prepare('SELECT product_id, title, price, stock_qty FROM products').all();
   const products = {};
   for (const row of results) {
-    products[row.product_id] = { title: row.title, price: row.price };
+    products[row.product_id] = { title: row.title, price: row.price, stockQty: row.stock_qty };
   }
   return json(products, 200, cors);
 }
@@ -110,14 +110,17 @@ async function createOrder(request, env, cors) {
     return json({ error: 'missing_payment_method' }, 400, cors);
   }
 
-  // Look up real prices/titles server-side — never trust client-supplied prices.
+  // Look up real prices/titles/stock server-side — never trust client-supplied prices.
   const items = [];
   for (const line of body.items) {
     const product = await env.DB.prepare(
-      'SELECT product_id, title, price FROM products WHERE product_id = ?'
+      'SELECT product_id, title, price, stock_qty FROM products WHERE product_id = ?'
     ).bind(line.productId).first();
     if (!product) return json({ error: 'unknown_product', productId: line.productId }, 400, cors);
     const qty = Math.max(1, parseInt(line.qty, 10) || 1);
+    if (product.stock_qty < qty) {
+      return json({ error: 'insufficient_stock', productId: line.productId, available: product.stock_qty }, 409, cors);
+    }
     items.push({ productId: product.product_id, title: product.title, price: product.price, qty });
   }
 
@@ -154,7 +157,12 @@ async function createOrder(request, env, cors) {
       'INSERT INTO order_items (order_id, product_id, title, price, qty) VALUES (?, ?, ?, ?, ?)'
     ).bind(orderId, item.productId, item.title, item.price, item.qty)
   );
-  await env.DB.batch(itemStmts);
+  const stockStmts = items.map((item) =>
+    env.DB.prepare(
+      'UPDATE products SET stock_qty = stock_qty - ? WHERE product_id = ? AND stock_qty >= ?'
+    ).bind(item.qty, item.productId, item.qty)
+  );
+  await env.DB.batch(itemStmts.concat(stockStmts));
 
   if (env.RESEND_API_KEY) {
     await sendOrderEmails(env, { orderNumber, body, items, subtotal, discount, shipping, total });
