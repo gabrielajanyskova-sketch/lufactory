@@ -383,7 +383,10 @@ body.cart-open { overflow: hidden; }
   flex-direction: column;
   box-shadow: var(--shadow);
 }
-.product-card--featured { border-color: var(--tan-dark); }
+.product-card--featured { border-color: var(--sage); border-top: 3px solid var(--sage); }
+.product-card--featured .product-price { color: var(--sage-dark); }
+.product-card--featured .btn--outline { border-color: var(--sage); color: var(--sage-dark); }
+.product-card--featured .btn--outline:hover { background: var(--sage); color: var(--white); }
 .product-img {
   aspect-ratio: 4/3;
   background: url('/assets/img/loofah-texture.svg') center/cover no-repeat;
