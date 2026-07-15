@@ -7,6 +7,8 @@
   // web dál funguje na mailto přesně jako dosud.
   var API_BASE = '';
 
+  // Musí zůstat stejné jako SHIPPING ve worker/src/index.js — worker cenu dopravy
+  // znovu ověřuje server-side, tohle je jen zobrazovací kopie pro klienta.
   var SHIPPING = {
     pickup: { label: 'Osobní odběr (Nová Ves u Prahy / Praha 8, Čimice)', price: 0 },
     zasilkovna: { label: 'Zásilkovna', price: 79 }
@@ -151,6 +153,41 @@
     });
   }
 
+  // Shared by the header cart drawer and the full /kosik.html item list —
+  // builds one <li class="cart-item"> with its qty +/− and remove handlers.
+  function buildCartItemEl(item) {
+    var li = document.createElement('li');
+    li.className = 'cart-item';
+    li.innerHTML =
+      '<div class="cart-item-info">' +
+        '<span class="cart-item-name">' + item.name + '</span>' +
+        '<span class="cart-item-price">' + formatPrice(item.price) + ' / ks</span>' +
+      '</div>' +
+      '<div class="cart-item-controls">' +
+        '<button type="button" class="qty-btn" data-action="dec" aria-label="Ubrat kus">−</button>' +
+        '<span class="qty-value">' + item.qty + '</span>' +
+        '<button type="button" class="qty-btn" data-action="inc" aria-label="Přidat kus">+</button>' +
+        '<button type="button" class="cart-remove" aria-label="Odebrat z košíku">×</button>' +
+      '</div>';
+    li.querySelector('[data-action="dec"]').addEventListener('click', function () {
+      setQty(item.id, item.qty - 1);
+    });
+    li.querySelector('[data-action="inc"]').addEventListener('click', function () {
+      setQty(item.id, item.qty + 1);
+    });
+    li.querySelector('.cart-remove').addEventListener('click', function () {
+      removeFromCart(item.id);
+    });
+    return li;
+  }
+
+  function renderCartItems(listEl, cart) {
+    listEl.innerHTML = '';
+    cart.forEach(function (item) {
+      listEl.appendChild(buildCartItemEl(item));
+    });
+  }
+
   // ---------- cart drawer (header flyout) ----------
   function renderCart() {
     var cart = getCart();
@@ -168,9 +205,8 @@
     var footerEl = document.querySelector('.cart-footer');
     var totalEl = document.querySelector('.cart-total-value');
 
-    itemsEl.innerHTML = '';
-
     if (cart.length === 0) {
+      itemsEl.innerHTML = '';
       if (emptyEl) emptyEl.hidden = false;
       if (footerEl) footerEl.hidden = true;
       return;
@@ -178,32 +214,7 @@
 
     if (emptyEl) emptyEl.hidden = true;
     if (footerEl) footerEl.hidden = false;
-
-    cart.forEach(function (item) {
-      var li = document.createElement('li');
-      li.className = 'cart-item';
-      li.innerHTML =
-        '<div class="cart-item-info">' +
-          '<span class="cart-item-name">' + item.name + '</span>' +
-          '<span class="cart-item-price">' + formatPrice(item.price) + ' / ks</span>' +
-        '</div>' +
-        '<div class="cart-item-controls">' +
-          '<button type="button" class="qty-btn" data-action="dec" aria-label="Ubrat kus">−</button>' +
-          '<span class="qty-value">' + item.qty + '</span>' +
-          '<button type="button" class="qty-btn" data-action="inc" aria-label="Přidat kus">+</button>' +
-          '<button type="button" class="cart-remove" aria-label="Odebrat z košíku">×</button>' +
-        '</div>';
-      li.querySelector('[data-action="dec"]').addEventListener('click', function () {
-        setQty(item.id, item.qty - 1);
-      });
-      li.querySelector('[data-action="inc"]').addEventListener('click', function () {
-        setQty(item.id, item.qty + 1);
-      });
-      li.querySelector('.cart-remove').addEventListener('click', function () {
-        removeFromCart(item.id);
-      });
-      itemsEl.appendChild(li);
-    });
+    renderCartItems(itemsEl, cart);
 
     if (totalEl) totalEl.textContent = formatPrice(cartSubtotal(cart));
   }
@@ -244,34 +255,7 @@
     if (content) content.hidden = false;
 
     var itemsEl = document.getElementById('cart-page-items');
-    if (itemsEl) {
-      itemsEl.innerHTML = '';
-      cart.forEach(function (item) {
-        var li = document.createElement('li');
-        li.className = 'cart-item';
-        li.innerHTML =
-          '<div class="cart-item-info">' +
-            '<span class="cart-item-name">' + item.name + '</span>' +
-            '<span class="cart-item-price">' + formatPrice(item.price) + ' / ks</span>' +
-          '</div>' +
-          '<div class="cart-item-controls">' +
-            '<button type="button" class="qty-btn" data-action="dec" aria-label="Ubrat kus">−</button>' +
-            '<span class="qty-value">' + item.qty + '</span>' +
-            '<button type="button" class="qty-btn" data-action="inc" aria-label="Přidat kus">+</button>' +
-            '<button type="button" class="cart-remove" aria-label="Odebrat z košíku">×</button>' +
-          '</div>';
-        li.querySelector('[data-action="dec"]').addEventListener('click', function () {
-          setQty(item.id, item.qty - 1);
-        });
-        li.querySelector('[data-action="inc"]').addEventListener('click', function () {
-          setQty(item.id, item.qty + 1);
-        });
-        li.querySelector('.cart-remove').addEventListener('click', function () {
-          removeFromCart(item.id);
-        });
-        itemsEl.appendChild(li);
-      });
-    }
+    if (itemsEl) renderCartItems(itemsEl, cart);
 
     var subtotal = cartSubtotal(cart);
     var discount = discountAmount(subtotal);

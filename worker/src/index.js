@@ -1,5 +1,7 @@
 const SITE_URL = 'https://www.lufactory.cz';
 
+// Musí zůstat stejné jako SHIPPING v assets/js/cart.js — tady se cena dopravy
+// ověřuje server-side (nikdy se nevěří ceně poslané klientem).
 const SHIPPING = {
   pickup: { label: 'Osobní odběr (Nová Ves u Prahy / Praha 8, Čimice)', price: 0 },
   zasilkovna: { label: 'Zásilkovna', price: 79 }
