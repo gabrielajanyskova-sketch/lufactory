@@ -2,16 +2,25 @@
   var STORAGE_KEY = 'lufactory_cart';
   var DISCOUNT_KEY = 'lufactory_discount';
 
+  // Vyplň adresou nasazeného workeru (worker/README.md), např.
+  // 'https://lufactory-api.<tvuj-subdomain>.workers.dev' — dokud je prázdné,
+  // web dál funguje na mailto přesně jako dosud.
+  var API_BASE = '';
+
   var SHIPPING = {
     pickup: { label: 'Osobní odběr (Nová Ves u Prahy / Praha 8, Čimice)', price: 0 },
     zasilkovna: { label: 'Zásilkovna', price: 79 }
   };
 
-  // Slevové kódy — přidávej/uprav podle potřeby.
+  // Slevové kódy — přidávej/uprav podle potřeby. Když je API_BASE vyplněné,
+  // kódy z D1 databáze mají přednost, tohle slouží jako fallback bez workeru.
   // type "percent": value je procento z mezisoučtu. type "fixed": value je sleva v Kč.
   var DISCOUNT_CODES = {
     LETO10: { type: 'percent', value: 10 }
   };
+
+  // Kódy ověřené přes API v této návštěvě (viz wireDiscountForm).
+  var remoteDiscounts = {};
 
   function getCart() {
     try {
@@ -80,8 +89,12 @@
     renderCartPage();
   }
 
+  function discountEntry(code) {
+    return remoteDiscounts[code] || DISCOUNT_CODES[code];
+  }
+
   function discountAmount(subtotal) {
-    var entry = DISCOUNT_CODES[getDiscountCode()];
+    var entry = discountEntry(getDiscountCode());
     if (!entry) return 0;
     if (entry.type === 'percent') return Math.round(subtotal * entry.value / 100);
     return Math.min(entry.value, subtotal);
@@ -220,7 +233,7 @@
     var code = getDiscountCode();
     if (discountInput && !discountInput.value) discountInput.value = code;
     if (discountMsg) {
-      if (code && DISCOUNT_CODES[code]) {
+      if (code && discountEntry(code)) {
         discountMsg.hidden = false;
         discountMsg.textContent = 'Kód ' + code + ' uplatněn.';
         discountMsg.className = 'discount-message discount-message--ok';
@@ -339,7 +352,18 @@
     if (discountForm) {
       discountForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        setDiscountCode(valueOf('discount-code'));
+        var code = valueOf('discount-code').toUpperCase();
+        if (!code || !API_BASE) {
+          setDiscountCode(code);
+          return;
+        }
+        fetch(API_BASE + '/api/discount/' + encodeURIComponent(code))
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.valid) remoteDiscounts[code] = { type: data.type, value: data.value };
+            setDiscountCode(code);
+          })
+          .catch(function () { setDiscountCode(code); });
       });
     }
 
@@ -352,8 +376,67 @@
       submitOrderBtn.addEventListener('click', function () {
         var form = document.getElementById('checkout-form');
         if (form && !form.reportValidity()) return;
-        window.location.href = buildOrderMailto();
+
+        if (!API_BASE) {
+          window.location.href = buildOrderMailto();
+          return;
+        }
+
+        submitOrderBtn.disabled = true;
+        submitOrderBtn.textContent = 'Odesílám…';
+        submitOrderViaApi()
+          .then(function (result) {
+            if (result) {
+              showOrderSuccess(result);
+            } else {
+              window.location.href = buildOrderMailto();
+            }
+          })
+          .then(function () {
+            submitOrderBtn.disabled = false;
+            submitOrderBtn.textContent = 'Odeslat objednávku';
+          });
       });
     }
   });
+
+  function submitOrderViaApi() {
+    var cart = getCart();
+    var payload = {
+      items: cart.map(function (i) { return { productId: i.id, qty: i.qty }; }),
+      discountCode: getDiscountCode() || undefined,
+      delivery: { method: selectedShippingKey(), detail: valueOf('c-address') },
+      payment: { method: selectedPaymentKey() },
+      customer: { name: valueOf('c-name'), email: valueOf('c-email'), phone: valueOf('c-phone') },
+      note: valueOf('c-note')
+    };
+    return fetch(API_BASE + '/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error('order_failed');
+        return r.json();
+      })
+      .then(function (data) {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(DISCOUNT_KEY);
+        return data;
+      })
+      .catch(function () { return null; });
+  }
+
+  function showOrderSuccess(result) {
+    var content = document.getElementById('cart-page-content');
+    if (!content) return;
+    renderCart();
+    content.innerHTML =
+      '<div class="section-head">' +
+        '<span class="eyebrow">Děkujeme</span>' +
+        '<h2>Objednávka odeslána</h2>' +
+        '<p>Číslo objednávky <strong>' + result.orderNumber + '</strong>. Potvrzení jsme poslali na váš e-mail, brzy se ozveme s dalšími informacemi.</p>' +
+        '<a href="/produkty.html" class="btn">Zpět na produkty</a>' +
+      '</div>';
+  }
 })();

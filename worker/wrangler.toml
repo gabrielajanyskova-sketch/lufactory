@@ -1,0 +1,15 @@
+name = "lufactory-api"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lufactory-orders"
+database_id = "7226b02b-801c-471b-a73c-a3be684c4daa"
+
+[vars]
+MAIL_FROM = "lufactory <objednavky@lufactory.cz>"
+SHOP_NOTIFICATION_EMAIL = "info@lufactory.cz"
+
+# RESEND_API_KEY is a secret, not a var — set it with:
+#   wrangler secret put RESEND_API_KEY

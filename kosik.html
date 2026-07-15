@@ -65,20 +65,9 @@
             <h2>Vaše objednávka</h2>
           </div>
 
-          <ul id="cart-page-items" class="cart-page-items"></ul>
-
-          <form id="discount-form" class="discount-form">
-            <label for="discount-code">Slevový kód</label>
-            <div class="discount-row">
-              <input type="text" id="discount-code" name="discount-code" placeholder="Např. LETO10">
-              <button type="submit" class="btn btn--outline">Použít</button>
-            </div>
-            <p id="discount-message" class="discount-message" hidden></p>
-          </form>
-
-          <form id="checkout-form">
-            <div class="checkout-grid">
-              <div>
+          <div class="checkout-layout">
+            <div class="checkout-main">
+              <form id="checkout-form">
                 <h3>Doprava</h3>
                 <div class="option-group" id="shipping-options">
                   <label class="option-card">
@@ -128,10 +117,8 @@
                     </span>
                   </label>
                 </div>
-              </div>
 
-              <div>
-                <h3>Kontaktní údaje</h3>
+                <h3>Fakturační údaje</h3>
                 <div class="form-group">
                   <label for="c-name">Jméno a příjmení</label>
                   <input type="text" id="c-name" required>
@@ -152,19 +139,33 @@
                   <label for="c-note">Poznámka k objednávce</label>
                   <textarea id="c-note"></textarea>
                 </div>
-              </div>
+              </form>
             </div>
-          </form>
 
-          <div class="order-summary">
-            <div class="order-summary-row"><span>Mezisoučet</span><span id="summary-subtotal">0 Kč</span></div>
-            <div class="order-summary-row" id="summary-discount-row" hidden><span>Sleva</span><span id="summary-discount">0 Kč</span></div>
-            <div class="order-summary-row"><span>Doprava</span><span id="summary-shipping">Zdarma</span></div>
-            <div class="order-summary-row order-summary-total"><span>Celkem</span><span id="summary-total">0 Kč</span></div>
+            <aside class="checkout-summary">
+              <h3>Souhrn objednávky</h3>
+              <ul id="cart-page-items" class="cart-page-items"></ul>
+
+              <form id="discount-form" class="discount-form">
+                <label for="discount-code">Slevový kód</label>
+                <div class="discount-row">
+                  <input type="text" id="discount-code" name="discount-code" placeholder="Např. LETO10">
+                  <button type="submit" class="btn btn--outline">Použít</button>
+                </div>
+                <p id="discount-message" class="discount-message" hidden></p>
+              </form>
+
+              <div class="order-summary">
+                <div class="order-summary-row"><span>Mezisoučet</span><span id="summary-subtotal">0 Kč</span></div>
+                <div class="order-summary-row" id="summary-discount-row" hidden><span>Sleva</span><span id="summary-discount">0 Kč</span></div>
+                <div class="order-summary-row"><span>Doprava</span><span id="summary-shipping">Zdarma</span></div>
+                <div class="order-summary-row order-summary-total"><span>Celkem</span><span id="summary-total">0 Kč</span></div>
+              </div>
+
+              <button type="button" id="submit-order" class="btn">Odeslat objednávku</button>
+              <p class="form-note">Po odeslání se otevře váš e-mailový klient s kompletní objednávkou — platba a potvrzení zatím probíhá ručně, dokud nebude spuštěná platební brána.</p>
+            </aside>
           </div>
-
-          <button type="button" id="submit-order" class="btn">Odeslat objednávku</button>
-          <p class="form-note">Po odeslání se otevře váš e-mailový klient s kompletní objednávkou — platba a potvrzení zatím probíhá ručně, dokud nebude spuštěná platební brána.</p>
         </div>
       </div>
     </div>
