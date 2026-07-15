@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lufactory — Košík</title>
+<meta name="description" content="Váš košík — dokončete objednávku houbiček z lufy, vyberte dopravu a platbu.">
+<meta name="robots" content="noindex, follow">
+<link rel="canonical" href="https://www.lufactory.cz/kosik.html">
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap"></noscript>
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <a href="/index.html" class="logo"><img src="/assets/img/logo.webp" alt="lufactory" width="200" height="84"></a>
+    <nav class="main-nav">
+      <ul>
+        <li><a href="/produkty.html">Produkty</a></li>
+        <li><a href="/index.html#o-mne">O mně</a></li>
+        <li><a href="/index.html#o-houbickach">Co je lufa</a></li>
+        <li><a href="/index.html#kontakt">Kontakt</a></li>
+      </ul>
+    </nav>
+    <div class="header-actions">
+      <button class="cart-toggle" aria-label="Košík" aria-haspopup="dialog" aria-controls="cart-panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 6h2l2.4 12.2a2 2 0 0 0 2 1.8h8.2a2 2 0 0 0 2-1.6L21 8H6"/>
+          <circle cx="10" cy="21" r="1"/>
+          <circle cx="18" cy="21" r="1"/>
+        </svg>
+        <span class="cart-count" hidden>0</span>
+      </button>
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false"><span class="nav-toggle-icon"></span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <h1 class="sr-only">lufactory — Košík</h1>
+
+  <section class="hero hero--small">
+    <div class="container">
+      <div class="hero-text">
+        <div class="hero-badge">Košík</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div id="cart-page">
+        <div id="cart-page-empty" class="cart-page-empty">
+          <p>Košík je zatím prázdný.</p>
+          <a href="/produkty.html" class="btn">Prohlédnout produkty</a>
+        </div>
+
+        <div id="cart-page-content" hidden>
+          <div class="section-head">
+            <span class="eyebrow">Košík</span>
+            <h2>Vaše objednávka</h2>
+          </div>
+
+          <ul id="cart-page-items" class="cart-page-items"></ul>
+
+          <form id="discount-form" class="discount-form">
+            <label for="discount-code">Slevový kód</label>
+            <div class="discount-row">
+              <input type="text" id="discount-code" name="discount-code" placeholder="Např. LETO10">
+              <button type="submit" class="btn btn--outline">Použít</button>
+            </div>
+            <p id="discount-message" class="discount-message" hidden></p>
+          </form>
+
+          <form id="checkout-form">
+            <div class="checkout-grid">
+              <div>
+                <h3>Doprava</h3>
+                <div class="option-group" id="shipping-options">
+                  <label class="option-card">
+                    <input type="radio" name="shipping" value="pickup" checked>
+                    <span class="option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-7.58 7-12a7 7 0 1 0-14 0c0 4.42 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                    </span>
+                    <span class="option-body">
+                      <span class="option-title">Osobní odběr</span>
+                      <span class="option-desc">Nová Ves u Prahy / Praha 8, Čimice, po domluvě</span>
+                    </span>
+                    <span class="option-price">Zdarma</span>
+                  </label>
+                  <label class="option-card">
+                    <input type="radio" name="shipping" value="zasilkovna">
+                    <span class="option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+                    </span>
+                    <span class="option-body">
+                      <span class="option-title">Zásilkovna</span>
+                      <span class="option-desc">Doručení na výdejní místo</span>
+                    </span>
+                    <span class="option-price">79 Kč</span>
+                  </label>
+                </div>
+
+                <h3>Platba</h3>
+                <div class="option-group" id="payment-options">
+                  <label class="option-card">
+                    <input type="radio" name="payment" value="transfer" checked>
+                    <span class="option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 12 4l9 6"/><path d="M4 10v9M9 10v9M15 10v9M20 10v9"/><path d="M3 21h18"/></svg>
+                    </span>
+                    <span class="option-body">
+                      <span class="option-title">Bankovním převodem</span>
+                      <span class="option-desc">Číslo účtu a variabilní symbol pošlu v potvrzení objednávky</span>
+                    </span>
+                  </label>
+                  <label class="option-card" id="payment-cash-option">
+                    <input type="radio" name="payment" value="cash">
+                    <span class="option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+                    </span>
+                    <span class="option-body">
+                      <span class="option-title">Hotově při odběru</span>
+                      <span class="option-desc">Platba na místě při osobním odběru</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <h3>Kontaktní údaje</h3>
+                <div class="form-group">
+                  <label for="c-name">Jméno a příjmení</label>
+                  <input type="text" id="c-name" required>
+                </div>
+                <div class="form-group">
+                  <label for="c-email">E-mail</label>
+                  <input type="email" id="c-email" required>
+                </div>
+                <div class="form-group">
+                  <label for="c-phone">Telefon</label>
+                  <input type="tel" id="c-phone">
+                </div>
+                <div id="address-fields" class="form-group" hidden>
+                  <label for="c-address">Výdejní místo Zásilkovny</label>
+                  <input type="text" id="c-address" placeholder="Název a adresa pobočky">
+                </div>
+                <div class="form-group">
+                  <label for="c-note">Poznámka k objednávce</label>
+                  <textarea id="c-note"></textarea>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          <div class="order-summary">
+            <div class="order-summary-row"><span>Mezisoučet</span><span id="summary-subtotal">0 Kč</span></div>
+            <div class="order-summary-row" id="summary-discount-row" hidden><span>Sleva</span><span id="summary-discount">0 Kč</span></div>
+            <div class="order-summary-row"><span>Doprava</span><span id="summary-shipping">Zdarma</span></div>
+            <div class="order-summary-row order-summary-total"><span>Celkem</span><span id="summary-total">0 Kč</span></div>
+          </div>
+
+          <button type="button" id="submit-order" class="btn">Odeslat objednávku</button>
+          <p class="form-note">Po odeslání se otevře váš e-mailový klient s kompletní objednávkou — platba a potvrzení zatím probíhá ručně, dokud nebude spuštěná platební brána.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>&copy; 2026 lufactory — ručně vyráběné houbičky z lufy. <a href="mailto:info@lufactory.cz">info@lufactory.cz</a></p>
+    <p class="site-footer-credit">Web: <a href="https://janyskovadigital.cz" target="_blank" rel="noopener">janyskovadigital.cz</a></p>
+  </div>
+</footer>
+
+<div class="cart-overlay"></div>
+<aside class="cart-panel" id="cart-panel" aria-label="Košík">
+  <div class="cart-header">
+    <h2>Košík</h2>
+    <button type="button" class="cart-close" aria-label="Zavřít košík">×</button>
+  </div>
+  <p class="cart-empty">Košík je zatím prázdný.</p>
+  <ul class="cart-items"></ul>
+  <div class="cart-footer" hidden>
+    <div class="cart-total">
+      <span>Celkem</span>
+      <span class="cart-total-value">0 Kč</span>
+    </div>
+    <a href="/kosik.html" class="btn cart-checkout">Pokračovat do košíku</a>
+  </div>
+</aside>
+
+<script src="/assets/js/cart.js"></script>
+<script src="/assets/js/main.js"></script>
+</body>
+</html>
