@@ -17,7 +17,6 @@
   --sage-dark: #5b6a3d;
   --font-body: 'Poppins', system-ui, sans-serif;
   --font-heading: 'Fraunces', Georgia, serif;
-  --font-script: 'Yellowtail', 'Brush Script MT', cursive;
   --radius: 16px;
   --shadow: 0 10px 30px -12px rgba(46, 36, 25, 0.2);
   --max-width: 1180px;
@@ -52,9 +51,10 @@ p { margin: 0 0 1em; }
 }
 
 .script {
-  font-family: var(--font-script);
+  font-family: var(--font-heading);
+  font-style: italic;
   color: var(--tan);
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .eyebrow {
@@ -298,8 +298,9 @@ body.cart-open { overflow: hidden; }
   color: var(--brown-dark);
   padding: 10px 22px;
   border-radius: 8px;
-  font-size: 1.5rem;
-  font-family: var(--font-script);
+  font-size: 1.6rem;
+  font-family: var(--font-heading);
+  font-weight: 600;
   margin-bottom: 14px;
 }
 
