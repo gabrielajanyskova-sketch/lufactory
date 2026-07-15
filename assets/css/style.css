@@ -487,6 +487,7 @@ body.cart-open { overflow: hidden; }
   gap: 32px;
   align-items: start;
 }
+.contact-grid > * { min-width: 0; }
 .contact-form {
   background: var(--cream);
   border: 1px solid var(--border);
@@ -495,7 +496,7 @@ body.cart-open { overflow: hidden; }
   display: grid;
   gap: 18px;
 }
-.form-group { display: grid; gap: 6px; }
+.form-group { display: grid; gap: 6px; min-width: 0; }
 .form-group label {
   font-size: 0.85rem;
   font-weight: 600;
@@ -504,6 +505,8 @@ body.cart-open { overflow: hidden; }
 .form-group input,
 .form-group select,
 .form-group textarea {
+  width: 100%;
+  min-width: 0;
   font-family: inherit;
   font-size: 0.95rem;
   padding: 12px 14px;
@@ -618,6 +621,7 @@ body.cart-open { overflow: hidden; }
   max-width: 1000px;
   margin-bottom: 40px;
 }
+.checkout-grid > * { min-width: 0; }
 .checkout-grid h3 { font-size: 1.15rem; margin: 0 0 16px; }
 .checkout-grid > div > h3:not(:first-child) { margin-top: 28px; }
 
