@@ -367,6 +367,7 @@ body.cart-open { overflow: hidden; }
   grid-template-columns: repeat(3, 1fr);
   gap: 28px;
 }
+.product-more { text-align: center; margin-top: 40px; }
 .product-card {
   background: var(--white);
   border: 1px solid var(--border);
@@ -600,7 +601,7 @@ body.cart-open { overflow: hidden; }
   .main-nav.is-open { display: block; }
   .main-nav ul { flex-direction: column; gap: 0; }
   .main-nav a { display: block; padding: 14px 24px; }
-  .site-header { position: relative; }
+  .site-header { position: relative; z-index: 50; }
 }
 @media (max-width: 560px) {
   .product-grid { grid-template-columns: 1fr; }
