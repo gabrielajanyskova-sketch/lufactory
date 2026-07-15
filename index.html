@@ -24,7 +24,7 @@
 <body>
 <header class="site-header">
   <div class="container">
-    <a href="/index.html" class="logo">lufactory</a>
+    <a href="/index.html" class="logo"><img src="/assets/img/logo.webp" alt="lufactory" width="200" height="84"></a>
     <nav class="main-nav">
       <ul>
         <li><a href="#produkty">Produkty</a></li>
@@ -33,7 +33,17 @@
         <li><a href="#kontakt">Kontakt</a></li>
       </ul>
     </nav>
-    <button class="nav-toggle" aria-label="Menu" aria-expanded="false"><span class="nav-toggle-icon"></span></button>
+    <div class="header-actions">
+      <button class="cart-toggle" aria-label="Košík" aria-haspopup="dialog" aria-controls="cart-panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 6h2l2.4 12.2a2 2 0 0 0 2 1.8h8.2a2 2 0 0 0 2-1.6L21 8H6"/>
+          <circle cx="10" cy="21" r="1"/>
+          <circle cx="18" cy="21" r="1"/>
+        </svg>
+        <span class="cart-count" hidden>0</span>
+      </button>
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false"><span class="nav-toggle-icon"></span></button>
+    </div>
   </div>
 </header>
 
@@ -66,7 +76,7 @@
             <span class="product-dim">balení 3 ks, 9–11 cm</span>
             <p>Spolehlivá při mytí nádobí, padne dobře i do menší ruky.</p>
             <span class="product-price">120 Kč</span>
-            <a href="#kontakt" class="btn btn--outline" data-product="Houbička na nádobí – malá (3 ks, 120 Kč)">Mám zájem</a>
+            <button type="button" class="btn btn--outline" data-add-to-cart data-id="houbicka-mala" data-name="Houbička na nádobí – malá (3 ks)" data-price="120">Přidat do košíku</button>
           </div>
         </article>
 
@@ -77,7 +87,7 @@
             <span class="product-dim">balení 3 ks, 11–13 cm</span>
             <p>Univerzální velikost — na nádobí i úklid koupelny.</p>
             <span class="product-price">120 Kč</span>
-            <a href="#kontakt" class="btn btn--outline" data-product="Houbička na nádobí – střední (3 ks, 120 Kč)">Mám zájem</a>
+            <button type="button" class="btn btn--outline" data-add-to-cart data-id="houbicka-stredni" data-name="Houbička na nádobí – střední (3 ks)" data-price="120">Přidat do košíku</button>
           </div>
         </article>
 
@@ -88,7 +98,7 @@
             <span class="product-dim">balení 3 ks, nad 13 cm</span>
             <p>Poradí si s úklidem koupelny i zbytku domácnosti.</p>
             <span class="product-price">120 Kč</span>
-            <a href="#kontakt" class="btn btn--outline" data-product="Houbička na nádobí – velká (3 ks, 120 Kč)">Mám zájem</a>
+            <button type="button" class="btn btn--outline" data-add-to-cart data-id="houbicka-velka" data-name="Houbička na nádobí – velká (3 ks)" data-price="120">Přidat do košíku</button>
           </div>
         </article>
 
@@ -99,7 +109,7 @@
             <span class="product-dim">balení 3 ks, malá + střední + velká</span>
             <p>Nejste si jistí velikostí? Vyzkoušejte všechny tři najednou.</p>
             <span class="product-price">120 Kč</span>
-            <a href="#kontakt" class="btn btn--outline" data-product="Houbička na nádobí – mix velikostí (3 ks, 120 Kč)">Mám zájem</a>
+            <button type="button" class="btn btn--outline" data-add-to-cart data-id="houbicka-mix" data-name="Houbička na nádobí – mix velikostí (3 ks)" data-price="120">Přidat do košíku</button>
           </div>
         </article>
 
@@ -110,7 +120,7 @@
             <span class="product-dim">1 ks, cca 10 × 15 cm</span>
             <p>Přírodní alternativa plastové žínky — jemný peeling ve sprše.</p>
             <span class="product-price">50 Kč</span>
-            <a href="#kontakt" class="btn btn--outline" data-product="Peelingová houbička na tělo (50 Kč)">Mám zájem</a>
+            <button type="button" class="btn btn--outline" data-add-to-cart data-id="peeling" data-name="Peelingová houbička na tělo" data-price="50">Přidat do košíku</button>
           </div>
         </article>
 
@@ -121,7 +131,7 @@
             <span class="product-dim">1 ks, nezpracovaná, usušená</span>
             <p>Nastříhejte si houbičky přesně podle svého — velikost i tvar na míru.</p>
             <span class="product-price">150 Kč</span>
-            <a href="#kontakt" class="btn btn--outline" data-product="Celá lufa – vyrob si sám (150 Kč)">Mám zájem</a>
+            <button type="button" class="btn btn--outline" data-add-to-cart data-id="cela-lufa" data-name="Celá lufa – vyrob si sám" data-price="150">Přidat do košíku</button>
           </div>
         </article>
       </div>
@@ -147,16 +157,16 @@
       <div class="section-head">
         <span class="eyebrow">Zajímavost</span>
         <h2>Co je vlastně lufa?</h2>
-        <p>Houbička z lufy není mořská houba ani umělý materiál — je to usušená vláknitá dužina rostliny lufa, kterou pěstuji a zpracovávám ručně.</p>
+        <p>Lufa je přírodní rostlinný materiál získávaný ze zralých plodů rostliny rodu Luffa. Nejkvalitnější lufa se pěstuje v teplých a slunečných oblastech s dlouhou vegetační sezónou, kde má rostlina dost času vytvořit pevná, hustá a rovnoměrná vlákna. Moje lufy byly vypěstovány v Egyptě.</p>
       </div>
 
       <div class="intro-block">
-        <div class="img-placeholder"><span>fotky celé lufy brzy přidáme</span></div>
+        <img src="/assets/img/luffa-plant.webp" alt="Rostliny lufy zavěšené na pergole během dozrávání" width="640" height="480">
         <div>
           <span class="eyebrow">Odkud houbička pochází</span>
-          <h2>Takto vypadá celá lufa</h2>
-          <p>Houbičky vznikají nařezáním a usušením celé lufy — vláknité dužiny rostliny, která po usušení zezlátne a ztvrdne. Z jedné rostliny nakrájím podle její velikosti několik houbiček menších i větších rozměrů.</p>
-          <p>Chcete si houbičku upravit přesně podle svého? Sáhněte po celé lufě „vyrob si sám" v nabídce výše.</p>
+          <h2>Takto lufa roste</h2>
+          <p>Po usušení se dužina lufy změní v pevnou a porézní vláknitou strukturu. Mezi nejdůležitější vlastnosti lufy patří lehkost, vysoká pórovitost, dobrá savost, biologická rozložitelnost a dostatečná pevnost, která umožňuje její opakované použití. Lufa je šetrná k pokožce i k životnímu prostředí a neobsahuje žádné syntetické látky.</p>
+          <p>Nejčastěji se využívá jako přírodní mycí houba pro osobní hygienu, kde pomáhá odstraňovat odumřelé kožní buňky, dále jako ekologická náhrada kuchyňských houbiček, v kosmetice, zahradnictví a také jako výplňový nebo filtrační materiál.</p>
         </div>
       </div>
 
@@ -166,6 +176,12 @@
         <li>Houbičky jsou tvarovány ručně.</li>
         <li>Houbička je plně biologicky rozložitelná — po skončení životnosti ji můžete rozstříhat a hodit na kompost.</li>
       </ul>
+
+      <div class="callout">
+        <p>Z mé zkušenosti je to všestranný pomocník v domácnosti, který slouží dlouhé týdny, je 100% bez plastů a nevytváří další odpad, protože se v přírodě rozloží.</p>
+        <p class="script">Tak na co ještě čekáte? Jděte a vyzkoušejte moje houbičky a já věřím, že nebudete litovat!</p>
+        <a href="#produkty" class="btn">Prohlédnout houbičky</a>
+      </div>
     </div>
   </section>
 
@@ -226,6 +242,25 @@
   </div>
 </footer>
 
+<div class="cart-overlay"></div>
+<aside class="cart-panel" id="cart-panel" aria-label="Košík">
+  <div class="cart-header">
+    <h2>Košík</h2>
+    <button type="button" class="cart-close" aria-label="Zavřít košík">×</button>
+  </div>
+  <p class="cart-empty">Košík je zatím prázdný.</p>
+  <ul class="cart-items"></ul>
+  <div class="cart-footer" hidden>
+    <div class="cart-total">
+      <span>Celkem</span>
+      <span class="cart-total-value">0 Kč</span>
+    </div>
+    <button type="button" class="btn cart-checkout">Odeslat objednávku e-mailem</button>
+    <p class="cart-note">Po odeslání se otevře váš e-mailový klient s objednávkou — platba a potvrzení zatím probíhá ručně.</p>
+  </div>
+</aside>
+
+<script src="/assets/js/cart.js"></script>
 <script src="/assets/js/main.js"></script>
 </body>
 </html>

@@ -17,13 +17,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
-  var productSelect = document.getElementById('product');
-  document.querySelectorAll('[data-product]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      if (productSelect) productSelect.value = btn.getAttribute('data-product');
-    });
-  });
-
   var form = document.querySelector('.contact-form');
   if (!form) return;
 
