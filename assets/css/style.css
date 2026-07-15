@@ -16,6 +16,7 @@
   --sage: #7a8b52;
   --sage-dark: #5b6a3d;
   --font-body: 'Poppins', system-ui, sans-serif;
+  --font-heading: 'Fraunces', Georgia, serif;
   --font-script: 'Yellowtail', 'Brush Script MT', cursive;
   --radius: 16px;
   --shadow: 0 10px 30px -12px rgba(46, 36, 25, 0.2);
@@ -41,7 +42,7 @@ img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
 ul { list-style: none; margin: 0; padding: 0; }
 button { font-family: inherit; cursor: pointer; }
-h1, h2, h3 { color: var(--ink); line-height: 1.25; margin: 0 0 0.5em; font-weight: 600; }
+h1, h2, h3 { color: var(--ink); line-height: 1.25; margin: 0 0 0.5em; font-weight: 600; font-family: var(--font-heading); }
 p { margin: 0 0 1em; }
 
 .container {
@@ -301,15 +302,6 @@ body.cart-open { overflow: hidden; }
   font-family: var(--font-script);
   margin-bottom: 14px;
 }
-.hero-sub {
-  display: inline-block;
-  background: rgba(181, 132, 42, 0.85);
-  color: var(--white);
-  padding: 8px 20px;
-  border-radius: 8px;
-  font-size: 1.15rem;
-  font-family: var(--font-script);
-}
 
 /* ---------- sections ---------- */
 .section { padding: 72px 0; }
@@ -357,7 +349,7 @@ body.cart-open { overflow: hidden; }
 }
 
 /* ---------- hero cta ---------- */
-.hero-btn { display: inline-block; margin-top: 18px; }
+.hero-btn { display: inline-block; }
 
 .product-intro {
   max-width: 760px;
@@ -385,7 +377,8 @@ body.cart-open { overflow: hidden; }
   flex-direction: column;
   box-shadow: var(--shadow);
 }
-.product-card--featured { border-color: var(--sage); border-top: 3px solid var(--sage); }
+.product-card--featured { border: 2px solid var(--sage); }
+.product-card--featured .product-img span { background: var(--sage); color: var(--white); }
 .product-card--featured .product-price { color: var(--sage-dark); }
 .product-card--featured .btn--outline { border-color: var(--sage); color: var(--sage-dark); }
 .product-card--featured .btn--outline:hover { background: var(--sage); color: var(--white); }
@@ -573,7 +566,6 @@ body.cart-open { overflow: hidden; }
   .hero { min-height: 440px; }
   .hero--small { min-height: 200px; }
   .hero-badge { font-size: 1.2rem; }
-  .hero-sub { font-size: 0.95rem; }
   .contact-form,
   .contact-info { padding: 24px; }
 }
