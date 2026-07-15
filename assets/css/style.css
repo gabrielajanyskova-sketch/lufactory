@@ -532,7 +532,7 @@ body.cart-open { overflow: hidden; }
   margin: 0;
 }
 .contact-info {
-  background: var(--brown);
+  background: var(--tan-dark);
   color: var(--cream);
   border-radius: var(--radius);
   padding: 32px;
