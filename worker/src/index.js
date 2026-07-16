@@ -99,7 +99,8 @@ function generateOrderNumber() {
 async function createOrder(request, env, cors) {
   const body = await request.json();
 
-  if (!body.customer || !body.customer.name || !body.customer.email) {
+  if (!body.customer || !body.customer.name || !body.customer.email
+    || !body.customer.street || !body.customer.zip || !body.customer.city) {
     return json({ error: 'missing_customer_fields' }, 400, cors);
   }
   if (!Array.isArray(body.items) || body.items.length === 0) {
@@ -134,14 +135,18 @@ async function createOrder(request, env, cors) {
 
   const insert = await env.DB.prepare(
     `INSERT INTO orders (order_number, status, customer_name, customer_email, customer_phone,
+       customer_street, customer_zip, customer_city,
        delivery_method, delivery_detail, payment_method, discount_code, note,
        subtotal, discount_amount, shipping_price, total)
-     VALUES (?, 'nova', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+     VALUES (?, 'nova', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).bind(
     orderNumber,
     body.customer.name,
     body.customer.email,
     body.customer.phone || '',
+    body.customer.street || '',
+    body.customer.zip || '',
+    body.customer.city || '',
     body.delivery.method,
     body.delivery.detail || '',
     body.payment.method,
@@ -235,6 +240,7 @@ async function sendOrderEmails(env, { orderNumber, body, items, subtotal, discou
     <table role="presentation" width="100%" style="border-collapse:collapse;font-size:14px;margin-bottom:16px;">
       ${totalsRowsHtml([
         ['Jm\xE9no', escapeHtml(body.customer.name)],
+        ['Adresa', escapeHtml(`${body.customer.street}, ${body.customer.zip} ${body.customer.city}`)],
         ['E-mail', escapeHtml(body.customer.email)],
         ['Telefon', escapeHtml(body.customer.phone || '-')],
         ['Doprava', `${escapeHtml(body.delivery.method)} — ${escapeHtml(body.delivery.detail || '')}`],

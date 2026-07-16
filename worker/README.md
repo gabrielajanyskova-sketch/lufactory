@@ -59,7 +59,10 @@ Tabulky v `lufactory-orders`:
   ceny a dostupnost při objednávce, web si je stejně zobrazuje ze statického
   HTML)
 - `discount_codes` — `code`, `type` (`percent`/`fixed`), `value`, `active`
-- `orders`, `order_items` — uložené objednávky
+- `orders` — uložené objednávky včetně fakturační adresy (`customer_name`,
+  `customer_street`, `customer_zip`, `customer_city`, `customer_email`,
+  `customer_phone`)
+- `order_items` — položky jednotlivých objednávek
 
 ### Nastavení skladu (důležité!)
 

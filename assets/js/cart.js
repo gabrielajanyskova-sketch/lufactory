@@ -322,9 +322,7 @@
     var paymentLabel = paymentKey === 'cash' ? 'Hotově při osobním odběru' : 'Bankovním převodem';
     var total = Math.max(0, subtotal - discount) + shipping.price;
 
-    var name = valueOf('c-name');
-    var email = valueOf('c-email');
-    var phone = valueOf('c-phone');
+    var customer = billingDetails();
     var address = valueOf('c-address');
     var note = valueOf('c-note');
 
@@ -339,9 +337,10 @@
     lines.push('');
     lines.push('Platba: ' + paymentLabel);
     lines.push('');
-    lines.push('Jméno: ' + name);
-    lines.push('E-mail: ' + email);
-    if (phone) lines.push('Telefon: ' + phone);
+    lines.push('Jméno: ' + customer.name);
+    lines.push('Adresa: ' + customer.street + ', ' + customer.zip + ' ' + customer.city);
+    lines.push('E-mail: ' + customer.email);
+    if (customer.phone) lines.push('Telefon: ' + customer.phone);
     if (shippingKey === 'zasilkovna' && address) lines.push('Výdejní místo Zásilkovny: ' + address);
     if (note) lines.push('Poznámka: ' + note);
 
@@ -353,6 +352,18 @@
   function valueOf(id) {
     var el = document.getElementById(id);
     return el ? el.value.trim() : '';
+  }
+
+  // Fakturační údaje z /kosik.html — sdíleno mezi mailto fallbackem a API.
+  function billingDetails() {
+    return {
+      name: (valueOf('c-first-name') + ' ' + valueOf('c-last-name')).trim(),
+      street: valueOf('c-street'),
+      zip: valueOf('c-zip'),
+      city: valueOf('c-city'),
+      email: valueOf('c-email'),
+      phone: valueOf('c-phone')
+    };
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -444,7 +455,7 @@
       discountCode: getDiscountCode() || undefined,
       delivery: { method: selectedShippingKey(), detail: valueOf('c-address') },
       payment: { method: selectedPaymentKey() },
-      customer: { name: valueOf('c-name'), email: valueOf('c-email'), phone: valueOf('c-phone') },
+      customer: billingDetails(),
       note: valueOf('c-note')
     };
     return fetch(API_BASE + '/api/orders', {

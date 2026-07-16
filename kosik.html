@@ -119,9 +119,29 @@
                 </div>
 
                 <h3>Fakturační údaje</h3>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="c-first-name">Jméno</label>
+                    <input type="text" id="c-first-name" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="c-last-name">Příjmení</label>
+                    <input type="text" id="c-last-name" required>
+                  </div>
+                </div>
                 <div class="form-group">
-                  <label for="c-name">Jméno a příjmení</label>
-                  <input type="text" id="c-name" required>
+                  <label for="c-street">Ulice a číslo popisné</label>
+                  <input type="text" id="c-street" required>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="c-zip">PSČ</label>
+                    <input type="text" id="c-zip" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="c-city">Město</label>
+                    <input type="text" id="c-city" required>
+                  </div>
                 </div>
                 <div class="form-group">
                   <label for="c-email">E-mail</label>
@@ -129,7 +149,7 @@
                 </div>
                 <div class="form-group">
                   <label for="c-phone">Telefon</label>
-                  <input type="tel" id="c-phone">
+                  <input type="tel" id="c-phone" required>
                 </div>
                 <div id="address-fields" class="form-group" hidden>
                   <label for="c-address">Výdejní místo Zásilkovny</label>
