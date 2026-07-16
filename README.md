@@ -13,7 +13,8 @@ produkty/*.html          detail každého produktu (vlastní URL, vlastní popis
 kosik.html               košík, doprava, platba, fakturační údaje, odeslání
 obchodni-podminky.html   obchodní podmínky
 ochrana-osobnich-udaju.html   zásady zpracování osobních údajů (GDPR)
-assets/css/style.css    veškeré styly (design tokeny v :root)
+assets/css/style.css    zdroj pravdy pro styly (design tokeny v :root) — do
+                         HTML stránek se vkládá přímo (viz "Úprava CSS" níže)
 assets/js/main.js       mobilní menu + odesílání kontaktního formuláře (mailto)
 assets/js/cart.js       košík na localStorage, checkout, sklad, volitelně
                          napojený na worker/ (viz worker/README.md); bez něj
@@ -22,8 +23,23 @@ assets/img/             obrázky — většina jsou reálné fotky; houbička "v
                          zatím nemá fotku, používá texturový placeholder
 worker/                 Cloudflare Worker + D1 pro produkty, sklad, slevové
                          kódy a objednávky — viz worker/README.md pro nasazení
+scripts/inline-css.py   viz "Úprava CSS" níže
 robots.txt, sitemap.xml, llms.txt   SEO/AI crawler soubory
 ```
+
+## Úprava CSS
+
+Kvůli rychlosti načítání (žádný samostatný požadavek na CSS navíc) je obsah
+`assets/css/style.css` vložený přímo do `<style>` v každé HTML stránce, ne
+jen odkazovaný přes `<link>`. `style.css` zůstává zdroj pravdy — po každé
+úpravě spusť:
+
+```bash
+python3 scripts/inline-css.py
+```
+
+To přepíše `<style>` blok ve všech HTML stránkách podle aktuálního obsahu
+`style.css`. Bez spuštění skriptu se úprava CSS v HTML stránkách neprojeví.
 
 ## Sklad
 
