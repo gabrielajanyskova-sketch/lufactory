@@ -194,7 +194,7 @@ function emailLayout(innerHtml) {
           ${innerHtml}
         </td></tr>
         <tr><td style="padding:16px 24px;background:#faf6ef;border-top:1px solid #e6dcc8;text-align:center;font-size:12px;color:#786b58;">
-          lufactory.cz &middot; <a href="mailto:info@lufactory.cz" style="color:#8d6f63;">info@lufactory.cz</a>
+          lufactory.cz &middot; <a href="mailto:info@lufactory.cz" style="color:#81665b;">info@lufactory.cz</a>
         </td></tr>
       </table>
     </td></tr>
@@ -223,7 +223,7 @@ async function sendOrderEmails(env, { orderNumber, body, items, subtotal, discou
     <table role="presentation" width="100%" style="border-collapse:collapse;font-size:14px;">${itemRowsHtml(items)}</table>
     <table role="presentation" width="100%" style="border-collapse:collapse;font-size:14px;margin-top:12px;">${totalsRowsHtml(totalsRows)}</table>
     <table role="presentation" width="100%" style="border-collapse:collapse;margin-top:10px;background:#faf6ef;border-radius:8px;">
-      <tr><td style="padding:10px 14px;font-weight:bold;color:#2e2419;">Celkem</td><td style="padding:10px 14px;text-align:right;font-weight:bold;color:#8d6f63;font-size:17px;">${total} Kč</td></tr>
+      <tr><td style="padding:10px 14px;font-weight:bold;color:#2e2419;">Celkem</td><td style="padding:10px 14px;text-align:right;font-weight:bold;color:#81665b;font-size:17px;">${total} Kč</td></tr>
     </table>
     <p style="margin:20px 0 0;">Platba: ${body.payment.method === 'cash' ? 'hotově při odběru' : 'bankovn\xEDm převodem — č\xEDslo \xFAčtu a variabiln\xED symbol pos\xEDl\xE1me zvl\xE1šť v n\xE1sleduj\xEDc\xEDm e-mailu'}.</p>
     <p style="margin:8px 0 0;">Brzy se v\xE1m ozveme s dalš\xEDmi informacemi.</p>
@@ -250,7 +250,7 @@ async function sendOrderEmails(env, { orderNumber, body, items, subtotal, discou
     </table>
     <table role="presentation" width="100%" style="border-collapse:collapse;font-size:14px;">${itemRowsHtml(items)}</table>
     <table role="presentation" width="100%" style="border-collapse:collapse;margin-top:10px;background:#faf6ef;border-radius:8px;">
-      <tr><td style="padding:10px 14px;font-weight:bold;color:#2e2419;">Celkem</td><td style="padding:10px 14px;text-align:right;font-weight:bold;color:#8d6f63;font-size:17px;">${total} Kč</td></tr>
+      <tr><td style="padding:10px 14px;font-weight:bold;color:#2e2419;">Celkem</td><td style="padding:10px 14px;text-align:right;font-weight:bold;color:#81665b;font-size:17px;">${total} Kč</td></tr>
     </table>
   `);
 

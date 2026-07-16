@@ -2,7 +2,7 @@
    lufactory.cz — design tokens
    ========================================================================== */
 :root {
-  --brown: #8d6f63;
+  --brown: #81665b;
   --brown-dark: #6b544b;
   --cream: #faf6ef;
   --cream-dark: #f1e8d6;
@@ -384,10 +384,10 @@ body.cart-open { overflow: hidden; }
   box-shadow: var(--shadow);
 }
 .product-card--featured { border: 2px solid var(--sage); }
-.product-card--featured .product-img span { background: var(--sage); color: var(--white); }
+.product-card--featured .product-img span { background: var(--sage-dark); color: var(--white); }
 .product-card--featured .product-price { color: var(--sage-dark); }
 .product-card--featured .btn--outline { border-color: var(--sage); color: var(--sage-dark); }
-.product-card--featured .btn--outline:hover { background: var(--sage); color: var(--white); }
+.product-card--featured .btn--outline:hover { background: var(--sage-dark); color: var(--white); }
 .product-img {
   display: block;
   position: relative;
