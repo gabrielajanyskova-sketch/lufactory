@@ -23,20 +23,12 @@ document.addEventListener('DOMContentLoaded', function () {
     e.preventDefault();
     var name = form.name.value.trim();
     var email = form.email.value.trim();
-    var product = form.product.value;
     var message = form.message.value.trim();
 
-    var subject = 'Poptávka z webu' + (product ? ' – ' + product : '');
-    var bodyLines = [
-      'Jméno: ' + name,
-      'E-mail: ' + email,
-      product ? 'Zájem o: ' + product : '',
-      '',
-      message
-    ].filter(function (line) { return line !== ''; });
+    var bodyLines = ['Jméno: ' + name, 'E-mail: ' + email, '', message];
 
     var mailto = 'mailto:info@lufactory.cz'
-      + '?subject=' + encodeURIComponent(subject)
+      + '?subject=' + encodeURIComponent('Dotaz z webu')
       + '&body=' + encodeURIComponent(bodyLines.join('\n'));
 
     window.location.href = mailto;
