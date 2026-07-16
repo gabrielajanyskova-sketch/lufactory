@@ -11,6 +11,8 @@ index.html              hlavní stránka (hero, produkty, o mně, o houbičkách
 produkty.html            plný katalog všech 6 produktů
 produkty/*.html          detail každého produktu (vlastní URL, vlastní popis)
 kosik.html               košík, doprava, platba, fakturační údaje, odeslání
+obchodni-podminky.html   obchodní podmínky
+ochrana-osobnich-udaju.html   zásady zpracování osobních údajů (GDPR)
 assets/css/style.css    veškeré styly (design tokeny v :root)
 assets/js/main.js       mobilní menu + odesílání kontaktního formuláře (mailto)
 assets/js/cart.js       košík na localStorage, checkout, sklad, volitelně
@@ -37,6 +39,8 @@ zavření prohlížeče). Tlačítko „Přidat do košíku" u produktu otevře 
 panel s mezisoučtem; „Pokračovat do košíku" vede na `kosik.html`, kde se vybírá
 doprava (osobní odběr / Zásilkovna), platba (převod / hotově při odběru),
 vyplní fakturační údaje a uplatní slevový kód — cena se přepočítává živě.
+Odeslání objednávky je podmíněné odsouhlasením obchodních podmínek
+(zaškrtávátko u tlačítka „Odeslat objednávku").
 
 Bez nasazeného workeru (`worker/`) se objednávka odešle přes mailto, stejně
 jako dosud. Po nasazení (`worker/README.md`) a vyplnění `API_BASE` v
