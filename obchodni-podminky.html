@@ -394,7 +394,7 @@ body.cart-open { overflow: hidden; }
 .legal-content h2 { font-size: 1.3rem; margin-top: 2em; }
 .legal-content ul { margin: 0 0 1em; padding-left: 1.4em; list-style: disc; }
 .legal-content li { margin-bottom: 0.5em; }
-.legal-content a { color: var(--brown); text-decoration: underline; }
+.legal-content a:not(.btn) { color: var(--brown); text-decoration: underline; }
 .legal-form-box {
   background: var(--cream);
   border: 1px solid var(--border);
@@ -405,6 +405,7 @@ body.cart-open { overflow: hidden; }
 .legal-form-box p { font-size: 0.92rem; }
 .legal-form-box p:last-child { margin-bottom: 0; }
 .legal-form-title { font-weight: 700; color: var(--ink); font-size: 1.02rem; }
+.legal-form-submit { display: inline-block; margin-top: 12px; border: none; }
 
 /* ---------- products ---------- */
 .product-grid {
@@ -971,6 +972,7 @@ body.cart-open { overflow: hidden; }
           <p>Adresa spotřebitele: …………………………………</p>
           <p>Podpis spotřebitele (pouze pokud je tento formulář zasílán v listinné podobě): …………………………………</p>
           <p>Datum: …………………………………</p>
+          <a class="btn legal-form-submit" href="mailto:info@lufactory.cz?subject=Odstoupen%C3%AD%20od%20smlouvy&body=Oznamuji%2C%20%C5%BEe%20t%C3%ADmto%20odstupuji%20od%20smlouvy%20o%20n%C3%A1kupu%20tohoto%20zbo%C5%BE%C3%AD%3A%0A%0A%C4%8C%C3%ADslo%20objedn%C3%A1vky%20%28pokud%20zn%C3%A1te%29%3A%0A%0ADatum%20objedn%C3%A1n%C3%AD%3A%0ADatum%20obdr%C5%BEen%C3%AD%3A%0A%0AJm%C3%A9no%20a%20p%C5%99%C3%ADjmen%C3%AD%20spot%C5%99ebitele%3A%0A%0AAdresa%20spot%C5%99ebitele%3A%0A%0ADatum%3A">Odeslat formulář e-mailem</a>
         </div>
 
         <h2>6. Práva z vadného plnění (reklamace)</h2>

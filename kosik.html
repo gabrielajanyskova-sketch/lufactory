@@ -387,7 +387,7 @@ body.cart-open { overflow: hidden; }
 .legal-content h2 { font-size: 1.3rem; margin-top: 2em; }
 .legal-content ul { margin: 0 0 1em; padding-left: 1.4em; list-style: disc; }
 .legal-content li { margin-bottom: 0.5em; }
-.legal-content a { color: var(--brown); text-decoration: underline; }
+.legal-content a:not(.btn) { color: var(--brown); text-decoration: underline; }
 .legal-form-box {
   background: var(--cream);
   border: 1px solid var(--border);
@@ -398,6 +398,7 @@ body.cart-open { overflow: hidden; }
 .legal-form-box p { font-size: 0.92rem; }
 .legal-form-box p:last-child { margin-bottom: 0; }
 .legal-form-title { font-weight: 700; color: var(--ink); font-size: 1.02rem; }
+.legal-form-submit { display: inline-block; margin-top: 12px; border: none; }
 
 /* ---------- products ---------- */
 .product-grid {
