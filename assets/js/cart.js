@@ -113,7 +113,8 @@
       var entry = stockMap[id];
       var qty = entry ? entry.stockQty : 0;
       var addBtn = document.querySelector('[data-add-to-cart][data-id="' + id + '"]');
-      var qtyInput = document.querySelector('[data-qty-for="' + id + '"] [data-qty-input]');
+      var stepper = document.querySelector('[data-qty-for="' + id + '"]');
+      var qtyInput = stepper ? stepper.querySelector('[data-qty-input]') : null;
       if (qty > 0) {
         el.textContent = 'Skladem: ' + qty + ' ks';
         el.className = 'stock-badge stock-badge--in';
@@ -121,6 +122,11 @@
         if (qtyInput) {
           qtyInput.disabled = false;
           qtyInput.setAttribute('max', qty);
+        }
+        if (stepper) {
+          stepper.querySelectorAll('[data-action]').forEach(function (btn) {
+            btn.disabled = false;
+          });
         }
       }
     });

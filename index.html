@@ -85,7 +85,7 @@ p { margin: 0 0 1em; }
   text-transform: uppercase;
   color: var(--brown);
   font-weight: 600;
-  margin-bottom: 0.6em;
+  margin-bottom: 12px;
 }
 
 .btn {
@@ -492,16 +492,16 @@ body.cart-open { overflow: hidden; }
 
 /* ---------- gallery ---------- */
 .gallery {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: 1fr;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 16px;
   margin: 40px auto 0;
   max-width: 900px;
 }
 .gallery img {
-  width: 100%;
-  height: 100%;
+  width: calc((100% - 32px) / 3);
+  height: auto;
   aspect-ratio: 1/1;
   object-fit: cover;
   border-radius: var(--radius);
@@ -519,7 +519,8 @@ body.cart-open { overflow: hidden; }
   padding: 40px 36px;
 }
 .callout p:first-child { color: var(--text); }
-.callout .script { font-size: 1.4rem; margin-bottom: 20px; }
+.callout .script { font-size: 1.4rem; margin-bottom: 4px; }
+.callout .btn { margin-top: 16px; }
 
 /* ---------- subtle green accent (from the loofah plant photo) ---------- */
 #o-houbickach .eyebrow { color: var(--sage-dark); }
@@ -564,6 +565,8 @@ body.cart-open { overflow: hidden; }
   color: var(--text);
 }
 .form-group textarea { resize: vertical; min-height: 120px; }
+.contact-form input[type="text"],
+.contact-form input[type="email"] { max-width: 400px; }
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
@@ -572,6 +575,9 @@ body.cart-open { overflow: hidden; }
 }
 .contact-form .btn {
   justify-self: start;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
   border: none;
 }
 .form-note {
@@ -855,7 +861,7 @@ body.cart-open { overflow: hidden; }
   .intro-block { grid-template-columns: 1fr; }
   .product-grid { grid-template-columns: repeat(2, 1fr); }
   .contact-grid { grid-template-columns: 1fr; }
-  .gallery { grid-template-columns: repeat(2, 1fr); }
+  .gallery img { width: calc((100% - 16px) / 2); }
   .checkout-layout { grid-template-columns: 1fr; }
   .checkout-summary { position: static; }
   .product-detail { grid-template-columns: 1fr; }
@@ -943,9 +949,9 @@ body.cart-open { overflow: hidden; }
             <span class="stock-badge stock-badge--out" data-stock-badge="houbicka-mix">Není skladem</span>
             <div class="add-to-cart-row">
               <div class="qty-stepper" data-qty-for="houbicka-mix">
-                <button type="button" data-action="dec" aria-label="Ubrat kus">−</button>
+                <button type="button" data-action="dec" aria-label="Ubrat kus" disabled>−</button>
                 <input type="number" value="1" min="1" data-qty-input aria-label="Počet kusů" disabled>
-                <button type="button" data-action="inc" aria-label="Přidat kus">+</button>
+                <button type="button" data-action="inc" aria-label="Přidat kus" disabled>+</button>
               </div>
               <button type="button" class="btn btn--outline" data-add-to-cart data-id="houbicka-mix" data-name="Houbička na nádobí – mix velikostí (3 ks)" data-price="120" disabled>Přidat do košíku</button>
             </div>
@@ -962,9 +968,9 @@ body.cart-open { overflow: hidden; }
             <span class="stock-badge stock-badge--out" data-stock-badge="peeling">Není skladem</span>
             <div class="add-to-cart-row">
               <div class="qty-stepper" data-qty-for="peeling">
-                <button type="button" data-action="dec" aria-label="Ubrat kus">−</button>
+                <button type="button" data-action="dec" aria-label="Ubrat kus" disabled>−</button>
                 <input type="number" value="1" min="1" data-qty-input aria-label="Počet kusů" disabled>
-                <button type="button" data-action="inc" aria-label="Přidat kus">+</button>
+                <button type="button" data-action="inc" aria-label="Přidat kus" disabled>+</button>
               </div>
               <button type="button" class="btn btn--outline" data-add-to-cart data-id="peeling" data-name="Peelingová houbička na tělo" data-price="50" disabled>Přidat do košíku</button>
             </div>
@@ -981,9 +987,9 @@ body.cart-open { overflow: hidden; }
             <span class="stock-badge stock-badge--out" data-stock-badge="cela-lufa">Není skladem</span>
             <div class="add-to-cart-row">
               <div class="qty-stepper" data-qty-for="cela-lufa">
-                <button type="button" data-action="dec" aria-label="Ubrat kus">−</button>
+                <button type="button" data-action="dec" aria-label="Ubrat kus" disabled>−</button>
                 <input type="number" value="1" min="1" data-qty-input aria-label="Počet kusů" disabled>
-                <button type="button" data-action="inc" aria-label="Přidat kus">+</button>
+                <button type="button" data-action="inc" aria-label="Přidat kus" disabled>+</button>
               </div>
               <button type="button" class="btn btn--outline" data-add-to-cart data-id="cela-lufa" data-name="Celá lufa – vyrob si sám" data-price="150" disabled>Přidat do košíku</button>
             </div>
@@ -1040,16 +1046,17 @@ body.cart-open { overflow: hidden; }
       </ul>
 
       <div class="gallery">
-        <img src="/assets/img/gallery-tvary.webp" srcset="/assets/img/gallery-tvary-mobile.webp 430w, /assets/img/gallery-tvary.webp 700w" sizes="(min-width: 861px) 289px, 50vw" alt="Různé tvary usušené lufy" width="700" height="617" loading="lazy">
-        <img src="/assets/img/gallery-miska.webp" srcset="/assets/img/gallery-miska-mobile.webp 430w, /assets/img/gallery-miska.webp 700w" sizes="(min-width: 861px) 289px, 50vw" alt="Houbičky z lufy v misce" width="700" height="617" loading="lazy">
-        <img src="/assets/img/gallery-detail.webp" srcset="/assets/img/gallery-detail-mobile.webp 322w, /assets/img/gallery-detail.webp 525w" sizes="(min-width: 861px) 289px, 50vw" alt="Detail vláknité struktury lufy" width="700" height="1462" loading="lazy">
-        <img src="/assets/img/gallery-srdce.webp" srcset="/assets/img/gallery-srdce-mobile.webp 430w, /assets/img/gallery-srdce.webp 700w" sizes="(min-width: 861px) 289px, 50vw" alt="Houbička z lufy ve tvaru srdce v dlaních" width="700" height="617" loading="lazy">
-        <img src="/assets/img/gallery-myti.webp" srcset="/assets/img/gallery-myti-mobile.webp 430w, /assets/img/gallery-myti.webp 700w" sizes="(min-width: 861px) 289px, 50vw" alt="Mytí talíře houbičkou z lufy" width="700" height="617" loading="lazy">
+        <img src="/assets/img/gallery-tvary.webp" srcset="/assets/img/gallery-tvary-mobile.webp 430w, /assets/img/gallery-tvary.webp 700w" sizes="(min-width: 861px) 289px, 50vw" alt="Různé tvary usušené lufy" width="700" height="624" loading="lazy">
+        <img src="/assets/img/gallery-miska.webp" srcset="/assets/img/gallery-miska-mobile.webp 430w, /assets/img/gallery-miska.webp 700w" sizes="(min-width: 861px) 289px, 50vw" alt="Houbičky z lufy v misce" width="700" height="700" loading="lazy">
+        <img src="/assets/img/gallery-detail.webp" srcset="/assets/img/gallery-detail-mobile.webp 322w, /assets/img/gallery-detail.webp 525w" sizes="(min-width: 861px) 289px, 50vw" alt="Detail vláknité struktury lufy" width="525" height="700" loading="lazy">
+        <img src="/assets/img/gallery-srdce.webp" srcset="/assets/img/gallery-srdce-mobile.webp 430w, /assets/img/gallery-srdce.webp 700w" sizes="(min-width: 861px) 289px, 50vw" alt="Houbička z lufy ve tvaru srdce v dlaních" width="700" height="700" loading="lazy">
+        <img src="/assets/img/gallery-myti.webp" srcset="/assets/img/gallery-myti-mobile.webp 430w, /assets/img/gallery-myti.webp 700w" sizes="(min-width: 861px) 289px, 50vw" alt="Mytí talíře houbičkou z lufy" width="700" height="700" loading="lazy">
       </div>
 
       <div class="callout">
         <p>Z mé zkušenosti je to všestranný pomocník v domácnosti, který slouží dlouhé týdny, je 100% bez plastů a nevytváří další odpad, protože se v přírodě rozloží.</p>
-        <p class="script">Tak na co ještě čekáte? Jděte a vyzkoušejte moje houbičky a já věřím, že nebudete litovat!</p>
+        <p class="script">Tak na co ještě čekáte?</p>
+        <p>Jděte a vyzkoušejte moje houbičky a já věřím, že nebudete litovat!</p>
         <a href="/produkty.html" class="btn">Prohlédnout houbičky</a>
       </div>
     </div>

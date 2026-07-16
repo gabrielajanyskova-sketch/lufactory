@@ -78,7 +78,7 @@ p { margin: 0 0 1em; }
   text-transform: uppercase;
   color: var(--brown);
   font-weight: 600;
-  margin-bottom: 0.6em;
+  margin-bottom: 12px;
 }
 
 .btn {
@@ -485,16 +485,16 @@ body.cart-open { overflow: hidden; }
 
 /* ---------- gallery ---------- */
 .gallery {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: 1fr;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 16px;
   margin: 40px auto 0;
   max-width: 900px;
 }
 .gallery img {
-  width: 100%;
-  height: 100%;
+  width: calc((100% - 32px) / 3);
+  height: auto;
   aspect-ratio: 1/1;
   object-fit: cover;
   border-radius: var(--radius);
@@ -512,7 +512,8 @@ body.cart-open { overflow: hidden; }
   padding: 40px 36px;
 }
 .callout p:first-child { color: var(--text); }
-.callout .script { font-size: 1.4rem; margin-bottom: 20px; }
+.callout .script { font-size: 1.4rem; margin-bottom: 4px; }
+.callout .btn { margin-top: 16px; }
 
 /* ---------- subtle green accent (from the loofah plant photo) ---------- */
 #o-houbickach .eyebrow { color: var(--sage-dark); }
@@ -557,6 +558,8 @@ body.cart-open { overflow: hidden; }
   color: var(--text);
 }
 .form-group textarea { resize: vertical; min-height: 120px; }
+.contact-form input[type="text"],
+.contact-form input[type="email"] { max-width: 400px; }
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
@@ -565,6 +568,9 @@ body.cart-open { overflow: hidden; }
 }
 .contact-form .btn {
   justify-self: start;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
   border: none;
 }
 .form-note {
@@ -848,7 +854,7 @@ body.cart-open { overflow: hidden; }
   .intro-block { grid-template-columns: 1fr; }
   .product-grid { grid-template-columns: repeat(2, 1fr); }
   .contact-grid { grid-template-columns: 1fr; }
-  .gallery { grid-template-columns: repeat(2, 1fr); }
+  .gallery img { width: calc((100% - 16px) / 2); }
   .checkout-layout { grid-template-columns: 1fr; }
   .checkout-summary { position: static; }
   .product-detail { grid-template-columns: 1fr; }
