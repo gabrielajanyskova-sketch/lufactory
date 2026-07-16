@@ -546,7 +546,7 @@ body.cart-open { overflow: hidden; }
   padding: 32px;
 }
 .contact-info h3 { color: var(--white); }
-.contact-info p { color: var(--cream-dark); }
+.contact-info p { color: var(--white); }
 .contact-info .email {
   display: block;
   width: fit-content;
