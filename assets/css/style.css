@@ -271,7 +271,6 @@ body.cart-open { overflow: hidden; }
   color: var(--ink);
 }
 .cart-checkout { width: 100%; text-align: center; border: none; }
-.cart-note { font-size: 0.78rem; color: var(--text-muted); margin: 0; }
 
 /* ---------- hero ---------- */
 .hero {
