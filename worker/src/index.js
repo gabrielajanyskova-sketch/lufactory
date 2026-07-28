@@ -219,33 +219,33 @@ async function sendOrderEmails(env, { orderNumber, body, items, subtotal, discou
   totalsRows.push(['Doprava', shipping.price === 0 ? 'zdarma' : `${shipping.price} Kč`]);
 
   const customerHtml = emailLayout(`
-    <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Děkujeme za objedn\xE1vku č. <strong>${escapeHtml(orderNumber)}</strong>!</p>
+    <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Děkujeme za objednávku č. <strong>${escapeHtml(orderNumber)}</strong>!</p>
     <table role="presentation" width="100%" style="border-collapse:collapse;font-size:14px;">${itemRowsHtml(items)}</table>
     <table role="presentation" width="100%" style="border-collapse:collapse;font-size:14px;margin-top:12px;">${totalsRowsHtml(totalsRows)}</table>
     <table role="presentation" width="100%" style="border-collapse:collapse;margin-top:10px;background:#faf6ef;border-radius:8px;">
       <tr><td style="padding:10px 14px;font-weight:bold;color:#2e2419;">Celkem</td><td style="padding:10px 14px;text-align:right;font-weight:bold;color:#81665b;font-size:17px;">${total} Kč</td></tr>
     </table>
-    <p style="margin:20px 0 0;">Platba: ${body.payment.method === 'cash' ? 'hotově při odběru' : 'bankovn\xEDm převodem — č\xEDslo \xFAčtu a variabiln\xED symbol pos\xEDl\xE1me zvl\xE1šť v n\xE1sleduj\xEDc\xEDm e-mailu'}.</p>
-    <p style="margin:8px 0 0;">Brzy se v\xE1m ozveme s dalš\xEDmi informacemi.</p>
+    <p style="margin:20px 0 0;">Platba: ${body.payment.method === 'cash' ? 'hotově při odběru' : 'bankovním převodem — číslo účtu a variabilní symbol posíláme zvlášť v následujícím e-mailu'}.</p>
+    <p style="margin:8px 0 0;">Brzy se vám ozveme s dalšími informacemi.</p>
   `);
 
   await sendResendEmail(env, {
     to: body.customer.email,
-    subject: `Potvrzen\xED objedn\xE1vky ${orderNumber} – lufactory.cz`,
+    subject: `Potvrzení objednávky ${orderNumber} – lufactory.cz`,
     html: customerHtml
   });
 
   const shopHtml = emailLayout(`
-    <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Nov\xE1 objedn\xE1vka <strong>${escapeHtml(orderNumber)}</strong></p>
+    <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Nová objednávka <strong>${escapeHtml(orderNumber)}</strong></p>
     <table role="presentation" width="100%" style="border-collapse:collapse;font-size:14px;margin-bottom:16px;">
       ${totalsRowsHtml([
-        ['Jm\xE9no', escapeHtml(body.customer.name)],
+        ['Jméno', escapeHtml(body.customer.name)],
         ['Adresa', escapeHtml(`${body.customer.street}, ${body.customer.zip} ${body.customer.city}`)],
         ['E-mail', escapeHtml(body.customer.email)],
         ['Telefon', escapeHtml(body.customer.phone || '-')],
         ['Doprava', `${escapeHtml(body.delivery.method)} — ${escapeHtml(body.delivery.detail || '')}`],
         ['Platba', escapeHtml(body.payment.method)],
-        ['Pozn\xE1mka', escapeHtml(body.note || '-')]
+        ['Poznámka', escapeHtml(body.note || '-')]
       ])}
     </table>
     <table role="presentation" width="100%" style="border-collapse:collapse;font-size:14px;">${itemRowsHtml(items)}</table>
@@ -256,7 +256,7 @@ async function sendOrderEmails(env, { orderNumber, body, items, subtotal, discou
 
   await sendResendEmail(env, {
     to: env.SHOP_NOTIFICATION_EMAIL,
-    subject: `Nov\xE1 objedn\xE1vka ${orderNumber}`,
+    subject: `Nová objednávka ${orderNumber}`,
     html: shopHtml
   });
 }
