@@ -76,8 +76,6 @@ krok není potřeba.
 - Nasadit `worker/` podle `worker/README.md` (pár příkazů ve wrangleru),
   vyplnit `API_BASE` v `assets/js/cart.js` a nastavit skutečné počty kusů
   na skladě — bez toho nejde nic objednat
-- Fotka pro „velká" houbičku zatím chybí (texturový placeholder na
-  `produkty.html` i na `produkty/houbicka-velka.html`)
 - Platby zatím řešené ručně (převod / hotově) — platební bránu (GoPay/Comgate)
   napojit později, až bude potřeba
 
