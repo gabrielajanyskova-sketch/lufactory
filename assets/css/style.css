@@ -335,6 +335,7 @@ body.cart-open { overflow: hidden; }
   object-fit: cover;
 }
 #o-mne .intro-block img { aspect-ratio: 3/4; object-position: center top; }
+.text-justify p { text-align: justify; }
 #o-mne .intro-block p a {
   color: var(--brown);
   text-decoration: underline;

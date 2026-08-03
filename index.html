@@ -357,6 +357,7 @@ body.cart-open { overflow: hidden; }
   object-fit: cover;
 }
 #o-mne .intro-block img { aspect-ratio: 3/4; object-position: center top; }
+.text-justify p { text-align: justify; }
 #o-mne .intro-block p a {
   color: var(--brown);
   text-decoration: underline;
@@ -934,8 +935,8 @@ body.cart-open { overflow: hidden; }
     <div class="container">
       <div class="section-head">
         <span class="eyebrow">Nabídka</span>
-        <h2>Houbičky a doplňky z lufy</h2>
-        <p>Šest produktů z ručně zpracované lufy — houbičky na nádobí ve třech velikostech i mixu, tělový peeling a celá lufa na vystřihnutí podle vlastní potřeby.</p>
+        <h2>Houbičky z lufy</h2>
+        <p>Šest produktů z ručně zpracované lufy — houbičky na nádobí ve třech velikostech nebo zkušební balíček se všemi velikostmi, houbička pro tělový peeling a celá lufa pro Vaši výrobu.</p>
       </div>
 
       <div class="product-grid">
@@ -962,7 +963,7 @@ body.cart-open { overflow: hidden; }
           <a href="/produkty/peeling.html" class="product-img"><img src="/assets/img/product-peeling.webp" alt="Peelingová houbička na tělo" width="640" height="480" loading="lazy"><span>tělový peeling</span></a>
           <div class="product-body">
             <h3><a href="/produkty/peeling.html">Peelingová houbička na tělo</a></h3>
-            <span class="product-dim">1 ks, cca 10 × 15 cm</span>
+            <span class="product-dim">1 ks, cca 11 × 12 cm</span>
             <p>Přírodní alternativa plastové žínky — jemný peeling ve sprše.</p>
             <span class="product-price">50 Kč</span>
             <span class="stock-badge stock-badge--out" data-stock-badge="peeling">Není skladem</span>
@@ -978,11 +979,11 @@ body.cart-open { overflow: hidden; }
         </article>
 
         <article class="product-card product-card--featured">
-          <a href="/produkty/cela-lufa.html" class="product-img"><img src="/assets/img/product-cela-lufa.webp" alt="Celá lufa – vyrob si sám" width="640" height="480" loading="lazy"><span>celá lufa</span></a>
+          <a href="/produkty/cela-lufa.html" class="product-img"><img src="/assets/img/product-cela-lufa.webp" alt="Celá lufa" width="640" height="480" loading="lazy"><span>celá lufa</span></a>
           <div class="product-body">
-            <h3><a href="/produkty/cela-lufa.html">Celá lufa „vyrob si sám"</a></h3>
-            <span class="product-dim">1 ks, nezpracovaná, usušená</span>
-            <p>Nastříhejte si houbičky přesně podle svého — velikost i tvar na míru.</p>
+            <h3><a href="/produkty/cela-lufa.html">Celá lufa</a></h3>
+            <span class="product-dim">1 ks, celá lisovaná lufa, cca 40–50 cm dlouhá</span>
+            <p>Vyrobte si houbičky podle sebe.</p>
             <span class="product-price">150 Kč</span>
             <span class="stock-badge stock-badge--out" data-stock-badge="cela-lufa">Není skladem</span>
             <div class="add-to-cart-row">
@@ -991,7 +992,7 @@ body.cart-open { overflow: hidden; }
                 <input type="number" value="1" min="1" data-qty-input aria-label="Počet kusů" disabled>
                 <button type="button" data-action="inc" aria-label="Přidat kus" disabled>+</button>
               </div>
-              <button type="button" class="btn btn--outline" data-add-to-cart data-id="cela-lufa" data-name="Celá lufa – vyrob si sám" data-price="150" disabled>Přidat do košíku</button>
+              <button type="button" class="btn btn--outline" data-add-to-cart data-id="cela-lufa" data-name="Celá lufa" data-price="150" disabled>Přidat do košíku</button>
             </div>
           </div>
         </article>
@@ -1030,9 +1031,7 @@ body.cart-open { overflow: hidden; }
 
       <div class="intro-block">
         <img src="/assets/img/luffa-plant.webp" srcset="/assets/img/luffa-plant-mobile.webp 960w, /assets/img/luffa-plant.webp 1300w" sizes="(min-width: 861px) 542px, 100vw" alt="Rostliny lufy zavěšené na pergole během dozrávání" width="640" height="480">
-        <div>
-          <span class="eyebrow">Odkud houbička pochází</span>
-          <h2>Takto lufa roste</h2>
+        <div class="text-justify">
           <p>Po usušení se dužina lufy změní v pevnou a porézní vláknitou strukturu. Mezi nejdůležitější vlastnosti lufy patří lehkost, vysoká pórovitost, dobrá savost, biologická rozložitelnost a dostatečná pevnost, která umožňuje její opakované použití. Lufa je šetrná k pokožce i k životnímu prostředí a neobsahuje žádné syntetické látky.</p>
           <p>Nejčastěji se využívá jako přírodní mycí houba pro osobní hygienu, kde pomáhá odstraňovat odumřelé kožní buňky, dále jako ekologická náhrada kuchyňských houbiček, v kosmetice, zahradnictví a také jako výplňový nebo filtrační materiál.</p>
         </div>
@@ -1042,7 +1041,7 @@ body.cart-open { overflow: hidden; }
         <li>Velikost je měřena v suchém, stlačeném tvaru. Po namočení se houbička „nafoukne", zvětší svůj objem a stane se měkčí a jemnější.</li>
         <li>Jelikož se jedná o 100% přírodní produkt, houbičky se mírně liší jedna od druhé a také se různě „nafukují" — jedna může být objemnější oproti druhé.</li>
         <li>Houbičky jsou tvarovány ručně.</li>
-        <li>Houbička je plně biologicky rozložitelná — po skončení životnosti ji můžete rozstříhat a hodit na kompost.</li>
+        <li>Houbička je biologicky rozložitelná — po skončení životnosti ji můžete vyhodit na kompost.</li>
       </ul>
 
       <div class="gallery">
@@ -1065,9 +1064,8 @@ body.cart-open { overflow: hidden; }
   <section class="section" id="kontakt">
     <div class="container">
       <div class="section-head">
-        <span class="eyebrow">Kontakt</span>
         <h2>Máte na mě dotaz?</h2>
-        <p>Tenhle formulář je na dotazy — třeba k výběru velikosti nebo množství. Objednávku uděláte přímo v e-shopu u produktů.</p>
+        <p>Tento formulář slouží pro případné dotazy — např. k výběru velikosti nebo množství. Objednávku vytvoříte přímo v e-shopu u produktů.</p>
       </div>
 
       <div class="contact-grid">
@@ -1094,7 +1092,6 @@ body.cart-open { overflow: hidden; }
           <a class="email" href="mailto:info@lufactory.cz">info@lufactory.cz</a>
           <a class="email" href="https://www.instagram.com/lufactory.cz/" target="_blank" rel="noopener">Instagram: @lufactory.cz</a>
           <p>Osobní odběr po domluvě v Nové Vsi u Prahy nebo v Praze 8, Čimice.</p>
-          <p>Chcete zboží vrátit? <a href="/obchodni-podminky.html#odstoupeni-od-smlouvy">Formulář pro odstoupení od smlouvy →</a></p>
         </div>
       </div>
 
