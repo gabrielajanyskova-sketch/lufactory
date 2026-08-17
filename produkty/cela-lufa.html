@@ -357,6 +357,7 @@ body.cart-open { overflow: hidden; }
   object-fit: cover;
 }
 #o-mne .intro-block img { aspect-ratio: 3/4; object-position: center top; }
+#o-mne .intro-block p:not(.script) { text-align: justify; }
 .text-justify p { text-align: justify; }
 #o-mne .intro-block p a {
   color: var(--brown);
@@ -392,6 +393,7 @@ body.cart-open { overflow: hidden; }
 
 /* ---------- legal pages ---------- */
 .legal-content { max-width: 760px; margin: 0 auto; color: var(--text); }
+.legal-content > p { text-align: justify; }
 .legal-content h2 { font-size: 1.3rem; margin-top: 2em; }
 .legal-content ul { margin: 0 0 1em; padding-left: 1.4em; list-style: disc; }
 .legal-content li { margin-bottom: 0.5em; }
@@ -1020,9 +1022,9 @@ body.lightbox-open { overflow: hidden; }
 
       <h2>Další fotky</h2>
       <div class="gallery">
-        <img src="/assets/img/gallery-cela-lufa-1.webp" alt="Celá usušená lufa v ruce" width="700" height="700" loading="lazy">
-        <img src="/assets/img/gallery-cela-lufa-2.webp" alt="Více kusů celé usušené lufy naskládaných na sobě" width="700" height="700" loading="lazy">
-        <img src="/assets/img/gallery-cela-lufa-3.webp" alt="Nikola s náručí celých usušených luf" width="700" height="700" loading="lazy">
+        <img src="/assets/img/gallery-cela-lufa-1.webp" data-full="/assets/img/gallery-cela-lufa-1-full.webp" alt="Celá usušená lufa v ruce" width="700" height="700" loading="lazy">
+        <img src="/assets/img/gallery-cela-lufa-2.webp" data-full="/assets/img/gallery-cela-lufa-2-full.webp" alt="Více kusů celé usušené lufy naskládaných na sobě" width="700" height="700" loading="lazy">
+        <img src="/assets/img/gallery-cela-lufa-3.webp" data-full="/assets/img/gallery-cela-lufa-3-full.webp" alt="Nikola s náručí celých usušených luf" width="700" height="700" loading="lazy">
       </div>
     </div>
   </section>

@@ -97,7 +97,7 @@ function wireGalleryLightbox() {
   function show(index) {
     currentIndex = (index + images.length) % images.length;
     var source = images[currentIndex];
-    imgEl.src = source.currentSrc || source.src;
+    imgEl.src = source.getAttribute('data-full') || source.currentSrc || source.src;
     imgEl.alt = source.alt || '';
   }
 
