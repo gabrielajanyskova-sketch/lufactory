@@ -406,7 +406,10 @@ body.cart-open { overflow: hidden; }
 .legal-form-box p { font-size: 0.92rem; }
 .legal-form-box p:last-child { margin-bottom: 0; }
 .legal-form-title { font-weight: 700; color: var(--ink); font-size: 1.02rem; }
-.legal-form-submit { display: inline-block; margin-top: 12px; border: none; }
+.legal-form-submit { display: inline-block; margin-top: 4px; border: none; }
+.legal-form-box form { display: grid; gap: 16px; margin: 18px 0; }
+.legal-form-box .form-note { margin: 4px 0 0; }
+.legal-form-alt { font-size: 0.92rem; }
 
 /* ---------- products ---------- */
 .product-grid {
@@ -507,7 +510,60 @@ body.cart-open { overflow: hidden; }
   object-fit: cover;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  cursor: zoom-in;
 }
+
+/* ---------- lightbox ---------- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(46, 36, 25, 0.92);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.lightbox.is-open { opacity: 1; pointer-events: auto; }
+body.lightbox-open { overflow: hidden; }
+.lightbox img {
+  max-width: min(90vw, 900px);
+  max-height: 82vh;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.lightbox-close,
+.lightbox-prev,
+.lightbox-next {
+  position: absolute;
+  background: rgba(250, 246, 239, 0.15);
+  border: 0;
+  color: var(--white);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.lightbox-close:hover,
+.lightbox-prev:hover,
+.lightbox-next:hover { background: rgba(250, 246, 239, 0.3); }
+.lightbox-close {
+  top: 20px; right: 20px;
+  width: 40px; height: 40px;
+  font-size: 1.5rem;
+}
+.lightbox-prev,
+.lightbox-next {
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px; height: 48px;
+  font-size: 1.8rem;
+}
+.lightbox-prev { left: 16px; }
+.lightbox-next { right: 16px; }
 
 /* ---------- callout ---------- */
 .callout {
@@ -889,6 +945,10 @@ body.cart-open { overflow: hidden; }
   .contact-form,
   .contact-info { padding: 24px; }
   .form-row { grid-template-columns: 1fr; }
+  .lightbox-prev,
+  .lightbox-next { width: 40px; height: 40px; font-size: 1.4rem; }
+  .lightbox-prev { left: 6px; }
+  .lightbox-next { right: 6px; }
 }
 </style>
 <script type="application/ld+json">
