@@ -17,9 +17,7 @@
   // Slevové kódy — přidávej/uprav podle potřeby. Když je API_BASE vyplněné,
   // kódy z D1 databáze mají přednost, tohle slouží jako fallback bez workeru.
   // type "percent": value je procento z mezisoučtu. type "fixed": value je sleva v Kč.
-  var DISCOUNT_CODES = {
-    LETO10: { type: 'percent', value: 10 }
-  };
+  var DISCOUNT_CODES = {};
 
   // Kódy ověřené přes API v této návštěvě (viz wireDiscountForm).
   var remoteDiscounts = {};
