@@ -11,8 +11,15 @@
   // znovu ověřuje server-side, tohle je jen zobrazovací kopie pro klienta.
   var SHIPPING = {
     pickup: { label: 'Osobní odběr (Nová Ves u Prahy / Praha 8, Čimice)', price: 0 },
-    zasilkovna: { label: 'Zásilkovna', price: 79 }
+    'zasilkovna-pickup': { label: 'Zásilkovna – výdejní místo', price: 89 },
+    'zasilkovna-address': { label: 'Zásilkovna – doručení na adresu', price: 129 },
+    'ppl-pickup': { label: 'PPL – výdejní místo', price: 76 },
+    'ppl-address': { label: 'PPL – doručení na adresu', price: 106 }
   };
+
+  // Volby dopravy, u kterých se ptáme na název výdejního místa (na rozdíl od
+  // doručení na adresu, kde stačí fakturační adresa už vyplněná výše).
+  var PICKUP_POINT_SHIPPING = { 'zasilkovna-pickup': true, 'ppl-pickup': true };
 
   // Slevové kódy — přidávej/uprav podle potřeby. Když je API_BASE vyplněné,
   // kódy z D1 databáze mají přednost, tohle slouží jako fallback bez workeru.
@@ -296,7 +303,7 @@
     var cashOption = document.getElementById('payment-cash-option');
     if (cashOption) {
       var cashRadio = cashOption.querySelector('input[name="payment"]');
-      if (shippingKey === 'zasilkovna') {
+      if (shippingKey !== 'pickup') {
         cashOption.hidden = true;
         if (cashRadio && cashRadio.checked) {
           var transferRadio = document.querySelector('input[name="payment"][value="transfer"]');
@@ -308,7 +315,7 @@
     }
 
     var addressFields = document.getElementById('address-fields');
-    if (addressFields) addressFields.hidden = shippingKey !== 'zasilkovna';
+    if (addressFields) addressFields.hidden = !PICKUP_POINT_SHIPPING[shippingKey];
   }
 
   function setText(id, text) {
@@ -345,7 +352,7 @@
     lines.push('Adresa: ' + customer.street + ', ' + customer.zip + ' ' + customer.city);
     lines.push('E-mail: ' + customer.email);
     if (customer.phone) lines.push('Telefon: ' + customer.phone);
-    if (shippingKey === 'zasilkovna' && address) lines.push('Výdejní místo Zásilkovny: ' + address);
+    if (PICKUP_POINT_SHIPPING[shippingKey] && address) lines.push('Výdejní místo: ' + address);
     if (note) lines.push('Poznámka: ' + note);
 
     return 'mailto:info@lufactory.cz'

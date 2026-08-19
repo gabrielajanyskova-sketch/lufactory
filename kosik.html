@@ -1016,7 +1016,7 @@ body.lightbox-open { overflow: hidden; }
                     <span class="option-price">Zdarma</span>
                   </label>
                   <label class="option-card">
-                    <input type="radio" name="shipping" value="zasilkovna">
+                    <input type="radio" name="shipping" value="zasilkovna-pickup">
                     <span class="option-icon" aria-hidden="true">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
                     </span>
@@ -1024,7 +1024,40 @@ body.lightbox-open { overflow: hidden; }
                       <span class="option-title">Zásilkovna</span>
                       <span class="option-desc">Doručení na výdejní místo</span>
                     </span>
-                    <span class="option-price">79 Kč</span>
+                    <span class="option-price">89 Kč</span>
+                  </label>
+                  <label class="option-card">
+                    <input type="radio" name="shipping" value="zasilkovna-address">
+                    <span class="option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+                    </span>
+                    <span class="option-body">
+                      <span class="option-title">Zásilkovna</span>
+                      <span class="option-desc">Doručení na adresu</span>
+                    </span>
+                    <span class="option-price">129 Kč</span>
+                  </label>
+                  <label class="option-card">
+                    <input type="radio" name="shipping" value="ppl-pickup">
+                    <span class="option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+                    </span>
+                    <span class="option-body">
+                      <span class="option-title">PPL</span>
+                      <span class="option-desc">Doručení na výdejní místo</span>
+                    </span>
+                    <span class="option-price">76 Kč</span>
+                  </label>
+                  <label class="option-card">
+                    <input type="radio" name="shipping" value="ppl-address">
+                    <span class="option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+                    </span>
+                    <span class="option-body">
+                      <span class="option-title">PPL</span>
+                      <span class="option-desc">Doručení na adresu</span>
+                    </span>
+                    <span class="option-price">106 Kč</span>
                   </label>
                 </div>
 
@@ -1086,7 +1119,7 @@ body.lightbox-open { overflow: hidden; }
                   <input type="tel" id="c-phone" required>
                 </div>
                 <div id="address-fields" class="form-group" hidden>
-                  <label for="c-address">Výdejní místo Zásilkovny</label>
+                  <label for="c-address">Výdejní místo</label>
                   <input type="text" id="c-address" placeholder="Název a adresa pobočky">
                 </div>
                 <div class="form-group">

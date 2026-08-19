@@ -4,7 +4,10 @@ const SITE_URL = 'https://www.lufactory.cz';
 // ověřuje server-side (nikdy se nevěří ceně poslané klientem).
 const SHIPPING = {
   pickup: { label: 'Osobní odběr (Nová Ves u Prahy / Praha 8, Čimice)', price: 0 },
-  zasilkovna: { label: 'Zásilkovna', price: 79 }
+  'zasilkovna-pickup': { label: 'Zásilkovna – výdejní místo', price: 89 },
+  'zasilkovna-address': { label: 'Zásilkovna – doručení na adresu', price: 129 },
+  'ppl-pickup': { label: 'PPL – výdejní místo', price: 76 },
+  'ppl-address': { label: 'PPL – doručení na adresu', price: 106 }
 };
 
 export default {
@@ -243,7 +246,7 @@ async function sendOrderEmails(env, { orderNumber, body, items, subtotal, discou
         ['Adresa', escapeHtml(`${body.customer.street}, ${body.customer.zip} ${body.customer.city}`)],
         ['E-mail', escapeHtml(body.customer.email)],
         ['Telefon', escapeHtml(body.customer.phone || '-')],
-        ['Doprava', `${escapeHtml(body.delivery.method)} — ${escapeHtml(body.delivery.detail || '')}`],
+        ['Doprava', `${escapeHtml(shipping.label)}${body.delivery.detail ? ' — ' + escapeHtml(body.delivery.detail) : ''}`],
         ['Platba', escapeHtml(body.payment.method)],
         ['Poznámka', escapeHtml(body.note || '-')]
       ])}
