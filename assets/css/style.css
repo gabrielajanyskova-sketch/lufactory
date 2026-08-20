@@ -784,6 +784,20 @@ body.lightbox-open { overflow: hidden; }
   border-top: 1px solid var(--border);
 }
 
+/* ---------- QR platba ---------- */
+.qr-payment {
+  margin: 28px auto 0;
+  max-width: 300px;
+  padding: 24px;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+}
+.qr-payment-title { font-weight: 700; color: var(--ink); margin-bottom: 14px; }
+.qr-payment svg { width: 100%; height: auto; display: block; margin: 0 auto; }
+.qr-payment-note { font-size: 0.85rem; color: var(--text-muted); margin: 14px 0 0; }
+
 /* ---------- footer ---------- */
 .site-footer {
   padding: 32px 0;

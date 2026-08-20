@@ -21,6 +21,10 @@
   // doručení na adresu, kde stačí fakturační adresa už vyplněná výše).
   var PICKUP_POINT_SHIPPING = { 'zasilkovna-pickup': true, 'ppl-pickup': true };
 
+  // Účet pro QR platbu na stránce "Objednávka odeslána" — IBAN spočítaný
+  // z 211573669/0300. Když se změní číslo účtu, přepočti IBAN znovu.
+  var BANK_IBAN = 'CZ6503000000000211573669';
+
   // Slevové kódy — přidávej/uprav podle potřeby. Když je API_BASE vyplněné,
   // kódy z D1 databáze mají přednost, tohle slouží jako fallback bez workeru.
   // type "percent": value je procento z mezisoučtu. type "fixed": value je sleva v Kč.
@@ -486,15 +490,38 @@
       .catch(function () { return null; });
   }
 
+  // SPD (Short Payment Descriptor) — český standard pro QR platby, podporovaný
+  // všemi tuzemskými bankovními aplikacemi. Naskenováním se vyplní částka,
+  // účet i variabilní symbol, klient nic neopisuje ručně.
+  function buildPaymentQrSvg(amount, variableSymbol) {
+    var spd = 'SPD*1.0*ACC:' + BANK_IBAN + '*AM:' + amount.toFixed(2) + '*CC:CZK*X-VS:' + variableSymbol + '*MSG:Lufactory';
+    var qr = qrcode(0, 'M');
+    qr.addData(spd);
+    qr.make();
+    return qr.createSvgTag({ cellSize: 4, margin: 2, alt: 'QR platba' });
+  }
+
   function showOrderSuccess(result) {
     var content = document.getElementById('cart-page-content');
     if (!content) return;
     renderCart();
+
+    var qrBlock = '';
+    if (result.paymentMethod === 'transfer' && typeof qrcode === 'function') {
+      qrBlock =
+        '<div class="qr-payment">' +
+          '<p class="qr-payment-title">Zaplatit rovnou QR platbou</p>' +
+          buildPaymentQrSvg(result.total, result.variableSymbol) +
+          '<p class="qr-payment-note">Naskenujte v mobilní bankovní aplikaci — částka i variabilní symbol (' + result.variableSymbol + ') se vyplní automaticky.</p>' +
+        '</div>';
+    }
+
     content.innerHTML =
       '<div class="section-head">' +
         '<span class="eyebrow">Děkujeme</span>' +
         '<h2>Objednávka odeslána</h2>' +
         '<p>Číslo objednávky <strong>' + result.orderNumber + '</strong>. Potvrzení jsme poslali na váš e-mail, brzy se ozveme s dalšími informacemi.</p>' +
+        qrBlock +
         '<a href="/produkty.html" class="btn">Zpět na produkty</a>' +
       '</div>';
   }

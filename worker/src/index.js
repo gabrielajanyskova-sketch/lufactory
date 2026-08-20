@@ -178,7 +178,7 @@ async function createOrder(request, env, cors) {
     await sendOrderEmails(env, { orderNumber, body, items, subtotal, discount, shipping, total });
   }
 
-  return json({ orderNumber, status: 'nova', subtotal, discountAmount: discount, shippingPrice: shipping.price, total }, 200, cors);
+  return json({ orderNumber, status: 'nova', subtotal, discountAmount: discount, shippingPrice: shipping.price, total, variableSymbol: orderId, paymentMethod: body.payment.method }, 200, cors);
 }
 
 // ---------- e-mail ----------
