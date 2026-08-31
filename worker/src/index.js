@@ -10,6 +10,8 @@ const SELLER = {
   address: 'Na Homoli 484, Nová Ves, 250 63'
 };
 
+const CF_ACCOUNT_ID = '452377670fd13e08b76846017d811e7e';
+
 // Musí zůstat stejné jako SHIPPING v assets/js/cart.js — tady se cena dopravy
 // ověřuje server-side (nikdy se nevěří ceně poslané klientem).
 const SHIPPING = {
@@ -501,14 +503,56 @@ function buildInvoiceHtml(order, items) {
 </body></html>`;
 }
 
+function bytesToBase64(bytes) {
+  let binary = '';
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary);
+}
+
+// Cloudflare Browser Rendering vykreslí HTML do skutečného PDF. Vyžaduje
+// secret CF_API_TOKEN (API token s oprávněním "Browser Rendering: Edit").
+// Bez něj nebo při selhání se pošle HTML příloha jako záloha.
+async function htmlToPdf(env, html) {
+  const res = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/browser-rendering/pdf`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${env.CF_API_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ html })
+    }
+  );
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`Browser Rendering error ${res.status}: ${detail}`);
+  }
+  return new Uint8Array(await res.arrayBuffer());
+}
+
 async function sendInvoiceEmail(env, order, items) {
   const html = buildInvoiceHtml(order, items);
-  const filename = 'faktura-' + order.order_number + '.html';
+  let filename = 'faktura-' + order.order_number + '.html';
+  let content = toBase64Utf8(html);
+  let intro = `V příloze posíláme fakturu k vaší objednávce ${escapeHtml(order.order_number)}. Otevře se v prohlížeči — pokud potřebujete PDF, jde v prohlížeči vytisknout a uložit jako PDF.`;
+
+  if (env.CF_API_TOKEN) {
+    try {
+      const pdfBytes = await htmlToPdf(env, html);
+      filename = 'faktura-' + order.order_number + '.pdf';
+      content = bytesToBase64(pdfBytes);
+      intro = `V příloze posíláme fakturu k vaší objednávce ${escapeHtml(order.order_number)}.`;
+    } catch (err) {
+      console.error('htmlToPdf failed, falling back to HTML attachment', err);
+    }
+  }
+
   await sendResendEmail(env, {
     to: order.customer_email,
     subject: `Faktura k objednávce ${order.order_number}`,
-    html: `<p>V příloze posíláme fakturu k vaší objednávce ${escapeHtml(order.order_number)}. Otevře se v prohlížeči — pokud potřebujete PDF, jde v prohlížeči vytisknout a uložit jako PDF.</p>`,
-    attachments: [{ filename, content: toBase64Utf8(html) }]
+    html: `<p>${intro}</p>`,
+    attachments: [{ filename, content }]
   });
 }
 
