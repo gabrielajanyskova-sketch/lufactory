@@ -42,6 +42,31 @@ export default {
       if (url.pathname === '/api/orders' && request.method === 'POST') {
         return await createOrder(request, env, cors);
       }
+
+      if (url.pathname === '/api/admin/login' && request.method === 'POST') {
+        const body = await request.json();
+        const ok = !!env.ADMIN_PASSWORD && body.password === env.ADMIN_PASSWORD;
+        return json({ ok }, ok ? 200 : 401, cors);
+      }
+      if (url.pathname === '/api/admin/orders' && request.method === 'GET') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await listOrders(env, cors);
+      }
+      const orderStatusMatch = url.pathname.match(/^\/api\/admin\/orders\/(\d+)$/);
+      if (orderStatusMatch && request.method === 'PATCH') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await updateOrderStatus(request, env, cors, Number(orderStatusMatch[1]));
+      }
+      if (url.pathname === '/api/admin/products' && request.method === 'POST') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await createProduct(request, env, cors);
+      }
+      const productMatch = url.pathname.match(/^\/api\/admin\/products\/([^/]+)$/);
+      if (productMatch && request.method === 'PATCH') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await updateProduct(request, env, cors, decodeURIComponent(productMatch[1]));
+      }
+
       return json({ error: 'not_found' }, 404, cors);
     } catch (err) {
       return json({ error: 'server_error', message: String((err && err.message) || err) }, 500, cors);
@@ -103,12 +128,20 @@ async function discountAmount(env, code, subtotal) {
 
 // ---------- orders ----------
 
+// Variabilní symbol musí být čistě číselný a max 10 číslic, takže z čísla
+// objednávky (LF-20260831-4952) vezmeme jen datum ve zkráceném tvaru (26 08
+// 31) a čtyřmístný kód — dá se tak na první pohled spárovat s objednávkou.
 function generateOrderNumber() {
   const d = new Date();
   const pad = (n) => (n < 10 ? '0' : '') + n;
-  const datePart = d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate());
+  const yy = String(d.getFullYear()).slice(-2);
+  const mm = pad(d.getMonth() + 1);
+  const dd = pad(d.getDate());
   const rand = Math.floor(1000 + Math.random() * 9000);
-  return 'LF-' + datePart + '-' + rand;
+  return {
+    orderNumber: 'LF-' + d.getFullYear() + mm + dd + '-' + rand,
+    variableSymbol: yy + mm + dd + rand
+  };
 }
 
 async function createOrder(request, env, cors) {
@@ -146,7 +179,7 @@ async function createOrder(request, env, cors) {
   const discount = await discountAmount(env, body.discountCode, subtotal);
   const shipping = SHIPPING[body.delivery.method];
   const total = Math.max(0, subtotal - discount) + shipping.price;
-  const orderNumber = generateOrderNumber();
+  const { orderNumber, variableSymbol } = generateOrderNumber();
 
   const insert = await env.DB.prepare(
     `INSERT INTO orders (order_number, status, customer_name, customer_email, customer_phone,
@@ -191,13 +224,13 @@ async function createOrder(request, env, cors) {
     // takže selhání Resendu nesmí shodit odpověď na chybu (klient by pak
     // objednávku zbytečně odeslal znovu přes mailto).
     try {
-      await sendOrderEmails(env, { orderNumber, orderId, body, items, subtotal, discount, shipping, total });
+      await sendOrderEmails(env, { orderNumber, variableSymbol, body, items, subtotal, discount, shipping, total });
     } catch (err) {
       console.error('sendOrderEmails failed', err);
     }
   }
 
-  return json({ orderNumber, status: 'nova', subtotal, discountAmount: discount, shippingPrice: shipping.price, total, variableSymbol: orderId, paymentMethod: body.payment.method }, 200, cors);
+  return json({ orderNumber, status: 'nova', subtotal, discountAmount: discount, shippingPrice: shipping.price, total, variableSymbol, paymentMethod: body.payment.method }, 200, cors);
 }
 
 // ---------- e-mail ----------
@@ -235,7 +268,7 @@ function totalsRowsHtml(rows) {
   return rows.map(([label, value]) => `<tr><td style="padding:3px 0;">${label}</td><td style="padding:3px 0;text-align:right;">${value}</td></tr>`).join('');
 }
 
-async function sendOrderEmails(env, { orderNumber, orderId, body, items, subtotal, discount, shipping, total }) {
+async function sendOrderEmails(env, { orderNumber, variableSymbol, body, items, subtotal, discount, shipping, total }) {
   const totalsRows = [['Mezisoučet', `${subtotal} Kč`]];
   if (discount > 0) totalsRows.push([`Sleva (${(body.discountCode || '').toUpperCase()})`, `−${discount} Kč`]);
   totalsRows.push(['Doprava', shipping.price === 0 ? 'zdarma' : `${shipping.price} Kč`]);
@@ -248,7 +281,7 @@ async function sendOrderEmails(env, { orderNumber, orderId, body, items, subtota
     <table role="presentation" width="100%" style="border-collapse:collapse;margin-top:10px;background:#faf6ef;border-radius:8px;font-size:14px;">
       ${totalsRowsHtml([
         ['Číslo účtu', BANK_ACCOUNT],
-        ['Variabilní symbol', String(orderId)],
+        ['Variabilní symbol', variableSymbol],
         ['Částka', `${total} Kč`]
       ])}
     </table>`;
@@ -294,6 +327,64 @@ async function sendOrderEmails(env, { orderNumber, orderId, body, items, subtota
     subject: `Nová objednávka ${orderNumber}`,
     html: shopHtml
   });
+}
+
+// ---------- admin ----------
+
+function isAdmin(request, env) {
+  const auth = request.headers.get('Authorization') || '';
+  const token = auth.replace(/^Bearer\s+/i, '');
+  return !!env.ADMIN_PASSWORD && token === env.ADMIN_PASSWORD;
+}
+
+async function listOrders(env, cors) {
+  const { results: orders } = await env.DB.prepare(
+    `SELECT id, order_number, status, customer_name, customer_email, customer_phone,
+       customer_street, customer_zip, customer_city, delivery_method, delivery_detail,
+       payment_method, discount_code, note, subtotal, discount_amount, shipping_price,
+       total, created_at
+     FROM orders ORDER BY created_at DESC LIMIT 200`
+  ).all();
+  const { results: items } = await env.DB.prepare(
+    'SELECT order_id, product_id, title, price, qty FROM order_items'
+  ).all();
+  const itemsByOrder = {};
+  for (const item of items) {
+    (itemsByOrder[item.order_id] = itemsByOrder[item.order_id] || []).push(item);
+  }
+  const withItems = orders.map((o) => Object.assign({}, o, { items: itemsByOrder[o.id] || [] }));
+  return json({ orders: withItems }, 200, cors);
+}
+
+async function updateOrderStatus(request, env, cors, orderId) {
+  const body = await request.json();
+  if (!body.status) return json({ error: 'missing_status' }, 400, cors);
+  await env.DB.prepare('UPDATE orders SET status = ? WHERE id = ?').bind(body.status, orderId).run();
+  return json({ ok: true }, 200, cors);
+}
+
+async function createProduct(request, env, cors) {
+  const body = await request.json();
+  if (!body.productId || !body.title || body.price == null) {
+    return json({ error: 'missing_fields' }, 400, cors);
+  }
+  await env.DB.prepare(
+    'INSERT INTO products (product_id, title, price, stock_qty) VALUES (?, ?, ?, ?)'
+  ).bind(body.productId, body.title, Number(body.price), Number(body.stockQty) || 0).run();
+  return json({ ok: true }, 200, cors);
+}
+
+async function updateProduct(request, env, cors, productId) {
+  const body = await request.json();
+  const fields = [];
+  const values = [];
+  if (body.title != null) { fields.push('title = ?'); values.push(body.title); }
+  if (body.price != null) { fields.push('price = ?'); values.push(Number(body.price)); }
+  if (body.stockQty != null) { fields.push('stock_qty = ?'); values.push(Number(body.stockQty)); }
+  if (fields.length === 0) return json({ error: 'nothing_to_update' }, 400, cors);
+  values.push(productId);
+  await env.DB.prepare(`UPDATE products SET ${fields.join(', ')} WHERE product_id = ?`).bind(...values).run();
+  return json({ ok: true }, 200, cors);
 }
 
 async function sendResendEmail(env, { to, subject, html }) {
