@@ -4,6 +4,12 @@ const SITE_URL = 'https://lufactory.pages.dev';
 
 const BANK_ACCOUNT = '211573669/0300';
 
+const SELLER = {
+  name: 'Ing. Nikola Drnková',
+  ico: '09999035',
+  address: 'Na Homoli 484, Nová Ves, 250 63'
+};
+
 // Musí zůstat stejné jako SHIPPING v assets/js/cart.js — tady se cena dopravy
 // ověřuje server-side (nikdy se nevěří ceně poslané klientem).
 const SHIPPING = {
@@ -57,6 +63,10 @@ export default {
         if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
         return await updateOrderStatus(request, env, cors, Number(orderStatusMatch[1]));
       }
+      if (orderStatusMatch && request.method === 'DELETE') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await deleteOrder(env, cors, Number(orderStatusMatch[1]));
+      }
       if (url.pathname === '/api/admin/products' && request.method === 'POST') {
         if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
         return await createProduct(request, env, cors);
@@ -77,7 +87,7 @@ export default {
 function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization'
   };
 }
@@ -356,6 +366,14 @@ async function listOrders(env, cors) {
   return json({ orders: withItems }, 200, cors);
 }
 
+async function deleteOrder(env, cors, orderId) {
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM order_items WHERE order_id = ?').bind(orderId),
+    env.DB.prepare('DELETE FROM orders WHERE id = ?').bind(orderId)
+  ]);
+  return json({ ok: true }, 200, cors);
+}
+
 const ORDER_STATUS_LABELS = {
   nova: 'Nová',
   zaplaceno: 'Zaplaceno',
@@ -373,12 +391,18 @@ async function updateOrderStatus(request, env, cors, orderId) {
     // Stejně jako u potvrzení objednávky — selhání e-mailu nesmí shodit
     // samotnou změnu stavu, ta už je v databázi hotová.
     try {
-      const order = await env.DB.prepare(
-        'SELECT order_number, customer_email FROM orders WHERE id = ?'
-      ).bind(orderId).first();
-      if (order) await sendStatusChangeEmail(env, order, body.status);
+      const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
+      if (order) {
+        await sendStatusChangeEmail(env, order, body.status);
+        if (body.status === 'odeslano') {
+          const { results: items } = await env.DB.prepare(
+            'SELECT title, price, qty FROM order_items WHERE order_id = ?'
+          ).bind(orderId).all();
+          await sendInvoiceEmail(env, order, items);
+        }
+      }
     } catch (err) {
-      console.error('sendStatusChangeEmail failed', err);
+      console.error('order status email failed', err);
     }
   }
 
@@ -395,6 +419,84 @@ async function sendStatusChangeEmail(env, order, status) {
     to: order.customer_email,
     subject: `Objednávka ${order.order_number} — ${label}`,
     html
+  });
+}
+
+// Base64 kódování musí umět diakritiku — obyčejné btoa() na ní spadne.
+function toBase64Utf8(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary);
+}
+
+function buildInvoiceHtml(order, items) {
+  const itemRows = items.map((i) => `<tr>
+      <td style="padding:6px 8px;border-bottom:1px solid #e6dcc8;">${escapeHtml(i.title)}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #e6dcc8;text-align:center;">${i.qty}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #e6dcc8;text-align:right;">${i.price} Kč</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #e6dcc8;text-align:right;">${i.price * i.qty} Kč</td>
+    </tr>`).join('');
+
+  const today = new Date().toLocaleDateString('cs-CZ');
+
+  return `<!doctype html>
+<html lang="cs"><head><meta charset="utf-8"><title>Faktura ${escapeHtml(order.order_number)}</title></head>
+<body style="font-family:Georgia,'Times New Roman',serif;color:#2e2419;max-width:640px;margin:0 auto;padding:32px;">
+  <h1 style="font-size:22px;margin:0 0 4px;">Faktura č. ${escapeHtml(order.order_number)}</h1>
+  <p style="color:#786b58;margin:0 0 24px;">Datum vystavení: ${today}</p>
+
+  <table role="presentation" width="100%" style="margin-bottom:24px;">
+    <tr>
+      <td style="vertical-align:top;width:50%;">
+        <strong>Dodavatel</strong><br>
+        ${escapeHtml(SELLER.name)}<br>
+        IČO: ${escapeHtml(SELLER.ico)}<br>
+        ${escapeHtml(SELLER.address)}<br>
+        Neplátce DPH<br>
+        Číslo účtu: ${escapeHtml(BANK_ACCOUNT)}
+      </td>
+      <td style="vertical-align:top;width:50%;">
+        <strong>Odběratel</strong><br>
+        ${escapeHtml(order.customer_name)}<br>
+        ${escapeHtml(order.customer_street)}<br>
+        ${escapeHtml(order.customer_zip)} ${escapeHtml(order.customer_city)}<br>
+        ${escapeHtml(order.customer_email)}
+      </td>
+    </tr>
+  </table>
+
+  <table role="presentation" width="100%" style="border-collapse:collapse;font-size:14px;">
+    <thead>
+      <tr style="background:#f1e8d6;">
+        <th style="padding:6px 8px;text-align:left;">Položka</th>
+        <th style="padding:6px 8px;text-align:center;">Množství</th>
+        <th style="padding:6px 8px;text-align:right;">Cena/ks</th>
+        <th style="padding:6px 8px;text-align:right;">Celkem</th>
+      </tr>
+    </thead>
+    <tbody>${itemRows}</tbody>
+  </table>
+
+  <table role="presentation" width="100%" style="margin-top:16px;font-size:14px;">
+    <tr><td style="padding:3px 8px;">Mezisoučet</td><td style="padding:3px 8px;text-align:right;">${order.subtotal} Kč</td></tr>
+    ${order.discount_amount > 0 ? `<tr><td style="padding:3px 8px;">Sleva</td><td style="padding:3px 8px;text-align:right;">−${order.discount_amount} Kč</td></tr>` : ''}
+    <tr><td style="padding:3px 8px;">Doprava</td><td style="padding:3px 8px;text-align:right;">${order.shipping_price} Kč</td></tr>
+    <tr><td style="padding:6px 8px;font-weight:bold;">Celkem k úhradě</td><td style="padding:6px 8px;text-align:right;font-weight:bold;">${order.total} Kč</td></tr>
+  </table>
+
+  <p style="margin-top:24px;font-size:13px;color:#786b58;">Vystaveno automaticky systémem lufactory.cz.</p>
+</body></html>`;
+}
+
+async function sendInvoiceEmail(env, order, items) {
+  const html = buildInvoiceHtml(order, items);
+  const filename = 'faktura-' + order.order_number + '.html';
+  await sendResendEmail(env, {
+    to: order.customer_email,
+    subject: `Faktura k objednávce ${order.order_number}`,
+    html: `<p>V příloze posíláme fakturu k vaší objednávce ${escapeHtml(order.order_number)}. Otevře se v prohlížeči — pokud potřebujete PDF, jde v prohlížeči vytisknout a uložit jako PDF.</p>`,
+    attachments: [{ filename, content: toBase64Utf8(html) }]
   });
 }
 
@@ -422,14 +524,16 @@ async function updateProduct(request, env, cors, productId) {
   return json({ ok: true }, 200, cors);
 }
 
-async function sendResendEmail(env, { to, subject, html }) {
+async function sendResendEmail(env, { to, subject, html, attachments }) {
+  const payload = { from: env.MAIL_FROM, to: [to], subject, html };
+  if (attachments) payload.attachments = attachments;
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${env.RESEND_API_KEY}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ from: env.MAIL_FROM, to: [to], subject, html })
+    body: JSON.stringify(payload)
   });
   if (!res.ok) {
     const detail = await res.text();

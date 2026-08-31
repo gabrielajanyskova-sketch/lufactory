@@ -1020,6 +1020,7 @@ body.lightbox-open { overflow: hidden; }
           <th>Doprava</th>
           <th>Celkem</th>
           <th>Stav</th>
+          <th></th>
         </tr>
       </thead>
       <tbody id="orders-tbody"></tbody>
@@ -1076,6 +1077,15 @@ body.lightbox-open { overflow: hidden; }
     ['hotovo', 'Vyřízeno'],
     ['zruseno', 'Zrušeno']
   ];
+
+  // Musí zůstat stejné jako SHIPPING ve worker/src/index.js.
+  var SHIPPING_LABELS = {
+    pickup: 'Osobní odběr',
+    'zasilkovna-pickup': 'Zásilkovna – výdejní místo',
+    'zasilkovna-address': 'Zásilkovna – doručení na adresu',
+    'ppl-pickup': 'PPL – výdejní místo',
+    'ppl-address': 'PPL – doručení na adresu'
+  };
 
   function getToken() {
     return localStorage.getItem(TOKEN_KEY) || '';
@@ -1168,16 +1178,29 @@ body.lightbox-open { overflow: hidden; }
             return '<option value="' + s[0] + '"' + (s[0] === order.status ? ' selected' : '') + '>' + s[1] + '</option>';
           }).join('');
 
+          var shippingLabel = SHIPPING_LABELS[order.delivery_method] || order.delivery_method;
+
           tr.innerHTML =
             '<td>' + order.order_number + '</td>' +
             '<td>' + (order.created_at || '').replace('T', ' ').slice(0, 16) + '</td>' +
             '<td>' + order.customer_name + '<br><small>' + order.customer_email + '<br>' + (order.customer_phone || '') + '</small></td>' +
             '<td>' + itemsHtml + '</td>' +
-            '<td>' + order.delivery_method + (order.delivery_detail ? '<br><small>' + order.delivery_detail + '</small>' : '') + '</td>' +
+            '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + order.delivery_detail + '</small>' : '') + '</td>' +
             '<td>' + formatPrice(order.total) + '</td>' +
-            '<td><select data-order-id="' + order.id + '">' + statusOptions + '</select></td>';
+            '<td><select data-order-id="' + order.id + '">' + statusOptions + '</select></td>' +
+            '<td><button type="button" class="cart-remove" data-delete-order="' + order.id + '" title="Smazat objednávku">✕</button></td>';
 
           tbody.appendChild(tr);
+        });
+
+        tbody.querySelectorAll('button[data-delete-order]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            if (!confirm('Opravdu smazat tuhle objednávku? Nejde vrátit zpět.')) return;
+            fetch(API_BASE + '/api/admin/orders/' + btn.dataset.deleteOrder, {
+              method: 'DELETE',
+              headers: authHeaders()
+            }).then(function () { loadOrders(); });
+          });
         });
 
         tbody.querySelectorAll('select[data-order-id]').forEach(function (select) {
