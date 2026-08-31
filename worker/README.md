@@ -1,115 +1,69 @@
 # lufactory-api — Cloudflare Worker
 
-Backend pro košík: skutečné ceny a slevové kódy z D1 databáze (`lufactory-orders`),
-ukládání objednávek a e-mailové potvrzení přes Resend. Postavené stejně jako
-`flammel-api` u flammel.cz.
+Backend pro celý e-shop: skutečné ceny/sklad/slevové kódy z D1 databáze
+(`lufactory-orders`), ukládání objednávek, e-mailová potvrzení a faktury přes
+Resend, fotky produktů ve Workers KV, a admin API pro `/admin.html`.
 
-Dokud tenhle worker není nasazený, web funguje úplně normálně dál — jen
-objednávka jde přes mailto (otevře se e-mailový klient), tak jak je to nastavené
-teď. Po nasazení stačí vyplnit `API_BASE` v `assets/js/cart.js` a web
-automaticky přejde na živé objednávky přes tenhle worker.
-
-## Co je potřeba předem
-
-- Nainstalovaný Node.js
-- Cloudflare účet (stejný, na kterém běží flammel-api)
-- V [Resend](https://resend.com) buď ověřená doména `lufactory.cz` pro odesílání
-  e-mailů, nebo dočasně jinou adresu v `wrangler.toml` (`MAIL_FROM`), dokud
-  doménu neověříš
+Dokud tenhle worker neběží (nebo je nedostupný), web funguje dál na mailto —
+tlačítko "Odeslat objednávku" otevře e-mailový klient místo živého API, takže
+se nic nikdy „nerozbije".
 
 ## Nasazení
 
-```bash
-cd worker
-npx wrangler login          # přihlášení k Cloudflare účtu (otevře prohlížeč)
-npx wrangler secret put RESEND_API_KEY   # vloží se tvůj Resend API klíč
-npx wrangler deploy
-```
+Tenhle worker se **nedeployuje přes `wrangler deploy`** — nasazuje se ručně
+vložením `src/index.js` do Cloudflare dashboardu:
 
-Po doběhnutí `wrangler deploy` se vypíše URL workeru, něco jako:
+1. **Cloudflare dashboard → Workers & Pages → lufactory-api → Edit code**
+2. Označit celý obsah editoru a nahradit obsahem `src/index.js`
+3. **Save and deploy**
+4. V **Deployments** zkontrolovat, že se nová verze skutečně dostala na
+   100 % provozu (přidání proměnné/secretu přes Settings občas jen vytvoří
+   novou verzi, aniž by ji nasadilo — je potřeba ji ručně "Deploy")
 
-```
-https://lufactory-api.<tvuj-subdomain>.workers.dev
-```
+Bindings a proměnné (Settings → Bindings / Variables and Secrets), viz
+`wrangler.toml` pro přesné názvy:
+
+- D1 databáze `lufactory-orders` → binding `DB`
+- KV namespace `lufactory-product-images` → binding `IMAGES`
+- Text proměnné `MAIL_FROM`, `SHOP_NOTIFICATION_EMAIL`
+- Secrety `RESEND_API_KEY`, `ADMIN_PASSWORD`, volitelně `CF_API_TOKEN`
+  (PDF faktury — bez něj se posílá faktura jako HTML příloha)
 
 ## Propojení s webem
 
-Otevři `assets/js/cart.js`, úplně nahoře najdi:
+`API_BASE` v `assets/js/cart.js`, `admin.html` a `produkty/produkt.html` musí
+ukazovat na URL tohohle workeru (`https://lufactory-api.<subdomain>.workers.dev`).
+Musí sedět na všech třech místech současně.
 
-```js
-var API_BASE = '';
-```
+## Databáze (`lufactory-orders`)
 
-a vlož tam tu URL z předchozího kroku, např.:
+- **`products`** — `product_id`, `title`, `price`, `stock_qty`, `description`
+  (celý popis na stránce produktu), `teaser` (jedna věta na kartičce v
+  přehledu), `image_url` (hlavní fotka), `gallery_urls` (JSON pole dalších
+  fotek)
+- **`discount_codes`** — `code`, `type` (`percent`/`fixed`), `value`, `active`
+- **`orders`** — objednávky včetně fakturační adresy a `variable_symbol`
+- **`order_items`** — položky jednotlivých objednávek
 
-```js
-var API_BASE = 'https://lufactory-api.<tvuj-subdomain>.workers.dev';
-```
+U 6 původních ručně napsaných produktů (houbičky, peeling, celá lufa) zůstává
+zdroj pravdy pro vzhled/text jejich **vlastní stránky** v HTML
+(`produkty/*.html`) — databáze u nich slouží hlavně pro cenu/sklad/slevy a pro
+zobrazení v adminu. Nové produkty přidané přes `/admin.html` žijí čistě v
+databázi a dostávají generickou stránku `produkty/produkt.html?id=...`.
 
-Ulož, commitni a pushni — od teď košík posílá objednávky přes worker (skutečné
-ceny z databáze, uložení do D1, potvrzovací e-mail tobě i zákazníkovi). Pokud by
-worker z nějakého důvodu nebyl dostupný, web se sám přepne zpátky na mailto, takže
-se nic nikdy „nerozbije".
+## Správa přes `/admin.html`
 
-## Databáze
+Veškerá běžná správa (ceny, sklad, fotky, popisky, slevové kódy, stav
+objednávek, faktury, export do CSV) se dělá přes `/admin.html`, ne přes ruční
+SQL příkazy. Přihlašovací heslo je secret `ADMIN_PASSWORD`.
 
-Tabulky v `lufactory-orders`:
+Přímý SQL zásah do databáze (např. hromadná úprava) jde udělat přes Cloudflare
+dashboard → D1 → `lufactory-orders` → Console, nebo `wrangler d1 execute`,
+pokud máš wrangler funkční lokálně.
 
-- `products` — `product_id`, `title`, `price`, `stock_qty` (zdroj pravdy pro
-  ceny a dostupnost při objednávce, web si je stejně zobrazuje ze statického
-  HTML)
-- `discount_codes` — `code`, `type` (`percent`/`fixed`), `value`, `active`
-- `orders` — uložené objednávky včetně fakturační adresy (`customer_name`,
-  `customer_street`, `customer_zip`, `customer_city`, `customer_email`,
-  `customer_phone`)
-- `order_items` — položky jednotlivých objednávek
+## Nízký sklad a faktury
 
-### Nastavení skladu (důležité!)
-
-Všech 6 produktů má `stock_qty` výchozí 0, takže na webu je zatím u všech
-„Není skladem" a tlačítko „Přidat do košíku" je neaktivní — dokud nenastavíš
-skutečné počty kusů, nejde nic objednat (schválně, ať se nic neobjedná dřív,
-než budeš mít reálné zásoby). Jakmile budeš mít houbičky připravené k prodeji:
-
-```bash
-npx wrangler d1 execute lufactory-orders --remote --command \
-  "UPDATE products SET stock_qty = 12 WHERE product_id = 'houbicka-mala'"
-```
-
-Tohle funguje ale jen po nasazení workeru (viz výše) — teprve pak web čte
-sklad přes `GET /api/products`. Při každé objednávce se sklad automaticky
-sníží o objednané množství; když někdo objedná víc, než je skladem, worker
-objednávku odmítne (`insufficient_stock`).
-
-### Přidání/úprava slevového kódu
-
-```bash
-npx wrangler d1 execute lufactory-orders --remote --command \
-  "INSERT INTO discount_codes (code, type, value, active) VALUES ('ZIMA50', 'fixed', 50, 1)"
-```
-
-Zrušení kódu (bez mazání historie):
-
-```bash
-npx wrangler d1 execute lufactory-orders --remote --command \
-  "UPDATE discount_codes SET active = 0 WHERE code = 'LETO10'"
-```
-
-### Úprava ceny produktu
-
-```bash
-npx wrangler d1 execute lufactory-orders --remote --command \
-  "UPDATE products SET price = 130 WHERE product_id = 'houbicka-mala'"
-```
-
-Cenu je pak potřeba ručně upravit i v HTML (`produkty.html`, `index.html`) a v
-`assets/js/cart.js`, protože zobrazení produktů zatím čte z hodnot v HTML, ne
-z databáze — databáze slouží jako pojistka, že se při objednávce vždy použije
-skutečná aktuální cena, ne ta, kterou by šlo upravit v prohlížeči.
-
-## Zobrazení objednávek
-
-```bash
-npx wrangler d1 execute lufactory-orders --remote --command \
-  "SELECT order_number, status, customer_name, total, created_at FROM orders ORDER BY created_at DESC LIMIT 20"
-```
+Když po objednávce klesne sklad produktu na 2 ks nebo míň, přijde e-mail na
+`SHOP_NOTIFICATION_EMAIL`. Nastavením stavu objednávky na "Odesláno" v adminu
+se zákazníkovi automaticky pošle faktura (PDF, pokud je nastavený
+`CF_API_TOKEN`, jinak HTML příloha).

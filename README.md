@@ -1,29 +1,30 @@
-# lufactory.cz — statický web
+# lufactory.cz — e-shop
 
-Eshop pro lufactory (ručně vyráběné houbičky z lufy), postavený stejně jako
-flammel.cz — čisté HTML/CSS/JS bez frameworku, nasazované na Cloudflare Pages
-přímo z tohoto repozitáře.
+Ručně vyráběné houbičky z lufy — statický web (HTML/CSS/JS, bez frameworku)
+nasazovaný na Cloudflare Pages přímo z tohoto repozitáře, s Cloudflare
+Workerem (`worker/`) jako backendem pro objednávky, sklad a administraci.
+
+Doména `lufactory.cz` běží přes Cloudflare (nameservery, DNS, Pages i
+Worker na stejném účtu).
 
 ## Struktura
 
 ```
-index.html              hlavní stránka (hero, produkty, o mně, o houbičkách, kontakt)
-produkty.html            plný katalog všech 6 produktů
-produkty/*.html          detail každého produktu (vlastní URL, vlastní popis)
-kosik.html               košík, doprava, platba, fakturační údaje, odeslání
-obchodni-podminky.html   obchodní podmínky
-ochrana-osobnich-udaju.html   zásady zpracování osobních údajů (GDPR)
-assets/css/style.css    zdroj pravdy pro styly (design tokeny v :root) — do
-                         HTML stránek se vkládá přímo (viz "Úprava CSS" níže)
-assets/js/main.js       mobilní menu + odesílání kontaktního formuláře (mailto)
-assets/js/cart.js       košík na localStorage, checkout, sklad, volitelně
-                         napojený na worker/ (viz worker/README.md); bez něj
-                         vše dál funguje na mailto a "Není skladem"
-assets/img/             obrázky — většina jsou reálné fotky; houbička "velká"
-                         zatím nemá fotku, používá texturový placeholder
-worker/                 Cloudflare Worker + D1 pro produkty, sklad, slevové
-                         kódy a objednávky — viz worker/README.md pro nasazení
-scripts/inline-css.py   viz "Úprava CSS" níže
+index.html                    hlavní stránka (hero, produkty, o mně, o houbičkách, kontakt)
+produkty.html                  plný katalog — 6 ručně napsaných produktů + cokoliv přidané v adminu
+produkty/*.html                vlastní stránka pro každý z 6 původních produktů
+produkty/produkt.html          generická stránka pro produkty přidané přes admin (?id=...)
+kosik.html                     košík, doprava, platba, fakturační údaje, odeslání
+admin.html                     administrace — objednávky, produkty/sklad/fotky, slevové kódy
+obchodni-podminky.html         obchodní podmínky
+ochrana-osobnich-udaju.html    zásady zpracování osobních údajů (GDPR)
+assets/css/style.css           zdroj pravdy pro styly (design tokeny v :root) — do
+                                HTML stránek se vkládá přímo (viz "Úprava CSS" níže)
+assets/js/main.js              mobilní menu, kontaktní formulář, lightbox pro galerie
+assets/js/cart.js              košík, checkout, živý sklad, napojení na worker/api
+assets/img/                    fotky produktů a webu
+worker/                        Cloudflare Worker + D1 + KV — objednávky, sklad, admin API
+scripts/inline-css.py          viz "Úprava CSS" níže
 robots.txt, sitemap.xml, llms.txt   SEO/AI crawler soubory
 ```
 
@@ -41,41 +42,47 @@ python3 scripts/inline-css.py
 To přepíše `<style>` blok ve všech HTML stránkách podle aktuálního obsahu
 `style.css`. Bez spuštění skriptu se úprava CSS v HTML stránkách neprojeví.
 
-## Sklad
+## Sklad, ceny, produkty, slevy, objednávky
 
-Tlačítko „Přidat do košíku" je u všech produktů schválně needaktivní a
-zobrazuje se „Není skladem", dokud v D1 databázi nenastavíš skutečný počet
-kusů (`worker/README.md` → „Nastavení skladu") — a to funguje až po nasazení
-workeru. Bez workeru web zůstává v tomhle bezpečném výchozím stavu natrvalo.
+Všechno se spravuje přes **`/admin.html`** (zaheslované, heslo je secret
+`ADMIN_PASSWORD` na workeru) — žádné ruční SQL příkazy nejsou potřeba pro
+běžný provoz:
+
+- **Objednávky** — přehled, změna stavu (posílá e-mail zákazníkovi, u
+  "Odesláno" i fakturu), smazání, export do CSV, odkaz na fakturu
+- **Produkty a sklad** — cena, počet kusů, popis, fotka (hlavní i galerie),
+  přidání nového produktu
+- **Slevové kódy** — přidání, aktivace/deaktivace, smazání
+
+Nový produkt přidaný v adminu se automaticky objeví v `produkty.html` a
+dostane vlastní stránku (`produkty/produkt.html?id=...`) — beze změny kódu.
+Šest původních produktů má svou vlastní ručně psanou stránku s galerií a
+zůstává tak i nadále (bohatší obsah, než umí generická šablona).
+
+Dokud u produktu není žádný kus skladem, tlačítko „Přidat do košíku" je
+needktivní a zobrazuje se „Není skladem" — bezpečný výchozí stav.
 
 ## Košík a objednávka
 
-`assets/js/cart.js` drží obsah košíku v `localStorage` (přežije reload i
-zavření prohlížeče). Tlačítko „Přidat do košíku" u produktu otevře postranní
-panel s mezisoučtem; „Pokračovat do košíku" vede na `kosik.html`, kde se vybírá
-doprava (osobní odběr / Zásilkovna), platba (převod / hotově při odběru),
-vyplní fakturační údaje a uplatní slevový kód — cena se přepočítává živě.
-Odeslání objednávky je podmíněné odsouhlasením obchodních podmínek
-(zaškrtávátko u tlačítka „Odeslat objednávku").
-
-Bez nasazeného workeru (`worker/`) se objednávka odešle přes mailto, stejně
-jako dosud. Po nasazení (`worker/README.md`) a vyplnění `API_BASE` v
-`cart.js` se objednávky ukládají do D1, ceny a slevové kódy se ověřují
-server-side a zákazníkovi i tobě přijde e-mailové potvrzení přes Resend — a
-pokud by worker někdy nebyl dostupný, web se sám přepne zpátky na mailto.
+`assets/js/cart.js` drží obsah košíku v `localStorage`. Při checkoutu se
+sklad ověřuje živě proti API — pokud mezitím někdo koupí poslední kus, košík
+to zahlásí a neumožní odeslání, dokud se množství neopraví. Objednávka jde
+přes `worker/` (skutečné ceny, sklad a slevy ověřené server-side, uložení do
+D1, e-mailové potvrzení přes Resend) — pokud by worker byl nedostupný, web se
+sám přepne na mailto, takže se nic nikdy „nerozbije".
 
 ## Nasazení
 
-Stejně jako u flammel.cz: repo se připojí na Cloudflare Pages (dashboard →
-Workers & Pages → Create → Pages → Connect to Git), build command prázdný,
-output directory `/` (kořen repa) — je to čistě statický web, žádný build
-krok není potřeba.
+- **Web (Pages):** repo je připojené na Cloudflare Pages (Workers & Pages →
+  lufactory), nasazuje se automaticky při každém pushi do `main`
+- **Worker:** nasazuje se ručně, viz `worker/README.md` — `wrangler deploy`
+  z tohohle prostředí nejde (síťové omezení), takže se kód vkládá přímo do
+  Cloudflare dashboardu
 
-## Další kroky
+## Další kroky / nápady
 
-- Nasadit `worker/` podle `worker/README.md` (pár příkazů ve wrangleru),
-  vyplnit `API_BASE` v `assets/js/cart.js` a nastavit skutečné počty kusů
-  na skladě — bez toho nejde nic objednat
-- Platby zatím řešené ručně (převod / hotově) — platební bránu (GoPay/Comgate)
-  napojit později, až bude potřeba
-
+- Platby zatím řešené ručně (bankovní převod s QR kódem / hotově) —
+  platební bránu (Comgate/GoPay) napojit později, až bude potřeba
+- Sledování objednávky pro zákazníka (zadá číslo objednávky + e-mail, uvidí
+  stav) — ať nemusí psát „kde je moje objednávka"
+- Automatický export/záloha databáze objednávek

@@ -7,9 +7,18 @@ binding = "DB"
 database_name = "lufactory-orders"
 database_id = "7226b02b-801c-471b-a73c-a3be684c4daa"
 
+[[kv_namespaces]]
+binding = "IMAGES"
+id = "d0c4fc97b7544280b8d090bbd9dbc06f"
+
 [vars]
 MAIL_FROM = "lufactory <objednavky@lufactory.cz>"
 SHOP_NOTIFICATION_EMAIL = "info@lufactory.cz"
 
-# RESEND_API_KEY is a secret, not a var — set it with:
-#   wrangler secret put RESEND_API_KEY
+# Secrety (nejdou do tohohle souboru, nastavují se zvlášť):
+#   wrangler secret put RESEND_API_KEY    — API klíč Resend, jen sending_access pro lufactory.cz
+#   wrangler secret put ADMIN_PASSWORD    — heslo do /admin.html
+#   wrangler secret put CF_API_TOKEN      — Cloudflare token s "Browser Rendering: Edit" (PDF faktury; volitelné)
+#
+# Tenhle projekt se ale nasazuje ručně přes Cloudflare dashboard (Edit code),
+# ne přímo přes "wrangler deploy" — viz README.md, "Nasazení".
