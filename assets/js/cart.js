@@ -323,7 +323,14 @@
     }
 
     var addressFields = document.getElementById('address-fields');
-    if (addressFields) addressFields.hidden = !PICKUP_POINT_SHIPPING[shippingKey];
+    if (addressFields) {
+      addressFields.hidden = !PICKUP_POINT_SHIPPING[shippingKey];
+      if (PICKUP_POINT_SHIPPING[shippingKey]) {
+        var selectedRadio = document.querySelector('input[name="shipping"][value="' + shippingKey + '"]');
+        var optionCard = selectedRadio && selectedRadio.closest('.option-card');
+        if (optionCard) optionCard.insertAdjacentElement('afterend', addressFields);
+      }
+    }
 
     var pickBranchBtn = document.getElementById('pick-branch-btn');
     if (pickBranchBtn) pickBranchBtn.hidden = shippingKey !== 'zasilkovna-pickup';
