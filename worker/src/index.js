@@ -82,6 +82,10 @@ export default {
         if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
         return await updateProduct(request, env, cors, decodeURIComponent(productMatch[1]));
       }
+      if (productMatch && request.method === 'DELETE') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await deleteProduct(env, cors, decodeURIComponent(productMatch[1]));
+      }
       const imageUploadMatch = url.pathname.match(/^\/api\/admin\/products\/([^/]+)\/image$/);
       if (imageUploadMatch && request.method === 'POST') {
         if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
@@ -611,6 +615,11 @@ async function sendInvoiceEmail(env, order, items) {
     html: `<p>${intro}</p>`,
     attachments: [{ filename, content }]
   });
+}
+
+async function deleteProduct(env, cors, productId) {
+  await env.DB.prepare('DELETE FROM products WHERE product_id = ?').bind(productId).run();
+  return json({ ok: true }, 200, cors);
 }
 
 async function createProduct(request, env, cors) {

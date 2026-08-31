@@ -149,7 +149,10 @@
   // karty, aby se objevily v přehledu bez nutnosti upravovat kód webu.
   function renderDynamicProducts(stockMap) {
     if (!stockMap) return;
-    var grid = document.querySelector('.product-grid');
+    // Jen skutečný přehled všech produktů (produkty.html) — .product-grid se
+    // používá i pro "Mohlo by se vám líbit" výřezy na jiných stránkách, kde
+    // bychom jinak omylem duplikovali produkty, co tam záměrně chybí.
+    var grid = document.getElementById('full-catalog-grid');
     if (!grid) return;
     var known = {};
     document.querySelectorAll('[data-stock-badge]').forEach(function (el) {
@@ -189,13 +192,17 @@
     return article;
   }
 
+  var lastStockMap = null;
+
   function loadStock() {
     if (!API_BASE) return;
     fetch(API_BASE + '/api/products')
       .then(function (r) { return r.json(); })
       .then(function (stockMap) {
+        lastStockMap = stockMap;
         renderDynamicProducts(stockMap);
         applyStock(stockMap);
+        renderCartPage();
       })
       .catch(function () {});
   }
@@ -394,6 +401,45 @@
 
     var pickBranchBtn = document.getElementById('pick-branch-btn');
     if (pickBranchBtn) pickBranchBtn.hidden = shippingKey !== 'zasilkovna-pickup';
+
+    checkCartStock(cart);
+  }
+
+  // Košík si nic neblokuje na skladě (nic se "nerezervuje") — kontroluje se
+  // vždy proti aktuálnímu stavu, takže když mezitím někdo koupí poslední
+  // kus, tady se to hned ukáže a nejde odeslat, dokud se množství neopraví.
+  function checkCartStock(cart) {
+    var warningEl = document.getElementById('cart-stock-warning');
+    var submitBtn = document.getElementById('submit-order');
+    if (!warningEl || !submitBtn) return;
+
+    if (!lastStockMap) {
+      warningEl.hidden = true;
+      submitBtn.disabled = false;
+      return;
+    }
+
+    var problems = [];
+    cart.forEach(function (item) {
+      var entry = lastStockMap[item.id];
+      var available = entry ? entry.stockQty : 0;
+      if (item.qty > available) {
+        problems.push(
+          available > 0
+            ? item.name + ' — skladem už jen ' + available + ' ks (v košíku máte ' + item.qty + ')'
+            : item.name + ' — už není skladem'
+        );
+      }
+    });
+
+    if (problems.length > 0) {
+      warningEl.hidden = false;
+      warningEl.textContent = 'Upravte prosím množství v košíku: ' + problems.join('; ') + '.';
+      submitBtn.disabled = true;
+    } else {
+      warningEl.hidden = true;
+      submitBtn.disabled = false;
+    }
   }
 
   function setText(id, text) {
@@ -524,10 +570,21 @@
 
         submitOrderBtn.disabled = true;
         submitOrderBtn.textContent = 'Odesílám…';
+        var warningEl = document.getElementById('cart-stock-warning');
         submitOrderViaApi()
-          .then(function (result) {
-            if (result) {
-              showOrderSuccess(result);
+          .then(function (res) {
+            if (res.ok) {
+              showOrderSuccess(res.data);
+            } else if (res.data && res.data.error === 'insufficient_stock') {
+              // Mezitím někdo koupil poslední kus — neposílat přes mailto
+              // (to by vypadalo jako objednávka, co ve skutečnosti nejde
+              // splnit), místo toho jasně říct, co opravit, a dotáhnout
+              // čerstvý stav skladu.
+              if (warningEl) {
+                warningEl.hidden = false;
+                warningEl.textContent = 'Mezitím došel sklad u některé položky v košíku — upravte prosím množství.';
+              }
+              loadStock();
             } else {
               window.location.href = buildOrderMailto();
             }
@@ -556,15 +613,16 @@
       body: JSON.stringify(payload)
     })
       .then(function (r) {
-        if (!r.ok) throw new Error('order_failed');
-        return r.json();
+        return r.json().then(function (data) { return { ok: r.ok, data: data }; });
       })
-      .then(function (data) {
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(DISCOUNT_KEY);
-        return data;
+      .then(function (res) {
+        if (res.ok) {
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(DISCOUNT_KEY);
+        }
+        return res;
       })
-      .catch(function () { return null; });
+      .catch(function () { return { ok: false, data: null }; });
   }
 
   // SPD (Short Payment Descriptor) — český standard pro QR platby, podporovaný
