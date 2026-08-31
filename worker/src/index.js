@@ -12,6 +12,10 @@ const SELLER = {
 
 const CF_ACCOUNT_ID = '452377670fd13e08b76846017d811e7e';
 
+// Worker URL musí zůstat stejné jako API_BASE v assets/js/cart.js a admin.html
+// — potřeba pro absolutní adresy fotek vracené z /api/products.
+const WORKER_BASE = 'https://lufactory-api.gabriela-janyskova.workers.dev';
+
 // Musí zůstat stejné jako SHIPPING v assets/js/cart.js — tady se cena dopravy
 // ověřuje server-side (nikdy se nevěří ceně poslané klientem).
 const SHIPPING = {
@@ -78,6 +82,33 @@ export default {
         if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
         return await updateProduct(request, env, cors, decodeURIComponent(productMatch[1]));
       }
+      const imageUploadMatch = url.pathname.match(/^\/api\/admin\/products\/([^/]+)\/image$/);
+      if (imageUploadMatch && request.method === 'POST') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await uploadProductImage(request, env, cors, decodeURIComponent(imageUploadMatch[1]));
+      }
+      const imageServeMatch = url.pathname.match(/^\/api\/images\/(.+)$/);
+      if (imageServeMatch && request.method === 'GET') {
+        return await serveImage(env, cors, imageServeMatch[1]);
+      }
+
+      if (url.pathname === '/api/admin/discounts' && request.method === 'GET') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await listDiscountCodes(env, cors);
+      }
+      if (url.pathname === '/api/admin/discounts' && request.method === 'POST') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await createDiscountCode(request, env, cors);
+      }
+      const discountAdminMatch = url.pathname.match(/^\/api\/admin\/discounts\/([^/]+)$/);
+      if (discountAdminMatch && request.method === 'PATCH') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await updateDiscountCode(request, env, cors, decodeURIComponent(discountAdminMatch[1]));
+      }
+      if (discountAdminMatch && request.method === 'DELETE') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await deleteDiscountCode(env, cors, decodeURIComponent(discountAdminMatch[1]));
+      }
 
       return json({ error: 'not_found' }, 404, cors);
     } catch (err) {
@@ -110,10 +141,18 @@ function escapeHtml(value) {
 // ---------- products ----------
 
 async function getProducts(env, cors) {
-  const { results } = await env.DB.prepare('SELECT product_id, title, price, stock_qty FROM products').all();
+  const { results } = await env.DB.prepare(
+    'SELECT product_id, title, price, stock_qty, description, image_url FROM products'
+  ).all();
   const products = {};
   for (const row of results) {
-    products[row.product_id] = { title: row.title, price: row.price, stockQty: row.stock_qty };
+    products[row.product_id] = {
+      title: row.title,
+      price: row.price,
+      stockQty: row.stock_qty,
+      description: row.description || '',
+      imageUrl: row.image_url ? WORKER_BASE + '/api/images/' + row.image_url : ''
+    };
   }
   return json(products, 200, cors);
 }
@@ -562,8 +601,8 @@ async function createProduct(request, env, cors) {
     return json({ error: 'missing_fields' }, 400, cors);
   }
   await env.DB.prepare(
-    'INSERT INTO products (product_id, title, price, stock_qty) VALUES (?, ?, ?, ?)'
-  ).bind(body.productId, body.title, Number(body.price), Number(body.stockQty) || 0).run();
+    'INSERT INTO products (product_id, title, price, stock_qty, description) VALUES (?, ?, ?, ?, ?)'
+  ).bind(body.productId, body.title, Number(body.price), Number(body.stockQty) || 0, body.description || '').run();
   return json({ ok: true }, 200, cors);
 }
 
@@ -574,9 +613,75 @@ async function updateProduct(request, env, cors, productId) {
   if (body.title != null) { fields.push('title = ?'); values.push(body.title); }
   if (body.price != null) { fields.push('price = ?'); values.push(Number(body.price)); }
   if (body.stockQty != null) { fields.push('stock_qty = ?'); values.push(Number(body.stockQty)); }
+  if (body.description != null) { fields.push('description = ?'); values.push(body.description); }
   if (fields.length === 0) return json({ error: 'nothing_to_update' }, 400, cors);
   values.push(productId);
   await env.DB.prepare(`UPDATE products SET ${fields.join(', ')} WHERE product_id = ?`).bind(...values).run();
+  return json({ ok: true }, 200, cors);
+}
+
+// ---------- fotky produktů (Workers KV) ----------
+
+async function uploadProductImage(request, env, cors, productId) {
+  const body = await request.json();
+  if (!body.contentBase64 || !body.contentType) {
+    return json({ error: 'missing_fields' }, 400, cors);
+  }
+  const bytes = Uint8Array.from(atob(body.contentBase64), (c) => c.charCodeAt(0));
+  const ext = (body.contentType.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+  const key = productId + '-' + Date.now() + '.' + ext;
+  await env.IMAGES.put(key, bytes, { metadata: { contentType: body.contentType } });
+  await env.DB.prepare('UPDATE products SET image_url = ? WHERE product_id = ?').bind(key, productId).run();
+  return json({ ok: true, imageUrl: WORKER_BASE + '/api/images/' + key }, 200, cors);
+}
+
+async function serveImage(env, cors, key) {
+  const obj = await env.IMAGES.getWithMetadata(key, 'arrayBuffer');
+  if (!obj || !obj.value) return json({ error: 'not_found' }, 404, cors);
+  const contentType = (obj.metadata && obj.metadata.contentType) || 'application/octet-stream';
+  return new Response(obj.value, {
+    headers: Object.assign(
+      { 'Content-Type': contentType, 'Cache-Control': 'public, max-age=31536000' },
+      cors
+    )
+  });
+}
+
+// ---------- slevové kódy (admin) ----------
+
+async function listDiscountCodes(env, cors) {
+  const { results } = await env.DB.prepare(
+    'SELECT code, type, value, active FROM discount_codes ORDER BY code'
+  ).all();
+  return json({ codes: results }, 200, cors);
+}
+
+async function createDiscountCode(request, env, cors) {
+  const body = await request.json();
+  if (!body.code || !body.type || body.value == null) {
+    return json({ error: 'missing_fields' }, 400, cors);
+  }
+  await env.DB.prepare(
+    'INSERT INTO discount_codes (code, type, value, active) VALUES (?, ?, ?, 1)'
+  ).bind(body.code.toUpperCase(), body.type, Number(body.value)).run();
+  return json({ ok: true }, 200, cors);
+}
+
+async function updateDiscountCode(request, env, cors, code) {
+  const body = await request.json();
+  const fields = [];
+  const values = [];
+  if (body.type != null) { fields.push('type = ?'); values.push(body.type); }
+  if (body.value != null) { fields.push('value = ?'); values.push(Number(body.value)); }
+  if (body.active != null) { fields.push('active = ?'); values.push(body.active ? 1 : 0); }
+  if (fields.length === 0) return json({ error: 'nothing_to_update' }, 400, cors);
+  values.push(code.toUpperCase());
+  await env.DB.prepare(`UPDATE discount_codes SET ${fields.join(', ')} WHERE code = ?`).bind(...values).run();
+  return json({ ok: true }, 200, cors);
+}
+
+async function deleteDiscountCode(env, cors, code) {
+  await env.DB.prepare('DELETE FROM discount_codes WHERE code = ?').bind(code.toUpperCase()).run();
   return json({ ok: true }, 200, cors);
 }
 

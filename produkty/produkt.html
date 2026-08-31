@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>lufactory — Administrace</title>
-<meta name="robots" content="noindex, nofollow">
+<title>Produkt | lufactory</title>
+<meta name="robots" content="noindex, follow">
 <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -958,499 +958,129 @@ body.lightbox-open { overflow: hidden; }
   .lightbox-next { right: 6px; }
 }
 </style>
-<style>
-  body { background: var(--cream); }
-  .admin-header { background: var(--ink); color: var(--white); padding: 16px 0; }
-  .admin-header .container { display: flex; align-items: center; justify-content: space-between; }
-  .admin-header h1 { font-family: var(--font-heading); font-size: 22px; margin: 0; color: var(--white); }
-  .admin-main { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
-  .admin-login { max-width: 340px; margin: 80px auto; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; text-align: center; }
-  .admin-login input { width: 100%; margin: 12px 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; }
-  .admin-error { color: #b5442e; font-size: 14px; min-height: 20px; }
-  .admin-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
-  .admin-tab { padding: 8px 18px; border-radius: 999px; border: 1px solid var(--border); background: var(--white); cursor: pointer; font-family: var(--font-body); font-size: 14px; }
-  .admin-tab.active { background: var(--brown); color: var(--white); border-color: var(--brown); }
-  .admin-table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-  .admin-table th, .admin-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; font-size: 14px; vertical-align: top; }
-  .admin-table th { background: var(--cream-dark); font-weight: 600; }
-  .admin-table input[type="text"], .admin-table input[type="number"] { width: 90px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
-  .admin-table input.wide { width: 100%; }
-  .product-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); display: block; }
-  .product-thumb-placeholder { width: 48px; height: 48px; border-radius: 6px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted); text-align: center; }
-  .admin-table select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
-  .order-items-list { margin: 0; padding-left: 16px; font-size: 13px; color: var(--text-muted); }
-  .save-btn { padding: 6px 12px; font-size: 13px; }
-  .add-product-form { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; background: var(--white); padding: 16px; border-radius: var(--radius); box-shadow: var(--shadow); align-items: flex-end; }
-  .add-product-form .form-group { margin: 0; }
-  .add-product-form input { padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
-  .status-msg { font-size: 13px; margin-top: 4px; min-height: 18px; }
-  .status-msg.ok { color: var(--sage-dark); }
-  .status-msg.err { color: #b5442e; }
-  [hidden] { display: none !important; }
-</style>
 </head>
 <body>
-
-<header class="admin-header">
+<header class="site-header">
   <div class="container">
-    <h1>lufactory — administrace</h1>
-    <button type="button" class="btn btn--outline" id="logout-btn" hidden style="color:#fff;border-color:#fff;">Odhlásit</button>
+    <a href="/index.html" class="logo"><img src="/assets/img/logo.webp" alt="lufactory" width="200" height="84"></a>
+    <nav class="main-nav">
+      <ul>
+        <li><a href="/produkty.html">Produkty</a></li>
+        <li><a href="/index.html#o-mne">O mně</a></li>
+        <li><a href="/index.html#o-houbickach">Co je lufa</a></li>
+        <li><a href="/index.html#kontakt">Kontakt</a></li>
+      </ul>
+    </nav>
+    <div class="header-actions">
+      <button class="cart-toggle" aria-label="Košík" aria-haspopup="dialog" aria-controls="cart-panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 6h2l2.4 12.2a2 2 0 0 0 2 1.8h8.2a2 2 0 0 0 2-1.6L21 8H6"/>
+          <circle cx="10" cy="21" r="1"/>
+          <circle cx="18" cy="21" r="1"/>
+        </svg>
+        <span class="cart-count" hidden>0</span>
+      </button>
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false"><span class="nav-toggle-icon"></span></button>
+    </div>
   </div>
 </header>
 
-<div id="admin-login" class="admin-login">
-  <h2>Přihlášení</h2>
-  <input type="password" id="admin-password" placeholder="Heslo">
-  <button type="button" class="btn" id="login-btn" style="width:100%;">Přihlásit</button>
-  <p class="admin-error" id="login-error"></p>
-</div>
-
-<main id="admin-app" class="admin-main" hidden>
-  <div class="admin-tabs">
-    <button type="button" class="admin-tab active" data-tab="orders">Objednávky</button>
-    <button type="button" class="admin-tab" data-tab="products">Produkty a sklad</button>
-    <button type="button" class="admin-tab" data-tab="discounts">Slevové kódy</button>
-  </div>
-
-  <section id="tab-orders">
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>Číslo</th>
-          <th>Datum</th>
-          <th>Zákazník</th>
-          <th>Položky</th>
-          <th>Doprava</th>
-          <th>Celkem</th>
-          <th>Stav</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="orders-tbody"></tbody>
-    </table>
-    <p id="orders-empty" class="status-msg" hidden>Zatím žádné objednávky.</p>
-  </section>
-
-  <section id="tab-products" hidden>
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>Fotka</th>
-          <th>ID</th>
-          <th>Název</th>
-          <th>Popisek</th>
-          <th>Cena (Kč)</th>
-          <th>Sklad (ks)</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="products-tbody"></tbody>
-    </table>
-
-    <form class="add-product-form" id="add-product-form">
-      <div class="form-group">
-        <label for="new-product-id">ID produktu</label>
-        <input type="text" id="new-product-id" placeholder="napr-novy-produkt" required>
+<main>
+  <section class="section">
+    <div class="container">
+      <a href="/produkty.html" class="back-link">← Zpět na produkty</a>
+      <div id="product-detail-root">
+        <p>Načítám produkt…</p>
       </div>
-      <div class="form-group">
-        <label for="new-product-title">Název</label>
-        <input type="text" id="new-product-title" placeholder="Název produktu" required>
-      </div>
-      <div class="form-group">
-        <label for="new-product-price">Cena (Kč)</label>
-        <input type="number" id="new-product-price" min="0" required>
-      </div>
-      <div class="form-group">
-        <label for="new-product-stock">Sklad (ks)</label>
-        <input type="number" id="new-product-stock" min="0" value="0">
-      </div>
-      <div class="form-group" style="flex:1 1 260px;">
-        <label for="new-product-description">Popisek</label>
-        <input type="text" id="new-product-description" placeholder="Krátký popis produktu" class="wide">
-      </div>
-      <div class="form-group">
-        <label for="new-product-photo">Fotka</label>
-        <input type="file" id="new-product-photo" accept="image/*">
-      </div>
-      <button type="submit" class="btn">Přidat produkt</button>
-    </form>
-    <p class="status-msg" id="add-product-msg"></p>
-  </section>
-
-  <section id="tab-discounts" hidden>
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>Kód</th>
-          <th>Typ</th>
-          <th>Hodnota</th>
-          <th>Aktivní</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="discounts-tbody"></tbody>
-    </table>
-
-    <form class="add-product-form" id="add-discount-form">
-      <div class="form-group">
-        <label for="new-discount-code">Kód</label>
-        <input type="text" id="new-discount-code" placeholder="LETO25" required>
-      </div>
-      <div class="form-group">
-        <label for="new-discount-type">Typ</label>
-        <select id="new-discount-type">
-          <option value="percent">Procenta</option>
-          <option value="fixed">Pevná částka (Kč)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="new-discount-value">Hodnota</label>
-        <input type="number" id="new-discount-value" min="0" required>
-      </div>
-      <button type="submit" class="btn">Přidat kód</button>
-    </form>
-    <p class="status-msg" id="add-discount-msg"></p>
+    </div>
   </section>
 </main>
 
+<footer class="site-footer">
+  <div class="container">
+    <p>&copy; 2026 lufactory — ručně vyráběné houbičky z lufy. <a href="mailto:info@lufactory.cz">info@lufactory.cz</a></p>
+    <p class="site-footer-legal">Ing. Nikola Drnková, IČO 09999035 · <a href="/obchodni-podminky.html">Obchodní podmínky</a> · <a href="/ochrana-osobnich-udaju.html">Ochrana osobních údajů</a></p>
+    <p class="site-footer-credit">Web: <a href="https://janyskovadigital.cz" target="_blank" rel="noopener">janyskovadigital.cz</a></p>
+  </div>
+</footer>
+
+<div class="cart-overlay"></div>
+<aside class="cart-panel" id="cart-panel" aria-label="Košík">
+  <div class="cart-header">
+    <h2>Košík</h2>
+    <button type="button" class="cart-close" aria-label="Zavřít košík">×</button>
+  </div>
+  <p class="cart-empty">Košík je zatím prázdný.</p>
+  <ul class="cart-items"></ul>
+  <div class="cart-footer" hidden>
+    <div class="cart-total">
+      <span>Celkem</span>
+      <span class="cart-total-value">0 Kč</span>
+    </div>
+    <a href="/kosik.html" class="btn cart-checkout">Pokračovat do košíku</a>
+  </div>
+</aside>
+
+<script src="/assets/js/cart.js"></script>
+<script src="/assets/js/main.js"></script>
 <script>
 (function () {
+  // Musí zůstat stejné jako API_BASE v assets/js/cart.js.
   var API_BASE = 'https://lufactory-api.gabriela-janyskova.workers.dev';
-  var TOKEN_KEY = 'lufactory_admin_token';
+  var id = new URLSearchParams(window.location.search).get('id');
+  var root = document.getElementById('product-detail-root');
 
-  var ORDER_STATUSES = [
-    ['nova', 'Nová'],
-    ['zaplaceno', 'Zaplaceno'],
-    ['odeslano', 'Odesláno'],
-    ['hotovo', 'Vyřízeno'],
-    ['zruseno', 'Zrušeno']
-  ];
-
-  // Musí zůstat stejné jako SHIPPING ve worker/src/index.js.
-  var SHIPPING_LABELS = {
-    pickup: 'Osobní odběr',
-    'zasilkovna-pickup': 'Zásilkovna – výdejní místo',
-    'zasilkovna-address': 'Zásilkovna – doručení na adresu',
-    'ppl-pickup': 'PPL – výdejní místo',
-    'ppl-address': 'PPL – doručení na adresu'
-  };
-
-  function getToken() {
-    return localStorage.getItem(TOKEN_KEY) || '';
+  if (!id) {
+    root.innerHTML = '<p>Produkt nebyl nalezen. <a href="/produkty.html">Zpět na produkty</a></p>';
+    return;
   }
 
-  function authHeaders() {
-    return { Authorization: 'Bearer ' + getToken(), 'Content-Type': 'application/json' };
-  }
+  fetch(API_BASE + '/api/products')
+    .then(function (r) { return r.json(); })
+    .then(function (products) {
+      var p = products[id];
+      if (!p) {
+        root.innerHTML = '<p>Produkt nebyl nalezen. <a href="/produkty.html">Zpět na produkty</a></p>';
+        return;
+      }
 
-  function showApp() {
-    document.getElementById('admin-login').hidden = true;
-    document.getElementById('admin-app').hidden = false;
-    document.getElementById('logout-btn').hidden = false;
-    loadOrders();
-    loadProducts();
-  }
+      document.title = p.title + ' | lufactory';
 
-  function showLogin(message) {
-    document.getElementById('admin-login').hidden = false;
-    document.getElementById('admin-app').hidden = true;
-    document.getElementById('logout-btn').hidden = true;
-    document.getElementById('login-error').textContent = message || '';
-  }
+      var imgHtml = p.imageUrl
+        ? '<img src="' + p.imageUrl + '" alt="' + p.title.replace(/"/g, '&quot;') + '">'
+        : '<div class="img-placeholder"></div>';
 
-  document.getElementById('login-btn').addEventListener('click', function () {
-    var password = document.getElementById('admin-password').value;
-    if (!password) return;
-    fetch(API_BASE + '/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: password })
+      root.innerHTML =
+        '<div class="product-detail">' +
+          '<div class="product-detail-img">' + imgHtml + '</div>' +
+          '<div class="product-detail-body">' +
+            '<h1>' + p.title + '</h1>' +
+            '<p class="product-price-lg">' + p.price + ' Kč</p>' +
+            '<span class="stock-badge stock-badge--out" data-stock-badge="' + id + '">Není skladem</span>' +
+            (p.description ? '<p>' + p.description + '</p>' : '') +
+            '<div class="add-to-cart-row">' +
+              '<div class="qty-stepper" data-qty-for="' + id + '">' +
+                '<button type="button" data-action="dec" aria-label="Ubrat kus" disabled>−</button>' +
+                '<input type="number" value="1" min="1" data-qty-input aria-label="Počet kusů" disabled>' +
+                '<button type="button" data-action="inc" aria-label="Přidat kus" disabled>+</button>' +
+              '</div>' +
+              '<button type="button" class="btn" data-add-to-cart data-id="' + id + '" data-name="' + p.title.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" disabled>Přidat do košíku</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+
+      // cart.js už doběhlo DOMContentLoaded dřív, než se tohle vykreslilo,
+      // takže tlačítka nově vloženého bloku potřebují vlastní zapojení.
+      if (window.lufactoryCart) {
+        window.lufactoryCart.wireQtyStepper(root.querySelector('.qty-stepper'));
+        window.lufactoryCart.wireAddToCartBtn(root.querySelector('[data-add-to-cart]'));
+        window.lufactoryCart.refreshStock();
+      }
     })
-      .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
-      .then(function (res) {
-        if (res.ok && res.data.ok) {
-          localStorage.setItem(TOKEN_KEY, password);
-          showApp();
-        } else {
-          showLogin('Nesprávné heslo.');
-        }
-      })
-      .catch(function () { showLogin('Přihlášení se nezdařilo, zkuste to znovu.'); });
-  });
-
-  document.getElementById('admin-password').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') document.getElementById('login-btn').click();
-  });
-
-  document.getElementById('logout-btn').addEventListener('click', function () {
-    localStorage.removeItem(TOKEN_KEY);
-    showLogin();
-  });
-
-  document.querySelectorAll('.admin-tab').forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      document.querySelectorAll('.admin-tab').forEach(function (t) { t.classList.remove('active'); });
-      tab.classList.add('active');
-      document.getElementById('tab-orders').hidden = tab.dataset.tab !== 'orders';
-      document.getElementById('tab-products').hidden = tab.dataset.tab !== 'products';
-      document.getElementById('tab-discounts').hidden = tab.dataset.tab !== 'discounts';
-      if (tab.dataset.tab === 'discounts') loadDiscounts();
+    .catch(function () {
+      root.innerHTML = '<p>Produkt se nepodařilo načíst. <a href="/produkty.html">Zpět na produkty</a></p>';
     });
-  });
-
-  function formatPrice(n) {
-    return n.toLocaleString('cs-CZ') + ' Kč';
-  }
-
-  function loadOrders() {
-    fetch(API_BASE + '/api/admin/orders', { headers: authHeaders() })
-      .then(function (r) {
-        if (r.status === 401) { showLogin('Heslo už neplatí, přihlaste se znovu.'); throw new Error('unauthorized'); }
-        return r.json();
-      })
-      .then(function (data) {
-        var tbody = document.getElementById('orders-tbody');
-        var empty = document.getElementById('orders-empty');
-        tbody.innerHTML = '';
-        if (!data.orders || data.orders.length === 0) {
-          empty.hidden = false;
-          return;
-        }
-        empty.hidden = true;
-        data.orders.forEach(function (order) {
-          var tr = document.createElement('tr');
-
-          var itemsHtml = '<ul class="order-items-list">' + order.items.map(function (i) {
-            return '<li>' + i.title + ' × ' + i.qty + '</li>';
-          }).join('') + '</ul>';
-
-          var statusOptions = ORDER_STATUSES.map(function (s) {
-            return '<option value="' + s[0] + '"' + (s[0] === order.status ? ' selected' : '') + '>' + s[1] + '</option>';
-          }).join('');
-
-          var shippingLabel = SHIPPING_LABELS[order.delivery_method] || order.delivery_method;
-
-          tr.innerHTML =
-            '<td>' + order.order_number + '</td>' +
-            '<td>' + (order.created_at || '').replace('T', ' ').slice(0, 16) + '</td>' +
-            '<td>' + order.customer_name + '<br><small>' +
-              order.customer_street + ', ' + order.customer_zip + ' ' + order.customer_city + '<br>' +
-              order.customer_email + '<br>' + (order.customer_phone || '') + '</small></td>' +
-            '<td>' + itemsHtml + '</td>' +
-            '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + order.delivery_detail + '</small>' : '') + '</td>' +
-            '<td>' + formatPrice(order.total) + '</td>' +
-            '<td><select data-order-id="' + order.id + '">' + statusOptions + '</select></td>' +
-            '<td><button type="button" class="cart-remove" data-delete-order="' + order.id + '" title="Smazat objednávku">✕</button></td>';
-
-          tbody.appendChild(tr);
-        });
-
-        tbody.querySelectorAll('button[data-delete-order]').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            if (!confirm('Opravdu smazat tuhle objednávku? Nejde vrátit zpět.')) return;
-            fetch(API_BASE + '/api/admin/orders/' + btn.dataset.deleteOrder, {
-              method: 'DELETE',
-              headers: authHeaders()
-            }).then(function () { loadOrders(); });
-          });
-        });
-
-        tbody.querySelectorAll('select[data-order-id]').forEach(function (select) {
-          select.addEventListener('change', function () {
-            fetch(API_BASE + '/api/admin/orders/' + select.dataset.orderId, {
-              method: 'PATCH',
-              headers: authHeaders(),
-              body: JSON.stringify({ status: select.value })
-            });
-          });
-        });
-      })
-      .catch(function () {});
-  }
-
-  function fileToBase64(file) {
-    return new Promise(function (resolve, reject) {
-      var reader = new FileReader();
-      reader.onload = function () {
-        var base64 = reader.result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  function uploadProductPhoto(productId, file) {
-    return fileToBase64(file).then(function (base64) {
-      return fetch(API_BASE + '/api/admin/products/' + encodeURIComponent(productId) + '/image', {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ contentBase64: base64, contentType: file.type })
-      });
-    });
-  }
-
-  function loadProducts() {
-    fetch(API_BASE + '/api/products')
-      .then(function (r) { return r.json(); })
-      .then(function (products) {
-        var tbody = document.getElementById('products-tbody');
-        tbody.innerHTML = '';
-        Object.keys(products).forEach(function (productId) {
-          var p = products[productId];
-          var tr = document.createElement('tr');
-          var thumb = p.imageUrl
-            ? '<img class="product-thumb" src="' + p.imageUrl + '" alt="">'
-            : '<div class="product-thumb-placeholder">bez fotky</div>';
-          tr.innerHTML =
-            '<td>' + thumb + '<input type="file" accept="image/*" data-field="photo" style="margin-top:6px;font-size:11px;width:100px;"></td>' +
-            '<td>' + productId + '</td>' +
-            '<td><input type="text" class="wide" data-field="title" value="' + p.title.replace(/"/g, '&quot;') + '"></td>' +
-            '<td><input type="text" class="wide" data-field="description" value="' + (p.description || '').replace(/"/g, '&quot;') + '"></td>' +
-            '<td><input type="number" min="0" data-field="price" value="' + p.price + '"></td>' +
-            '<td><input type="number" min="0" data-field="stockQty" value="' + p.stockQty + '"></td>' +
-            '<td><button type="button" class="btn btn--outline save-btn">Uložit</button></td>';
-          tr.dataset.productId = productId;
-          tbody.appendChild(tr);
-        });
-
-        tbody.querySelectorAll('.save-btn').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            var tr = btn.closest('tr');
-            var productId = tr.dataset.productId;
-            var payload = {
-              title: tr.querySelector('[data-field="title"]').value,
-              description: tr.querySelector('[data-field="description"]').value,
-              price: Number(tr.querySelector('[data-field="price"]').value),
-              stockQty: Number(tr.querySelector('[data-field="stockQty"]').value)
-            };
-            var photoFile = tr.querySelector('[data-field="photo"]').files[0];
-            btn.textContent = 'Ukládám…';
-
-            fetch(API_BASE + '/api/admin/products/' + encodeURIComponent(productId), {
-              method: 'PATCH',
-              headers: authHeaders(),
-              body: JSON.stringify(payload)
-            })
-              .then(function () { return photoFile ? uploadProductPhoto(productId, photoFile) : null; })
-              .then(function () {
-                btn.textContent = 'Uloženo ✓';
-                setTimeout(function () { btn.textContent = 'Uložit'; loadProducts(); }, 1000);
-              })
-              .catch(function () { btn.textContent = 'Chyba'; });
-          });
-        });
-      });
-  }
-
-  document.getElementById('add-product-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var msg = document.getElementById('add-product-msg');
-    var productId = document.getElementById('new-product-id').value.trim();
-    var photoFile = document.getElementById('new-product-photo').files[0];
-    var payload = {
-      productId: productId,
-      title: document.getElementById('new-product-title').value.trim(),
-      description: document.getElementById('new-product-description').value.trim(),
-      price: Number(document.getElementById('new-product-price').value),
-      stockQty: Number(document.getElementById('new-product-stock').value) || 0
-    };
-    fetch(API_BASE + '/api/admin/products', {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify(payload)
-    })
-      .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
-      .then(function (res) {
-        if (!res.ok) {
-          msg.textContent = 'Nepodařilo se přidat produkt (' + (res.data.error || 'chyba') + ').';
-          msg.className = 'status-msg err';
-          return;
-        }
-        return Promise.resolve(photoFile ? uploadProductPhoto(productId, photoFile) : null).then(function () {
-          msg.textContent = 'Produkt přidán.';
-          msg.className = 'status-msg ok';
-          document.getElementById('add-product-form').reset();
-          loadProducts();
-        });
-      });
-  });
-
-  function loadDiscounts() {
-    fetch(API_BASE + '/api/admin/discounts', { headers: authHeaders() })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        var tbody = document.getElementById('discounts-tbody');
-        tbody.innerHTML = '';
-        (data.codes || []).forEach(function (d) {
-          var tr = document.createElement('tr');
-          tr.innerHTML =
-            '<td>' + d.code + '</td>' +
-            '<td>' + (d.type === 'percent' ? 'Procenta' : 'Pevná částka') + '</td>' +
-            '<td>' + d.value + (d.type === 'percent' ? ' %' : ' Kč') + '</td>' +
-            '<td><input type="checkbox" data-field="active" ' + (d.active ? 'checked' : '') + '></td>' +
-            '<td><button type="button" class="cart-remove" data-delete-discount="' + d.code + '" title="Smazat kód">✕</button></td>';
-          tr.dataset.code = d.code;
-          tbody.appendChild(tr);
-        });
-
-        tbody.querySelectorAll('input[data-field="active"]').forEach(function (checkbox) {
-          checkbox.addEventListener('change', function () {
-            var code = checkbox.closest('tr').dataset.code;
-            fetch(API_BASE + '/api/admin/discounts/' + encodeURIComponent(code), {
-              method: 'PATCH',
-              headers: authHeaders(),
-              body: JSON.stringify({ active: checkbox.checked })
-            });
-          });
-        });
-
-        tbody.querySelectorAll('button[data-delete-discount]').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            if (!confirm('Smazat tenhle slevový kód?')) return;
-            fetch(API_BASE + '/api/admin/discounts/' + encodeURIComponent(btn.dataset.deleteDiscount), {
-              method: 'DELETE',
-              headers: authHeaders()
-            }).then(function () { loadDiscounts(); });
-          });
-        });
-      });
-  }
-
-  document.getElementById('add-discount-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var msg = document.getElementById('add-discount-msg');
-    var payload = {
-      code: document.getElementById('new-discount-code').value.trim(),
-      type: document.getElementById('new-discount-type').value,
-      value: Number(document.getElementById('new-discount-value').value)
-    };
-    fetch(API_BASE + '/api/admin/discounts', {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify(payload)
-    })
-      .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
-      .then(function (res) {
-        if (res.ok) {
-          msg.textContent = 'Kód přidán.';
-          msg.className = 'status-msg ok';
-          document.getElementById('add-discount-form').reset();
-          loadDiscounts();
-        } else {
-          msg.textContent = 'Nepodařilo se přidat kód (' + (res.data.error || 'chyba') + ').';
-          msg.className = 'status-msg err';
-        }
-      });
-  });
-
-  if (getToken()) {
-    showApp();
-  } else {
-    showLogin();
-  }
 })();
 </script>
-
 </body>
 </html>

@@ -145,31 +145,91 @@
     });
   }
 
+  // Produkty přidané v adminu (ne napevno v HTML) se sem doplní jako další
+  // karty, aby se objevily v přehledu bez nutnosti upravovat kód webu.
+  function renderDynamicProducts(stockMap) {
+    if (!stockMap) return;
+    var grid = document.querySelector('.product-grid');
+    if (!grid) return;
+    var known = {};
+    document.querySelectorAll('[data-stock-badge]').forEach(function (el) {
+      known[el.getAttribute('data-stock-badge')] = true;
+    });
+    Object.keys(stockMap).forEach(function (id) {
+      if (known[id]) return;
+      grid.appendChild(buildDynamicProductCard(id, stockMap[id]));
+    });
+  }
+
+  function buildDynamicProductCard(id, data) {
+    var article = document.createElement('article');
+    article.className = 'product-card';
+    var detailUrl = '/produkty/produkt.html?id=' + encodeURIComponent(id);
+    var imgHtml = data.imageUrl
+      ? '<img src="' + data.imageUrl + '" alt="' + data.title.replace(/"/g, '&quot;') + '" loading="lazy">'
+      : '<div class="img-placeholder"></div>';
+    article.innerHTML =
+      '<a href="' + detailUrl + '" class="product-img">' + imgHtml + '</a>' +
+      '<div class="product-body">' +
+        '<h3><a href="' + detailUrl + '">' + data.title + '</a></h3>' +
+        (data.description ? '<p>' + data.description + '</p>' : '') +
+        '<span class="product-price">' + data.price + ' Kč</span>' +
+        '<span class="stock-badge stock-badge--out" data-stock-badge="' + id + '">Není skladem</span>' +
+        '<div class="add-to-cart-row">' +
+          '<div class="qty-stepper" data-qty-for="' + id + '">' +
+            '<button type="button" data-action="dec" aria-label="Ubrat kus" disabled>−</button>' +
+            '<input type="number" value="1" min="1" data-qty-input aria-label="Počet kusů" disabled>' +
+            '<button type="button" data-action="inc" aria-label="Přidat kus" disabled>+</button>' +
+          '</div>' +
+          '<button type="button" class="btn btn--outline" data-add-to-cart data-id="' + id + '" data-name="' + data.title.replace(/"/g, '&quot;') + '" data-price="' + data.price + '" disabled>Přidat do košíku</button>' +
+        '</div>' +
+      '</div>';
+    wireQtyStepper(article.querySelector('.qty-stepper'));
+    wireAddToCartBtn(article.querySelector('[data-add-to-cart]'));
+    return article;
+  }
+
   function loadStock() {
     if (!API_BASE) return;
     fetch(API_BASE + '/api/products')
       .then(function (r) { return r.json(); })
-      .then(applyStock)
+      .then(function (stockMap) {
+        renderDynamicProducts(stockMap);
+        applyStock(stockMap);
+      })
       .catch(function () {});
   }
 
-  function wireQtySteppers() {
-    document.querySelectorAll('.qty-stepper').forEach(function (stepper) {
-      var input = stepper.querySelector('[data-qty-input]');
-      if (!input) return;
-      stepper.querySelectorAll('[data-action]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var val = parseInt(input.value, 10) || 1;
-          var max = parseInt(input.getAttribute('max'), 10);
-          if (btn.getAttribute('data-action') === 'inc') {
-            val = max ? Math.min(max, val + 1) : val + 1;
-          } else {
-            val = Math.max(1, val - 1);
-          }
-          input.value = val;
-        });
+  function wireQtyStepper(stepper) {
+    var input = stepper && stepper.querySelector('[data-qty-input]');
+    if (!input) return;
+    stepper.querySelectorAll('[data-action]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var val = parseInt(input.value, 10) || 1;
+        var max = parseInt(input.getAttribute('max'), 10);
+        if (btn.getAttribute('data-action') === 'inc') {
+          val = max ? Math.min(max, val + 1) : val + 1;
+        } else {
+          val = Math.max(1, val - 1);
+        }
+        input.value = val;
       });
     });
+  }
+
+  function wireAddToCartBtn(btn) {
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      var id = btn.getAttribute('data-id');
+      var qtyInput = document.querySelector('[data-qty-for="' + id + '"] [data-qty-input]');
+      var qty = qtyInput ? qtyInput.value : 1;
+      addToCart(id, btn.getAttribute('data-name'), parseFloat(btn.getAttribute('data-price')), qty);
+      if (qtyInput) qtyInput.value = 1;
+    });
+  }
+
+  function wireQtySteppers() {
+    document.querySelectorAll('.qty-stepper').forEach(wireQtyStepper);
   }
 
   // Shared by the header cart drawer and the full /kosik.html item list —
@@ -401,15 +461,7 @@
     wireQtySteppers();
     loadStock();
 
-    document.querySelectorAll('[data-add-to-cart]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var id = btn.getAttribute('data-id');
-        var qtyInput = document.querySelector('[data-qty-for="' + id + '"] [data-qty-input]');
-        var qty = qtyInput ? qtyInput.value : 1;
-        addToCart(id, btn.getAttribute('data-name'), parseFloat(btn.getAttribute('data-price')), qty);
-        if (qtyInput) qtyInput.value = 1;
-      });
-    });
+    document.querySelectorAll('[data-add-to-cart]').forEach(wireAddToCartBtn);
 
     var cartToggle = document.querySelector('.cart-toggle');
     if (cartToggle) cartToggle.addEventListener('click', openCart);
@@ -550,4 +602,13 @@
         '<a href="/produkty.html" class="btn">Zpět na produkty</a>' +
       '</div>';
   }
+
+  // Pro stránky, co si obsah produktu vykreslují samy až po načtení dat
+  // (viz produkty/produkt.html) — potřebují dodatečně zapojit tlačítka a
+  // znovu ověřit sklad, protože DOMContentLoaded už proběhlo dřív.
+  window.lufactoryCart = {
+    wireQtyStepper: wireQtyStepper,
+    wireAddToCartBtn: wireAddToCartBtn,
+    refreshStock: loadStock
+  };
 })();
