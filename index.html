@@ -932,8 +932,10 @@ body.lightbox-open { overflow: hidden; }
 .qty-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .qty-stepper input:disabled { color: var(--text-muted); }
 
-.add-to-cart-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+.add-to-cart-row { display: flex; align-items: center; flex-wrap: nowrap; gap: 10px; margin-top: 4px; }
 .product-card .add-to-cart-row { margin-bottom: 4px; }
+.add-to-cart-row .qty-stepper { flex-shrink: 0; }
+.add-to-cart-row [data-add-to-cart] { flex: 1 1 auto; min-width: 0; text-align: center; }
 [data-add-to-cart]:disabled { opacity: 0.5; cursor: not-allowed; }
 [data-add-to-cart]:disabled:hover { background: transparent; color: var(--brown); }
 
@@ -973,6 +975,11 @@ body.lightbox-open { overflow: hidden; }
   .lightbox-next { width: 40px; height: 40px; font-size: 1.4rem; }
   .lightbox-prev { left: 6px; }
   .lightbox-next { right: 6px; }
+  .add-to-cart-row { gap: 6px; }
+  .qty-stepper { padding: 4px 6px; gap: 6px; }
+  .qty-stepper button { width: 24px; height: 24px; }
+  .qty-stepper input { width: 24px; font-size: 0.85rem; }
+  .add-to-cart-row [data-add-to-cart] { padding-left: 14px; padding-right: 14px; font-size: 0.82rem; }
 }
 </style>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "lufactory", "url": "https://www.lufactory.cz/", "email": "info@lufactory.cz", "logo": "https://www.lufactory.cz/assets/img/logo.webp", "sameAs": ["https://www.instagram.com/lufactory.cz/"], "description": "Ručně vyráběné houbičky z pravé lufy — přírodní alternativa plastových hub na mytí nádobí i těla."}</script>
