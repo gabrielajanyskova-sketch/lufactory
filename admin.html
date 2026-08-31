@@ -1320,6 +1320,8 @@ body.lightbox-open { overflow: hidden; }
   var API_BASE = 'https://lufactory-api.gabriela-janyskova.workers.dev';
   var TOKEN_KEY = 'lufactory_admin_token';
 
+  // Musí zůstat stejné jako ORDER_STATUS_LABELS ve worker/src/index.js —
+  // klíč "hotovo" navíc spouští na workeru odeslání odkazu na recenzi.
   var ORDER_STATUSES = [
     ['nova', 'Nová'],
     ['zaplaceno', 'Zaplaceno'],

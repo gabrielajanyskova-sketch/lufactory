@@ -43,6 +43,9 @@ všech pěti místech současně.
   přehledu), `image_url` (hlavní fotka), `gallery_urls` (JSON pole dalších
   fotek)
 - **`discount_codes`** — `code`, `type` (`percent`/`fixed`), `value`, `active`
+- **`shipping_settings`** — jeden řádek (`id = 1`) s `active` a `threshold`:
+  doprava zdarma nad danou částkou, nastavuje se v adminu (záložka
+  "Slevové kódy")
 - **`orders`** — objednávky včetně fakturační adresy a `variable_symbol`
 - **`order_items`** — položky jednotlivých objednávek
 - **`withdrawal_requests`** — oznámení o odstoupení od smlouvy z formuláře na

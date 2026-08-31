@@ -23,6 +23,7 @@ assets/css/style.css           zdroj pravdy pro styly (design tokeny v :root) �
                                 HTML stránek se vkládá přímo (viz "Úprava CSS" níže)
 assets/js/main.js              mobilní menu, kontaktní formulář, lightbox pro galerie
 assets/js/cart.js              košík, checkout, živý sklad, napojení na worker/api
+assets/js/qrcode.js            knihovna třetí strany pro QR platbu v košíku
 assets/img/                    fotky produktů a webu
 worker/                        Cloudflare Worker + D1 + KV — objednávky, sklad, admin API
 scripts/inline-css.py          viz "Úprava CSS" níže
@@ -61,7 +62,7 @@ dostane vlastní stránku (`produkty/produkt.html?id=...`) — beze změny kódu
 zůstává tak i nadále (bohatší obsah, než umí generická šablona).
 
 Dokud u produktu není žádný kus skladem, tlačítko „Přidat do košíku" je
-needktivní a zobrazuje se „Není skladem" — bezpečný výchozí stav.
+neaktivní a zobrazuje se „Není skladem" — bezpečný výchozí stav.
 
 ## Košík a objednávka
 
