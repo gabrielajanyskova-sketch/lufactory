@@ -70,6 +70,9 @@ export default {
       if (url.pathname === '/api/reviews' && request.method === 'POST') {
         return await submitReviews(request, env, cors);
       }
+      if (url.pathname === '/api/reviews/latest' && request.method === 'GET') {
+        return await getLatestReviews(env, cors);
+      }
       const productReviewsMatch = url.pathname.match(/^\/api\/products\/([^/]+)\/reviews$/);
       if (productReviewsMatch && request.method === 'GET') {
         return await getProductReviews(env, cors, decodeURIComponent(productReviewsMatch[1]));
@@ -627,6 +630,16 @@ async function getProductReviews(env, cors, productId) {
   const count = results.length;
   const average = count ? Math.round((results.reduce((sum, r) => sum + r.rating, 0) / count) * 10) / 10 : 0;
   return json({ reviews: results, average, count }, 200, cors);
+}
+
+async function getLatestReviews(env, cors) {
+  const { results } = await env.DB.prepare(
+    `SELECT r.product_id, p.title AS product_title, r.customer_name, r.rating, r.comment, r.created_at
+     FROM reviews r LEFT JOIN products p ON p.product_id = r.product_id
+     WHERE r.status = 'approved'
+     ORDER BY r.created_at DESC LIMIT 3`
+  ).all();
+  return json({ reviews: results }, 200, cors);
 }
 
 async function listAdminReviews(env, cors) {

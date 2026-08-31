@@ -8,7 +8,33 @@ document.addEventListener('DOMContentLoaded', function () {
   wireWithdrawalForm();
   wireGalleryLightbox();
   if (document.getElementById('product-reviews-section')) wireProductReviews();
+  wireHomepageReviews();
+  wireScrollReveal();
 });
+
+// Jemné zobrazení sekcí při scrollování dolů — hero (nad ohybem) zůstává bez
+// animace, aby se hned při načtení nic neschovávalo. Respektuje
+// prefers-reduced-motion a bez IntersectionObserver se prostě přeskočí.
+function wireScrollReveal() {
+  if (!('IntersectionObserver' in window)) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var sections = document.querySelectorAll('main > section:not(.hero)');
+  if (!sections.length) return;
+
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-visible');
+      observer.unobserve(entry.target);
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+  sections.forEach(function (section) {
+    section.classList.add('fade-in-section');
+    observer.observe(section);
+  });
+}
 
 function wireNavToggle() {
   var toggle = document.querySelector('.nav-toggle');
@@ -168,6 +194,45 @@ function escapeHtmlClient(value) {
   var div = document.createElement('div');
   div.textContent = value;
   return div.innerHTML;
+}
+
+// Šest původních produktů má vlastní ručně psanou stránku, zbytek žije jen
+// v databázi a používá generickou šablonu — viz worker/README.md.
+var STATIC_PRODUCT_IDS = ['houbicka-mala', 'houbicka-stredni', 'houbicka-velka', 'houbicka-mix', 'peeling', 'cela-lufa'];
+
+function productUrl(productId) {
+  return STATIC_PRODUCT_IDS.indexOf(productId) !== -1
+    ? '/produkty/' + productId + '.html'
+    : '/produkty/produkt.html?id=' + encodeURIComponent(productId);
+}
+
+// 3 nejnovější schválené recenze napříč všemi produkty, zobrazené na hlavní
+// stránce jako sociální důkaz.
+function wireHomepageReviews() {
+  var section = document.getElementById('homepage-reviews-section');
+  var container = document.getElementById('homepage-reviews');
+  if (!section || !container || !API_BASE) return;
+
+  fetch(API_BASE + '/api/reviews/latest')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var reviews = data.reviews || [];
+      if (!reviews.length) return;
+
+      var html = '';
+      reviews.forEach(function (r) {
+        html += '<div class="review-card">' +
+          '<div class="review-card-stars">' + '★'.repeat(r.rating) + '<span class="review-card-empty">' + '★'.repeat(5 - r.rating) + '</span></div>' +
+          (r.comment ? '<p>' + escapeHtmlClient(r.comment) + '</p>' : '') +
+          '<p class="review-card-author">' + escapeHtmlClient(r.customer_name) +
+            (r.product_title ? ' — <a href="' + productUrl(r.product_id) + '">' + escapeHtmlClient(r.product_title) + '</a>' : '') +
+          '</p>' +
+        '</div>';
+      });
+      container.innerHTML = html;
+      section.hidden = false;
+    })
+    .catch(function () {});
 }
 
 // Click-to-enlarge for .gallery images, with prev/next between the images in the

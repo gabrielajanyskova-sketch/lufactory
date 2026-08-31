@@ -578,6 +578,7 @@ body.cart-open { overflow: hidden; }
 .review-card-empty { color: var(--border); }
 .review-card p { margin: 0 0 6px; color: var(--text); }
 .review-card p.review-card-author { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+.review-card p.review-card-author a { text-decoration: underline; }
 
 /* ---------- FAQ ---------- */
 .faq-list {
@@ -1007,6 +1008,17 @@ body.lightbox-open { overflow: hidden; }
 .add-to-cart-row [data-add-to-cart] { flex: 1 1 auto; min-width: 0; text-align: center; }
 [data-add-to-cart]:disabled { opacity: 0.5; cursor: not-allowed; }
 [data-add-to-cart]:disabled:hover { background: transparent; color: var(--brown); }
+
+/* ---------- scroll reveal ---------- */
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.fade-in-section.is-visible { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .fade-in-section { opacity: 1; transform: none; transition: none; }
+}
 
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
