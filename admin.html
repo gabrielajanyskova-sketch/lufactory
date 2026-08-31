@@ -522,6 +522,54 @@ body.cart-open { overflow: hidden; }
   cursor: zoom-in;
 }
 
+/* ---------- recenze ---------- */
+.review-root { max-width: 600px; margin: 0 auto; }
+.review-intro { margin-bottom: 28px; }
+.review-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 18px;
+}
+.review-item h3 { font-size: 1.1rem; margin-bottom: 10px; }
+.star-rating { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 2px; margin-bottom: 12px; }
+.star-rating input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.star-rating label { font-size: 1.9rem; color: var(--border); cursor: pointer; line-height: 1; }
+.star-rating label:hover,
+.star-rating label:hover ~ label,
+.star-rating input:checked ~ label { color: var(--brown); }
+.star-rating input:focus-visible + label { outline: 2px solid var(--brown); outline-offset: 2px; }
+.review-item textarea {
+  width: 100%;
+  min-height: 70px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: var(--text);
+  resize: vertical;
+}
+.review-success {
+  background: rgba(122, 139, 82, 0.15);
+  color: var(--sage-dark);
+  border-radius: 10px;
+  padding: 16px 18px;
+  font-weight: 600;
+}
+.review-error { color: #b5442e; margin-top: 12px; }
+
+.reviews-summary { color: var(--brown); font-weight: 600; margin-bottom: 20px; }
+.review-card {
+  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+}
+.review-card:last-child { border-bottom: none; }
+.review-card-stars { color: var(--brown); letter-spacing: 2px; margin-bottom: 6px; }
+.review-card-empty { color: var(--border); }
+.review-card p { margin: 0 0 6px; color: var(--text); }
+.review-card p.review-card-author { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+
 /* ---------- FAQ ---------- */
 .faq-list {
   max-width: 760px;
@@ -1112,6 +1160,7 @@ body.lightbox-open { overflow: hidden; }
     <button type="button" class="admin-tab active" data-tab="orders">Objednávky</button>
     <button type="button" class="admin-tab" data-tab="products">Produkty a sklad</button>
     <button type="button" class="admin-tab" data-tab="discounts">Slevové kódy</button>
+    <button type="button" class="admin-tab" data-tab="reviews">Recenze</button>
   </div>
 
   <section id="tab-orders">
@@ -1220,6 +1269,23 @@ body.lightbox-open { overflow: hidden; }
     </form>
     <p class="status-msg" id="add-discount-msg"></p>
   </section>
+
+  <section id="tab-reviews" hidden>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Produkt</th>
+          <th>Zákazník</th>
+          <th>Hodnocení</th>
+          <th>Komentář</th>
+          <th>Stav</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="reviews-tbody"></tbody>
+    </table>
+    <p id="reviews-empty" class="status-msg" hidden>Zatím žádné recenze.</p>
+  </section>
 </main>
 
 <script>
@@ -1250,6 +1316,14 @@ body.lightbox-open { overflow: hidden; }
 
   function authHeaders() {
     return { Authorization: 'Bearer ' + getToken(), 'Content-Type': 'application/json' };
+  }
+
+  // Recenze přichází od zákazníků přes veřejný formulář — nikdy jim nevěřit
+  // a před vložením do innerHTML je escapovat.
+  function escapeHtml(value) {
+    var div = document.createElement('div');
+    div.textContent = value == null ? '' : String(value);
+    return div.innerHTML;
   }
 
   function showApp() {
@@ -1303,7 +1377,9 @@ body.lightbox-open { overflow: hidden; }
       document.getElementById('tab-orders').hidden = tab.dataset.tab !== 'orders';
       document.getElementById('tab-products').hidden = tab.dataset.tab !== 'products';
       document.getElementById('tab-discounts').hidden = tab.dataset.tab !== 'discounts';
+      document.getElementById('tab-reviews').hidden = tab.dataset.tab !== 'reviews';
       if (tab.dataset.tab === 'discounts') loadDiscounts();
+      if (tab.dataset.tab === 'reviews') loadReviews();
     });
   });
 
@@ -1777,6 +1853,48 @@ body.lightbox-open { overflow: hidden; }
         }
       });
   });
+
+  function loadReviews() {
+    fetch(API_BASE + '/api/admin/reviews', { headers: authHeaders() })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var reviews = data.reviews || [];
+        var tbody = document.getElementById('reviews-tbody');
+        tbody.innerHTML = '';
+        document.getElementById('reviews-empty').hidden = reviews.length > 0;
+
+        reviews.forEach(function (r) {
+          var tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td>' + escapeHtml(r.product_title || r.product_id) + '</td>' +
+            '<td>' + escapeHtml(r.customer_name) + '</td>' +
+            '<td>' + '★'.repeat(r.rating) + '<span style="color:var(--border)">' + '★'.repeat(5 - r.rating) + '</span></td>' +
+            '<td>' + (r.comment ? escapeHtml(r.comment) : '—') + '</td>' +
+            '<td><select data-review-status>' +
+              '<option value="pending"' + (r.status === 'pending' ? ' selected' : '') + '>Čeká</option>' +
+              '<option value="approved"' + (r.status === 'approved' ? ' selected' : '') + '>Schváleno</option>' +
+              '<option value="hidden"' + (r.status === 'hidden' ? ' selected' : '') + '>Skryto</option>' +
+            '</select></td>' +
+            '<td><button type="button" class="icon-btn-delete" data-delete-review="' + r.id + '" title="Smazat recenzi">✕</button></td>';
+          tbody.appendChild(tr);
+
+          tr.querySelector('[data-review-status]').addEventListener('change', function (e) {
+            fetch(API_BASE + '/api/admin/reviews/' + r.id, {
+              method: 'PATCH',
+              headers: authHeaders(),
+              body: JSON.stringify({ status: e.target.value })
+            });
+          });
+          tr.querySelector('[data-delete-review]').addEventListener('click', function () {
+            if (!confirm('Smazat tuhle recenzi?')) return;
+            fetch(API_BASE + '/api/admin/reviews/' + r.id, {
+              method: 'DELETE',
+              headers: authHeaders()
+            }).then(function () { loadReviews(); });
+          });
+        });
+      });
+  }
 
   if (getToken()) {
     showApp();

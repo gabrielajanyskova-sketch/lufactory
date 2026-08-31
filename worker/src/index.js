@@ -56,6 +56,31 @@ export default {
         return await submitWithdrawal(request, env, cors);
       }
 
+      const reviewInviteMatch = url.pathname.match(/^\/api\/reviews\/invite\/([^/]+)$/);
+      if (reviewInviteMatch && request.method === 'GET') {
+        return await getReviewInvite(env, cors, reviewInviteMatch[1]);
+      }
+      if (url.pathname === '/api/reviews' && request.method === 'POST') {
+        return await submitReviews(request, env, cors);
+      }
+      const productReviewsMatch = url.pathname.match(/^\/api\/products\/([^/]+)\/reviews$/);
+      if (productReviewsMatch && request.method === 'GET') {
+        return await getProductReviews(env, cors, decodeURIComponent(productReviewsMatch[1]));
+      }
+      if (url.pathname === '/api/admin/reviews' && request.method === 'GET') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await listAdminReviews(env, cors);
+      }
+      const reviewAdminMatch = url.pathname.match(/^\/api\/admin\/reviews\/(\d+)$/);
+      if (reviewAdminMatch && request.method === 'PATCH') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await updateReviewStatus(request, env, cors, Number(reviewAdminMatch[1]));
+      }
+      if (reviewAdminMatch && request.method === 'DELETE') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await deleteReview(env, cors, Number(reviewAdminMatch[1]));
+      }
+
       if (url.pathname === '/api/admin/login' && request.method === 'POST') {
         const body = await request.json();
         const ok = !!env.ADMIN_PASSWORD && body.password === env.ADMIN_PASSWORD;
@@ -510,6 +535,95 @@ async function sendWithdrawalEmails(env, { name, email, address, orderNumber, re
   });
 }
 
+// ---------- recenze ----------
+
+async function getReviewInvite(env, cors, token) {
+  const order = await env.DB.prepare(
+    'SELECT id, order_number, customer_name, review_submitted_at FROM orders WHERE review_token = ?'
+  ).bind(token).first();
+  if (!order) return json({ error: 'not_found' }, 404, cors);
+
+  const { results: items } = await env.DB.prepare(
+    'SELECT DISTINCT product_id, title FROM order_items WHERE order_id = ?'
+  ).bind(order.id).all();
+
+  return json({
+    orderNumber: order.order_number,
+    customerName: order.customer_name,
+    alreadySubmitted: !!order.review_submitted_at,
+    items
+  }, 200, cors);
+}
+
+async function submitReviews(request, env, cors) {
+  const body = await request.json();
+  const token = String(body.token || '').trim();
+  if (!token || !Array.isArray(body.reviews) || body.reviews.length === 0) {
+    return json({ error: 'missing_fields' }, 400, cors);
+  }
+
+  const order = await env.DB.prepare(
+    'SELECT id, customer_name, review_submitted_at FROM orders WHERE review_token = ?'
+  ).bind(token).first();
+  if (!order) return json({ error: 'invalid_token' }, 404, cors);
+  if (order.review_submitted_at) return json({ error: 'already_submitted' }, 409, cors);
+
+  // Nevěřit product_id poslanému klientem — recenzovat jde jen to, co
+  // opravdu bylo v téhle objednávce.
+  const { results: orderedItems } = await env.DB.prepare(
+    'SELECT DISTINCT product_id FROM order_items WHERE order_id = ?'
+  ).bind(order.id).all();
+  const validIds = new Set(orderedItems.map((i) => i.product_id));
+
+  const stmts = [];
+  for (const r of body.reviews) {
+    if (!validIds.has(r.productId)) continue;
+    const rating = Math.max(1, Math.min(5, parseInt(r.rating, 10) || 0));
+    if (!rating) continue;
+    stmts.push(env.DB.prepare(
+      'INSERT INTO reviews (product_id, order_id, customer_name, rating, comment, status) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(r.productId, order.id, order.customer_name, rating, String(r.comment || '').trim().slice(0, 500), 'pending'));
+  }
+  if (stmts.length === 0) return json({ error: 'no_valid_reviews' }, 400, cors);
+
+  stmts.push(env.DB.prepare("UPDATE orders SET review_submitted_at = datetime('now') WHERE id = ?").bind(order.id));
+  await env.DB.batch(stmts);
+
+  return json({ ok: true }, 200, cors);
+}
+
+async function getProductReviews(env, cors, productId) {
+  const { results } = await env.DB.prepare(
+    'SELECT customer_name, rating, comment, created_at FROM reviews WHERE product_id = ? AND status = ? ORDER BY created_at DESC'
+  ).bind(productId, 'approved').all();
+  const count = results.length;
+  const average = count ? Math.round((results.reduce((sum, r) => sum + r.rating, 0) / count) * 10) / 10 : 0;
+  return json({ reviews: results, average, count }, 200, cors);
+}
+
+async function listAdminReviews(env, cors) {
+  const { results } = await env.DB.prepare(
+    `SELECT r.id, r.product_id, p.title AS product_title, r.customer_name, r.rating, r.comment, r.status, r.created_at
+     FROM reviews r LEFT JOIN products p ON p.product_id = r.product_id
+     ORDER BY r.created_at DESC LIMIT 200`
+  ).all();
+  return json({ reviews: results }, 200, cors);
+}
+
+async function updateReviewStatus(request, env, cors, id) {
+  const body = await request.json();
+  if (!['pending', 'approved', 'hidden'].includes(body.status)) {
+    return json({ error: 'invalid_status' }, 400, cors);
+  }
+  await env.DB.prepare('UPDATE reviews SET status = ? WHERE id = ?').bind(body.status, id).run();
+  return json({ ok: true }, 200, cors);
+}
+
+async function deleteReview(env, cors, id) {
+  await env.DB.prepare('DELETE FROM reviews WHERE id = ?').bind(id).run();
+  return json({ ok: true }, 200, cors);
+}
+
 // ---------- admin ----------
 
 function isAdmin(request, env) {
@@ -630,6 +744,11 @@ async function updateOrderStatus(request, env, cors, orderId) {
           ).bind(orderId).all();
           await sendInvoiceEmail(env, order, items);
         }
+        if (body.status === 'hotovo' && !order.review_token) {
+          const token = crypto.randomUUID();
+          await env.DB.prepare('UPDATE orders SET review_token = ? WHERE id = ?').bind(token, orderId).run();
+          await sendReviewRequestEmail(env, order, token);
+        }
       }
     } catch (err) {
       console.error('order status email failed', err);
@@ -637,6 +756,20 @@ async function updateOrderStatus(request, env, cors, orderId) {
   }
 
   return json({ ok: true }, 200, cors);
+}
+
+async function sendReviewRequestEmail(env, order, token) {
+  const link = `${SITE_URL}/recenze.html?token=${token}`;
+  const html = emailLayout(`
+    <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Jak se vám houbičky líbí?</p>
+    <p style="margin:0 0 16px;">Doufáme, že jste s objednávkou č. <strong>${escapeHtml(order.order_number)}</strong> spokojeni. Budeme moc rádi, když nám napíšete pár slov hodnocení — pomůže to dalším zákazníkům při výběru.</p>
+    <p style="margin:0;"><a href="${link}" style="display:inline-block;background:#81665b;color:#ffffff;padding:12px 24px;border-radius:999px;text-decoration:none;font-weight:600;">Napsat hodnocení</a></p>
+  `);
+  await sendResendEmail(env, {
+    to: order.customer_email,
+    subject: 'Jak se vám líbí vaše houbičky? — lufactory.cz',
+    html
+  });
 }
 
 async function sendStatusChangeEmail(env, order, status) {

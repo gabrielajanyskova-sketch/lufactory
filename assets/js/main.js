@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
   wireContactForm();
   wireWithdrawalForm();
   wireGalleryLightbox();
+  if (document.getElementById('product-reviews-section')) wireProductReviews();
 });
 
 function wireNavToggle() {
@@ -113,6 +114,60 @@ function wireWithdrawalForm() {
         }
       });
   });
+}
+
+// Načte schválené recenze produktu a zobrazí je pod detailem — na statických
+// stránkách bez argumentu (ID se najde podle vlastního tlačítka "Přidat do
+// košíku" v .product-detail-body), na produkty/produkt.html s explicitním ID
+// (v okamžiku volání DOMContentLoaded ještě obsah stránky nebyl vykreslený).
+function wireProductReviews(productId) {
+  var section = document.getElementById('product-reviews-section');
+  var container = document.getElementById('product-reviews');
+  if (!section || !container || !API_BASE) return;
+
+  if (!productId) {
+    var btn = document.querySelector('.product-detail-body [data-add-to-cart]');
+    productId = btn && btn.getAttribute('data-id');
+  }
+  if (!productId) return;
+
+  fetch(API_BASE + '/api/products/' + encodeURIComponent(productId) + '/reviews')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.count) return;
+
+      var html = '<h2>Recenze zákazníků</h2>' +
+        '<p class="reviews-summary">' + data.average.toFixed(1).replace('.', ',') + ' ★ &middot; ' + data.count + ' hodnocení</p>';
+      data.reviews.forEach(function (r) {
+        html += '<div class="review-card">' +
+          '<div class="review-card-stars">' + '★'.repeat(r.rating) + '<span class="review-card-empty">' + '★'.repeat(5 - r.rating) + '</span></div>' +
+          (r.comment ? '<p>' + escapeHtmlClient(r.comment) + '</p>' : '') +
+          '<p class="review-card-author">' + escapeHtmlClient(r.customer_name) + '</p>' +
+        '</div>';
+      });
+      container.innerHTML = html;
+      section.hidden = false;
+
+      // Doplnit hodnocení do existujícího schema.org Product JSON-LD, aby
+      // se hvězdičky mohly zobrazit i ve výsledcích vyhledávání.
+      var ld = document.querySelector('script[type="application/ld+json"]');
+      if (ld) {
+        try {
+          var parsed = JSON.parse(ld.textContent);
+          if (parsed['@type'] === 'Product') {
+            parsed.aggregateRating = { '@type': 'AggregateRating', ratingValue: data.average, reviewCount: data.count };
+            ld.textContent = JSON.stringify(parsed);
+          }
+        } catch (e) { /* schema chybí nebo je v jiném tvaru — recenze se přesto zobrazí */ }
+      }
+    })
+    .catch(function () {});
+}
+
+function escapeHtmlClient(value) {
+  var div = document.createElement('div');
+  div.textContent = value;
+  return div.innerHTML;
 }
 
 // Click-to-enlarge for .gallery images, with prev/next between the images in the

@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>lufactory — Košík</title>
-<meta name="description" content="Váš košík — dokončete objednávku houbiček z lufy, vyberte dopravu a platbu.">
-<meta name="robots" content="noindex, follow">
-<link rel="canonical" href="https://www.lufactory.cz/kosik.html">
+<title>Hodnocení objednávky | lufactory</title>
+<meta name="description" content="Napište pár slov hodnocení k vaší objednávce z lufactory.cz.">
+<meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1070,196 +1069,19 @@ body.lightbox-open { overflow: hidden; }
 </header>
 
 <main>
-  <h1 class="sr-only">lufactory — Košík</h1>
-
   <section class="hero hero--small">
     <img class="hero-img" src="/assets/img/hero.webp" srcset="/assets/img/hero-640.webp 640w, /assets/img/hero-1280.webp 1280w, /assets/img/hero.webp 1920w" sizes="100vw" alt="" width="1920" height="1920" fetchpriority="high">
     <div class="container">
       <div class="hero-text">
-        <div class="hero-badge">Košík</div>
+        <div class="hero-badge">Jak se vám líbí vaše houbičky?</div>
       </div>
     </div>
   </section>
 
   <section class="section">
     <div class="container">
-      <div id="cart-page">
-        <div id="cart-page-empty" class="cart-page-empty">
-          <p>Košík je zatím prázdný.</p>
-          <a href="/produkty.html" class="btn">Prohlédnout produkty</a>
-        </div>
-
-        <div id="cart-page-content" hidden>
-          <div class="section-head">
-            <span class="eyebrow">Košík</span>
-            <h2>Vaše objednávka</h2>
-          </div>
-
-          <div class="checkout-layout">
-            <div class="checkout-main">
-              <form id="checkout-form">
-                <h3>Doprava</h3>
-                <div class="option-group" id="shipping-options">
-                  <label class="option-card">
-                    <input type="radio" name="shipping" value="pickup" checked>
-                    <span class="option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-7.58 7-12a7 7 0 1 0-14 0c0 4.42 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg>
-                    </span>
-                    <span class="option-body">
-                      <span class="option-title">Osobní odběr</span>
-                      <span class="option-desc">Nová Ves u Prahy / Praha 8, Čimice, po domluvě</span>
-                    </span>
-                    <span class="option-price">Zdarma</span>
-                  </label>
-                  <label class="option-card">
-                    <input type="radio" name="shipping" value="zasilkovna-pickup">
-                    <span class="option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
-                    </span>
-                    <span class="option-body">
-                      <span class="option-title">Zásilkovna</span>
-                      <span class="option-desc">Doručení na výdejní místo</span>
-                    </span>
-                    <span class="option-price">89 Kč</span>
-                  </label>
-                  <label class="option-card">
-                    <input type="radio" name="shipping" value="zasilkovna-address">
-                    <span class="option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
-                    </span>
-                    <span class="option-body">
-                      <span class="option-title">Zásilkovna</span>
-                      <span class="option-desc">Doručení na adresu</span>
-                    </span>
-                    <span class="option-price">129 Kč</span>
-                  </label>
-                  <label class="option-card">
-                    <input type="radio" name="shipping" value="ppl-pickup">
-                    <span class="option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
-                    </span>
-                    <span class="option-body">
-                      <span class="option-title">PPL</span>
-                      <span class="option-desc">Doručení na výdejní místo</span>
-                    </span>
-                    <span class="option-price">76 Kč</span>
-                  </label>
-                  <label class="option-card">
-                    <input type="radio" name="shipping" value="ppl-address">
-                    <span class="option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
-                    </span>
-                    <span class="option-body">
-                      <span class="option-title">PPL</span>
-                      <span class="option-desc">Doručení na adresu</span>
-                    </span>
-                    <span class="option-price">106 Kč</span>
-                  </label>
-                </div>
-
-                <div id="address-fields" class="form-group" hidden>
-                  <label for="c-address">Výdejní místo</label>
-                  <div class="discount-row">
-                    <input type="text" id="c-address" placeholder="Název a adresa pobočky">
-                    <button type="button" id="pick-branch-btn" class="btn btn--outline" hidden>Vybrat na mapě</button>
-                  </div>
-                </div>
-
-                <h3>Platba</h3>
-                <div class="option-group" id="payment-options">
-                  <label class="option-card">
-                    <input type="radio" name="payment" value="transfer" checked>
-                    <span class="option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 12 4l9 6"/><path d="M4 10v9M9 10v9M15 10v9M20 10v9"/><path d="M3 21h18"/></svg>
-                    </span>
-                    <span class="option-body">
-                      <span class="option-title">Bankovním převodem</span>
-                      <span class="option-desc">Číslo účtu a variabilní symbol pošlu v potvrzení objednávky</span>
-                    </span>
-                  </label>
-                  <label class="option-card" id="payment-cash-option">
-                    <input type="radio" name="payment" value="cash">
-                    <span class="option-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
-                    </span>
-                    <span class="option-body">
-                      <span class="option-title">Hotově při odběru</span>
-                      <span class="option-desc">Platba na místě při osobním odběru</span>
-                    </span>
-                  </label>
-                </div>
-
-                <h3>Fakturační údaje</h3>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="c-first-name">Jméno</label>
-                    <input type="text" id="c-first-name" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="c-last-name">Příjmení</label>
-                    <input type="text" id="c-last-name" required>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="c-street">Ulice a číslo popisné</label>
-                  <input type="text" id="c-street" required>
-                </div>
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="c-zip">PSČ</label>
-                    <input type="text" id="c-zip" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="c-city">Město</label>
-                    <input type="text" id="c-city" required>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="c-email">E-mail</label>
-                  <input type="email" id="c-email" required>
-                </div>
-                <div class="form-group">
-                  <label for="c-phone">Telefon</label>
-                  <input type="tel" id="c-phone" required>
-                </div>
-                <div class="form-group">
-                  <label for="c-note">Poznámka k objednávce</label>
-                  <textarea id="c-note"></textarea>
-                </div>
-              </form>
-            </div>
-
-            <aside class="checkout-summary">
-              <h3>Souhrn objednávky</h3>
-              <ul id="cart-page-items" class="cart-page-items"></ul>
-
-              <form id="discount-form" class="discount-form">
-                <label for="discount-code">Slevový kód</label>
-                <div class="discount-row">
-                  <input type="text" id="discount-code" name="discount-code" placeholder="Např. LETO10">
-                  <button type="submit" class="btn btn--outline">Použít</button>
-                </div>
-                <p id="discount-message" class="discount-message" hidden></p>
-              </form>
-
-              <div class="order-summary">
-                <div class="order-summary-row"><span>Mezisoučet</span><span id="summary-subtotal">0 Kč</span></div>
-                <div class="order-summary-row" id="summary-discount-row" hidden><span>Sleva</span><span id="summary-discount">0 Kč</span></div>
-                <div class="order-summary-row"><span>Doprava</span><span id="summary-shipping">Zdarma</span></div>
-                <div class="order-summary-row order-summary-total"><span>Celkem</span><span id="summary-total">0 Kč</span></div>
-              </div>
-
-              <label class="terms-check">
-                <input type="checkbox" id="c-terms" form="checkout-form" required>
-                <span>Souhlasím s <a href="/obchodni-podminky.html" target="_blank" rel="noopener">obchodními podmínkami</a> a <a href="/ochrana-osobnich-udaju.html" target="_blank" rel="noopener">zpracováním osobních údajů</a>.</span>
-              </label>
-
-              <p id="cart-stock-warning" class="discount-message discount-message--error" hidden></p>
-              <button type="button" id="submit-order" class="btn">Odeslat objednávku</button>
-              <p class="form-note">Po odeslání se otevře váš e-mailový klient s kompletní objednávkou — platba a potvrzení zatím probíhá ručně, dokud nebude spuštěná platební brána.</p>
-            </aside>
-          </div>
-        </div>
+      <div id="review-root" class="review-root">
+        <p>Načítám objednávku…</p>
       </div>
     </div>
   </section>
@@ -1290,9 +1112,103 @@ body.lightbox-open { overflow: hidden; }
   </div>
 </aside>
 
-<script src="https://widget.packeta.com/v6/www/js/library.js"></script>
-<script src="/assets/js/qrcode.js"></script>
 <script src="/assets/js/cart.js"></script>
 <script src="/assets/js/main.js"></script>
+<script>
+(function () {
+  // Musí zůstat stejné jako API_BASE v assets/js/cart.js.
+  var API_BASE = 'https://lufactory-api.gabriela-janyskova.workers.dev';
+  var token = new URLSearchParams(window.location.search).get('token');
+  var root = document.getElementById('review-root');
+
+  if (!token) {
+    root.innerHTML = '<p>Chybí odkaz na objednávku. Otevřete prosím odkaz z e-mailu.</p>';
+    return;
+  }
+
+  fetch(API_BASE + '/api/reviews/invite/' + encodeURIComponent(token))
+    .then(function (r) {
+      if (!r.ok) throw new Error('invalid');
+      return r.json();
+    })
+    .then(function (invite) {
+      if (invite.alreadySubmitted) {
+        root.innerHTML = '<p class="review-success">Hodnocení k objednávce č. ' + invite.orderNumber + ' už jsme od vás dostali — díky!</p>';
+        return;
+      }
+      renderForm(invite);
+    })
+    .catch(function () {
+      root.innerHTML = '<p>Tenhle odkaz na hodnocení už bohužel neplatí.</p>';
+    });
+
+  function starsHtml(productId) {
+    var html = '<div class="star-rating">';
+    for (var v = 5; v >= 1; v--) {
+      var id = 'star-' + productId + '-' + v;
+      html += '<input type="radio" name="rating-' + productId + '" id="' + id + '" value="' + v + '">' +
+              '<label for="' + id + '">★</label>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderForm(invite) {
+    var html = '<p class="review-intro">Díky za objednávku č. ' + invite.orderNumber + '! Ohodnoťte prosím, jak se vám jednotlivé produkty líbí.</p>' +
+      '<form id="review-form">';
+    invite.items.forEach(function (item) {
+      html += '<div class="review-item" data-product-id="' + item.product_id + '">' +
+        '<h3>' + item.title + '</h3>' +
+        starsHtml(item.product_id) +
+        '<textarea data-comment maxlength="500" placeholder="Pár slov k produktu (nepovinné)"></textarea>' +
+      '</div>';
+    });
+    html += '<button type="submit" class="btn">Odeslat hodnocení</button>' +
+      '<p class="review-error" id="review-error" hidden>Vyberte prosím alespoň jedno hodnocení hvězdičkami.</p>' +
+      '</form>';
+    root.innerHTML = html;
+
+    document.getElementById('review-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var reviews = [];
+      document.querySelectorAll('.review-item').forEach(function (el) {
+        var productId = el.getAttribute('data-product-id');
+        var checked = el.querySelector('input[type="radio"]:checked');
+        if (!checked) return;
+        reviews.push({
+          productId: productId,
+          rating: Number(checked.value),
+          comment: el.querySelector('[data-comment]').value.trim()
+        });
+      });
+      if (reviews.length === 0) {
+        document.getElementById('review-error').hidden = false;
+        return;
+      }
+
+      var submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Odesílám…';
+
+      fetch(API_BASE + '/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: token, reviews: reviews })
+      })
+        .then(function (r) { return r.ok; })
+        .then(function (ok) {
+          if (ok) {
+            root.innerHTML = '<p class="review-success">Díky moc za hodnocení!</p>';
+          } else {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Odeslat hodnocení';
+            document.getElementById('review-error').hidden = false;
+            document.getElementById('review-error').textContent = 'Odeslání se nepovedlo, zkuste to prosím znovu.';
+          }
+        });
+    });
+  }
+})();
+</script>
 </body>
 </html>

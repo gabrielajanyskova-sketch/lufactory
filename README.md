@@ -15,8 +15,9 @@ produkty.html                  plný katalog — 6 ručně napsaných produktů 
 produkty/*.html                vlastní stránka pro každý z 6 původních produktů
 produkty/produkt.html          generická stránka pro produkty přidané přes admin (?id=...)
 kosik.html                     košík, doprava, platba, fakturační údaje, odeslání
-admin.html                     administrace — objednávky, produkty/sklad/fotky, slevové kódy
-obchodni-podminky.html         obchodní podmínky
+recenze.html                   hodnocení objednávky zákazníkem (odkaz z e-mailu, ?token=...)
+admin.html                     administrace — objednávky, produkty/sklad/fotky, slevové kódy, recenze
+obchodni-podminky.html         obchodní podmínky, formulář pro odstoupení od smlouvy
 ochrana-osobnich-udaju.html    zásady zpracování osobních údajů (GDPR)
 assets/css/style.css           zdroj pravdy pro styly (design tokeny v :root) — do
                                 HTML stránek se vkládá přímo (viz "Úprava CSS" níže)

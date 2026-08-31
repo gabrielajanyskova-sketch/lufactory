@@ -48,6 +48,11 @@ Bindings a proměnné (Settings → Bindings / Variables and Secrets), viz
 - **`withdrawal_requests`** — oznámení o odstoupení od smlouvy z formuláře na
   `obchodni-podminky.html` (jméno, e-mail, adresa, zboží, volitelně číslo
   objednávky a datum obdržení) — ukládá se vždy, i kdyby e-mail selhal
+- **`reviews`** — hodnocení produktů (`product_id`, `order_id`, jméno,
+  `rating` 1–5, `comment`, `status` — `pending`/`approved`/`hidden`)
+- `orders.review_token` a `orders.review_submitted_at` — jednorázový token
+  pro odkaz na `recenze.html`, vygeneruje se při nastavení stavu objednávky
+  na "Vyřízeno" a pošle se zákazníkovi e-mailem
 
 U 6 původních ručně napsaných produktů (houbičky, peeling, celá lufa) zůstává
 zdroj pravdy pro vzhled/text jejich **vlastní stránky** v HTML
@@ -71,3 +76,12 @@ Když po objednávce klesne sklad produktu na 2 ks nebo míň, přijde e-mail na
 `SHOP_NOTIFICATION_EMAIL`. Nastavením stavu objednávky na "Odesláno" v adminu
 se zákazníkovi automaticky pošle faktura (PDF, pokud je nastavený
 `CF_API_TOKEN`, jinak HTML příloha).
+
+## Recenze
+
+Nastavením stavu objednávky na "Vyřízeno" se zákazníkovi pošle e-mail s
+odkazem na `recenze.html?token=...`, kde může ohodnotit každý koupený
+produkt hvězdičkami a napsat komentář. Recenze čekají v adminu (záložka
+"Recenze") na schválení, než se zobrazí veřejně na stránce produktu — teprve
+schválené se počítají do průměrného hodnocení a do schema.org
+`AggregateRating`.

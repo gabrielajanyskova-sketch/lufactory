@@ -531,6 +531,54 @@ body.cart-open { overflow: hidden; }
   cursor: zoom-in;
 }
 
+/* ---------- recenze ---------- */
+.review-root { max-width: 600px; margin: 0 auto; }
+.review-intro { margin-bottom: 28px; }
+.review-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin-bottom: 18px;
+}
+.review-item h3 { font-size: 1.1rem; margin-bottom: 10px; }
+.star-rating { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 2px; margin-bottom: 12px; }
+.star-rating input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.star-rating label { font-size: 1.9rem; color: var(--border); cursor: pointer; line-height: 1; }
+.star-rating label:hover,
+.star-rating label:hover ~ label,
+.star-rating input:checked ~ label { color: var(--brown); }
+.star-rating input:focus-visible + label { outline: 2px solid var(--brown); outline-offset: 2px; }
+.review-item textarea {
+  width: 100%;
+  min-height: 70px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: var(--text);
+  resize: vertical;
+}
+.review-success {
+  background: rgba(122, 139, 82, 0.15);
+  color: var(--sage-dark);
+  border-radius: 10px;
+  padding: 16px 18px;
+  font-weight: 600;
+}
+.review-error { color: #b5442e; margin-top: 12px; }
+
+.reviews-summary { color: var(--brown); font-weight: 600; margin-bottom: 20px; }
+.review-card {
+  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+}
+.review-card:last-child { border-bottom: none; }
+.review-card-stars { color: var(--brown); letter-spacing: 2px; margin-bottom: 6px; }
+.review-card-empty { color: var(--border); }
+.review-card p { margin: 0 0 6px; color: var(--text); }
+.review-card p.review-card-author { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+
 /* ---------- FAQ ---------- */
 .faq-list {
   max-width: 760px;
@@ -1075,6 +1123,12 @@ body.lightbox-open { overflow: hidden; }
         <img src="/assets/img/gallery-mala-3.webp" data-full="/assets/img/gallery-mala-3-full.webp" alt="Detail vlhké malé houbičky z lufy" width="700" height="700" loading="lazy">
         <img src="/assets/img/gallery-mala-4.webp" data-full="/assets/img/gallery-mala-4-full.webp" alt="Malá houbička z lufy v ruce" width="700" height="700" loading="lazy">
       </div>
+    </div>
+  </section>
+
+  <section class="section" id="product-reviews-section" hidden>
+    <div class="container">
+      <div id="product-reviews"></div>
     </div>
   </section>
 
