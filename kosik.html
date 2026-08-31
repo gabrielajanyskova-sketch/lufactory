@@ -1075,6 +1075,14 @@ body.lightbox-open { overflow: hidden; }
                   </label>
                 </div>
 
+                <div id="address-fields" class="form-group" hidden>
+                  <label for="c-address">Výdejní místo</label>
+                  <div class="discount-row">
+                    <input type="text" id="c-address" placeholder="Název a adresa pobočky">
+                    <button type="button" id="pick-branch-btn" class="btn btn--outline" hidden>Vybrat na mapě</button>
+                  </div>
+                </div>
+
                 <h3>Platba</h3>
                 <div class="option-group" id="payment-options">
                   <label class="option-card">
@@ -1131,13 +1139,6 @@ body.lightbox-open { overflow: hidden; }
                 <div class="form-group">
                   <label for="c-phone">Telefon</label>
                   <input type="tel" id="c-phone" required>
-                </div>
-                <div id="address-fields" class="form-group" hidden>
-                  <label for="c-address">Výdejní místo</label>
-                  <div class="discount-row">
-                    <input type="text" id="c-address" placeholder="Název a adresa pobočky">
-                    <button type="button" id="pick-branch-btn" class="btn btn--outline" hidden>Vybrat na mapě</button>
-                  </div>
                 </div>
                 <div class="form-group">
                   <label for="c-note">Poznámka k objednávce</label>
