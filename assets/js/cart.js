@@ -5,7 +5,7 @@
   // Vyplň adresou nasazeného workeru (worker/README.md), např.
   // 'https://lufactory-api.<tvuj-subdomain>.workers.dev' — dokud je prázdné,
   // web dál funguje na mailto přesně jako dosud.
-  var API_BASE = '';
+  var API_BASE = 'https://lufactory-api.gabriela-janyskova.workers.dev';
 
   // Musí zůstat stejné jako SHIPPING ve worker/src/index.js — worker cenu dopravy
   // znovu ověřuje server-side, tohle je jen zobrazovací kopie pro klienta.
