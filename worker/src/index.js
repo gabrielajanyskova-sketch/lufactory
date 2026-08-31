@@ -1,6 +1,4 @@
-// TODO: přepnout zpátky na 'https://www.lufactory.cz', až doména poběží na
-// Cloudflare — do té doby by tam logo v e-mailu bylo rozbité.
-const SITE_URL = 'https://lufactory.pages.dev';
+const SITE_URL = 'https://www.lufactory.cz';
 
 const BANK_ACCOUNT = '211573669/0300';
 
@@ -63,6 +61,11 @@ export default {
       if (url.pathname === '/api/admin/orders' && request.method === 'GET') {
         if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
         return await listOrders(env, cors);
+      }
+      const orderInvoiceMatch = url.pathname.match(/^\/api\/admin\/orders\/(\d+)\/invoice$/);
+      if (orderInvoiceMatch && request.method === 'GET') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await getOrderInvoice(env, cors, Number(orderInvoiceMatch[1]));
       }
       const orderStatusMatch = url.pathname.match(/^\/api\/admin\/orders\/(\d+)$/);
       if (orderStatusMatch && request.method === 'PATCH') {
@@ -592,6 +595,34 @@ async function htmlToPdf(env, html) {
   return new Uint8Array(await res.arrayBuffer());
 }
 
+async function getOrderInvoice(env, cors, orderId) {
+  const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
+  if (!order) return json({ error: 'not_found' }, 404, cors);
+  const { results: items } = await env.DB.prepare(
+    'SELECT title, price, qty FROM order_items WHERE order_id = ?'
+  ).bind(orderId).all();
+
+  const html = buildInvoiceHtml(order, items);
+
+  if (env.CF_API_TOKEN) {
+    try {
+      const pdfBytes = await htmlToPdf(env, html);
+      return new Response(pdfBytes, {
+        headers: Object.assign({
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `inline; filename="faktura-${order.order_number}.pdf"`
+        }, cors)
+      });
+    } catch (err) {
+      console.error('htmlToPdf failed, falling back to HTML', err);
+    }
+  }
+
+  return new Response(html, {
+    headers: Object.assign({ 'Content-Type': 'text/html; charset=utf-8' }, cors)
+  });
+}
+
 async function sendInvoiceEmail(env, order, items) {
   const html = buildInvoiceHtml(order, items);
   let filename = 'faktura-' + order.order_number + '.html';
@@ -622,10 +653,15 @@ async function deleteProduct(env, cors, productId) {
   return json({ ok: true }, 200, cors);
 }
 
+const MAX_DESCRIPTION_LENGTH = 1000;
+
 async function createProduct(request, env, cors) {
   const body = await request.json();
   if (!body.productId || !body.title || body.price == null) {
     return json({ error: 'missing_fields' }, 400, cors);
+  }
+  if ((body.description || '').length > MAX_DESCRIPTION_LENGTH) {
+    return json({ error: 'description_too_long' }, 400, cors);
   }
   await env.DB.prepare(
     'INSERT INTO products (product_id, title, price, stock_qty, description) VALUES (?, ?, ?, ?, ?)'
@@ -635,6 +671,9 @@ async function createProduct(request, env, cors) {
 
 async function updateProduct(request, env, cors, productId) {
   const body = await request.json();
+  if (body.description != null && body.description.length > MAX_DESCRIPTION_LENGTH) {
+    return json({ error: 'description_too_long' }, 400, cors);
+  }
   const fields = [];
   const values = [];
   if (body.title != null) { fields.push('title = ?'); values.push(body.title); }

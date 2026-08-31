@@ -1105,7 +1105,8 @@ body.lightbox-open { overflow: hidden; }
             <label for="editor-stock">Sklad (ks)</label>
             <input type="number" id="editor-stock" min="0">
           </div>
-          <textarea id="editor-description" placeholder="Popis produktu, jak se zobrazí na webu" class="editor-description-input" rows="6"></textarea>
+          <textarea id="editor-description" placeholder="Popis produktu, jak se zobrazí na webu" class="editor-description-input" rows="6" maxlength="1000"></textarea>
+          <p class="status-msg" id="editor-description-count" style="text-align:right;"></p>
           <p class="status-msg" id="editor-msg"></p>
           <div class="modal-actions" style="justify-content:flex-start;margin-top:16px;">
             <button type="button" class="btn" id="editor-save">Uložit</button>
@@ -1285,9 +1286,25 @@ body.lightbox-open { overflow: hidden; }
             '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + order.delivery_detail + '</small>' : '') + '</td>' +
             '<td>' + formatPrice(order.total) + '</td>' +
             '<td><select data-order-id="' + order.id + '">' + statusOptions + '</select></td>' +
-            '<td><button type="button" class="cart-remove" data-delete-order="' + order.id + '" title="Smazat objednávku">✕</button></td>';
+            '<td>' +
+              '<button type="button" class="btn btn--outline save-btn" data-invoice-order="' + order.id + '" data-invoice-number="' + order.order_number + '">Faktura</button> ' +
+              '<button type="button" class="cart-remove" data-delete-order="' + order.id + '" title="Smazat objednávku">✕</button>' +
+            '</td>';
 
           tbody.appendChild(tr);
+        });
+
+        tbody.querySelectorAll('button[data-invoice-order]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            btn.textContent = 'Načítám…';
+            fetch(API_BASE + '/api/admin/orders/' + btn.dataset.invoiceOrder + '/invoice', { headers: authHeaders() })
+              .then(function (r) { return r.blob(); })
+              .then(function (blob) {
+                var url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+              })
+              .finally(function () { btn.textContent = 'Faktura'; });
+          });
         });
 
         tbody.querySelectorAll('button[data-delete-order]').forEach(function (btn) {
@@ -1418,6 +1435,7 @@ body.lightbox-open { overflow: hidden; }
     }
 
     renderEditorGallery();
+    updateDescriptionCount();
     document.getElementById('editor-msg').textContent = '';
     document.getElementById('products-list-view').hidden = true;
     document.getElementById('product-editor').hidden = false;
@@ -1495,6 +1513,13 @@ body.lightbox-open { overflow: hidden; }
     };
     reader.readAsDataURL(modalPhotoFile);
   });
+
+  var descriptionInput = document.getElementById('editor-description');
+  var descriptionCount = document.getElementById('editor-description-count');
+  function updateDescriptionCount() {
+    descriptionCount.textContent = descriptionInput.value.length + ' / 1000 znaků';
+  }
+  descriptionInput.addEventListener('input', updateDescriptionCount);
 
   document.getElementById('editor-save').addEventListener('click', function () {
     var msg = document.getElementById('editor-msg');
