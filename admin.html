@@ -987,15 +987,28 @@ body.lightbox-open { overflow: hidden; }
   .product-admin-card-body p { margin: 0; font-size: 13px; color: var(--text-muted); }
   .product-admin-card-body .stock-low { color: #b5442e; }
 
-  .modal-overlay { position: fixed; inset: 0; background: rgba(46,36,25,0.5); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
-  .modal { background: var(--white); border-radius: var(--radius); padding: 24px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; }
-  .modal .form-group { margin-bottom: 14px; }
-  .modal .form-group label { display: block; font-size: 13px; margin-bottom: 4px; color: var(--text-muted); }
-  .modal textarea, .modal input[type="text"], .modal input[type="number"] { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; font-family: inherit; }
-  .modal-photo-preview { margin-bottom: 14px; }
-  .modal-photo-preview img { width: 100%; height: 220px; object-fit: cover; border-radius: 8px; }
-  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+
+  #product-editor .form-group { margin-bottom: 14px; }
+  #product-editor .form-group label { display: block; font-size: 13px; margin-bottom: 4px; color: var(--text-muted); }
+  #product-editor input[type="text"], #product-editor input[type="number"] { padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; font-family: inherit; }
+  .editor-photo-label { cursor: pointer; display: block; position: relative; }
+  .editor-photo-label:hover .img-placeholder,
+  .editor-photo-label:hover img { opacity: 0.85; }
+  .editor-title-input {
+    font-family: var(--font-heading); font-size: 2rem; font-weight: 600; color: var(--ink);
+    border: 1px dashed transparent; width: 100%; margin-bottom: 4px; padding: 2px 4px; background: transparent;
+  }
+  .editor-title-input:hover, .editor-title-input:focus { border-color: var(--border); border-radius: 6px; outline: none; }
+  .editor-price-input {
+    font-size: 1.8rem; font-weight: 700; color: var(--brown);
+    border: 1px dashed transparent; width: 140px; background: transparent; padding: 2px 4px;
+  }
+  .editor-price-input:hover, .editor-price-input:focus { border-color: var(--border); border-radius: 6px; outline: none; }
+  .editor-description-input {
+    width: 100%; margin-top: 18px; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-family: inherit; font-size: 1rem; color: var(--text); resize: vertical;
+  }
   .admin-table select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
   .order-items-list { margin: 0; padding-left: 16px; font-size: 13px; color: var(--text-muted); }
   .save-btn { padding: 6px 12px; font-size: 13px; }
@@ -1051,8 +1064,43 @@ body.lightbox-open { overflow: hidden; }
   </section>
 
   <section id="tab-products" hidden>
-    <button type="button" class="btn" id="open-add-product">+ Přidat produkt</button>
-    <div class="product-cards" id="products-cards"></div>
+    <div id="products-list-view">
+      <button type="button" class="btn" id="open-add-product">+ Přidat produkt</button>
+      <div class="product-cards" id="products-cards"></div>
+    </div>
+
+    <div id="product-editor" hidden>
+      <a href="#" id="editor-back" class="back-link">← Zpět na produkty</a>
+      <div class="product-detail">
+        <div class="product-detail-img">
+          <label for="editor-photo-input" class="editor-photo-label">
+            <img id="editor-img" src="" alt="" hidden>
+            <div id="editor-img-placeholder" class="img-placeholder"><span>Kliknutím nahrajete fotku</span></div>
+          </label>
+          <input type="file" id="editor-photo-input" accept="image/*" hidden>
+        </div>
+        <div class="product-detail-body">
+          <div class="form-group" id="editor-id-group">
+            <label for="editor-id">ID produktu</label>
+            <input type="text" id="editor-id" placeholder="napr-novy-produkt">
+          </div>
+          <input type="text" id="editor-title" placeholder="Název produktu" class="editor-title-input">
+          <input type="number" id="editor-price" min="0" class="editor-price-input" placeholder="Cena"> Kč
+          <br>
+          <span class="stock-badge stock-badge--out" id="editor-stock-badge">Není skladem</span>
+          <div class="form-group" style="max-width:160px;margin-top:10px;">
+            <label for="editor-stock">Sklad (ks)</label>
+            <input type="number" id="editor-stock" min="0">
+          </div>
+          <textarea id="editor-description" placeholder="Popis produktu, jak se zobrazí na webu" class="editor-description-input" rows="6"></textarea>
+          <p class="status-msg" id="editor-msg"></p>
+          <div class="modal-actions" style="justify-content:flex-start;margin-top:16px;">
+            <button type="button" class="btn" id="editor-save">Uložit</button>
+            <button type="button" class="btn btn--outline" id="editor-cancel">Zrušit</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section id="tab-discounts" hidden>
@@ -1090,47 +1138,6 @@ body.lightbox-open { overflow: hidden; }
     <p class="status-msg" id="add-discount-msg"></p>
   </section>
 </main>
-
-<div class="modal-overlay" id="product-modal" hidden>
-  <div class="modal">
-    <h2 id="product-modal-title">Upravit produkt</h2>
-    <div class="modal-photo-preview">
-      <img id="product-modal-img" src="" alt="" hidden>
-      <div id="product-modal-img-placeholder" class="product-thumb-placeholder" style="width:100%;height:220px;">bez fotky</div>
-    </div>
-    <div class="form-group">
-      <label for="product-modal-photo">Fotka (nahradí stávající)</label>
-      <input type="file" id="product-modal-photo" accept="image/*">
-    </div>
-    <div class="form-group" id="product-modal-id-group">
-      <label for="product-modal-id">ID produktu</label>
-      <input type="text" id="product-modal-id" placeholder="napr-novy-produkt">
-    </div>
-    <div class="form-group">
-      <label for="product-modal-title-input">Název</label>
-      <input type="text" id="product-modal-title-input" class="wide">
-    </div>
-    <div class="form-group">
-      <label for="product-modal-description">Popisek</label>
-      <textarea id="product-modal-description" rows="3" class="wide"></textarea>
-    </div>
-    <div class="form-row-2">
-      <div class="form-group">
-        <label for="product-modal-price">Cena (Kč)</label>
-        <input type="number" id="product-modal-price" min="0">
-      </div>
-      <div class="form-group">
-        <label for="product-modal-stock">Sklad (ks)</label>
-        <input type="number" id="product-modal-stock" min="0">
-      </div>
-    </div>
-    <p class="status-msg" id="product-modal-msg"></p>
-    <div class="modal-actions">
-      <button type="button" class="btn btn--outline" id="product-modal-cancel">Zrušit</button>
-      <button type="button" class="btn" id="product-modal-save">Uložit</button>
-    </div>
-  </div>
-</div>
 
 <script>
 (function () {
@@ -1336,85 +1343,93 @@ body.lightbox-open { overflow: hidden; }
               '<p>' + p.price + ' Kč &middot; <span class="' + (p.stockQty > 0 ? '' : 'stock-low') + '">' +
                 (p.stockQty > 0 ? p.stockQty + ' ks skladem' : 'není skladem') + '</span></p>' +
             '</div>';
-          card.addEventListener('click', function () { openProductModal(productId); });
+          card.addEventListener('click', function () { openProductEditor(productId); });
           grid.appendChild(card);
         });
       });
   }
 
-  function openProductModal(productId) {
+  function openProductEditor(productId) {
     modalMode = productId ? 'edit' : 'new';
     modalProductId = productId;
     modalPhotoFile = null;
-    document.getElementById('product-modal-photo').value = '';
+    document.getElementById('editor-photo-input').value = '';
 
-    var idInput = document.getElementById('product-modal-id');
-    var img = document.getElementById('product-modal-img');
-    var placeholder = document.getElementById('product-modal-img-placeholder');
+    var idInput = document.getElementById('editor-id');
+    var img = document.getElementById('editor-img');
+    var placeholder = document.getElementById('editor-img-placeholder');
+    var stockBadge = document.getElementById('editor-stock-badge');
 
     if (modalMode === 'edit') {
       var p = currentProducts[productId];
-      document.getElementById('product-modal-title').textContent = 'Upravit produkt';
       idInput.value = productId;
       idInput.disabled = true;
-      document.getElementById('product-modal-title-input').value = p.title;
-      document.getElementById('product-modal-description').value = p.description || '';
-      document.getElementById('product-modal-price').value = p.price;
-      document.getElementById('product-modal-stock').value = p.stockQty;
+      document.getElementById('editor-id-group').hidden = true;
+      document.getElementById('editor-title').value = p.title;
+      document.getElementById('editor-description').value = p.description || '';
+      document.getElementById('editor-price').value = p.price;
+      document.getElementById('editor-stock').value = p.stockQty;
       if (p.imageUrl) { img.src = p.imageUrl; img.hidden = false; placeholder.hidden = true; }
       else { img.hidden = true; placeholder.hidden = false; }
+      stockBadge.textContent = p.stockQty > 0 ? 'Skladem: ' + p.stockQty + ' ks' : 'Není skladem';
+      stockBadge.className = 'stock-badge ' + (p.stockQty > 0 ? 'stock-badge--in' : 'stock-badge--out');
     } else {
-      document.getElementById('product-modal-title').textContent = 'Přidat produkt';
       idInput.value = '';
       idInput.disabled = false;
-      document.getElementById('product-modal-title-input').value = '';
-      document.getElementById('product-modal-description').value = '';
-      document.getElementById('product-modal-price').value = '';
-      document.getElementById('product-modal-stock').value = '0';
+      document.getElementById('editor-id-group').hidden = false;
+      document.getElementById('editor-title').value = '';
+      document.getElementById('editor-description').value = '';
+      document.getElementById('editor-price').value = '';
+      document.getElementById('editor-stock').value = '0';
       img.hidden = true;
       placeholder.hidden = false;
+      stockBadge.textContent = 'Není skladem';
+      stockBadge.className = 'stock-badge stock-badge--out';
     }
 
-    document.getElementById('product-modal-msg').textContent = '';
-    document.getElementById('product-modal').hidden = false;
+    document.getElementById('editor-msg').textContent = '';
+    document.getElementById('products-list-view').hidden = true;
+    document.getElementById('product-editor').hidden = false;
   }
 
-  function closeProductModal() {
-    document.getElementById('product-modal').hidden = true;
+  function closeProductEditor() {
+    document.getElementById('product-editor').hidden = true;
+    document.getElementById('products-list-view').hidden = false;
   }
 
   document.getElementById('open-add-product').addEventListener('click', function () {
-    openProductModal(null);
+    openProductEditor(null);
   });
-  document.getElementById('product-modal-cancel').addEventListener('click', closeProductModal);
-  document.getElementById('product-modal').addEventListener('click', function (e) {
-    if (e.target.id === 'product-modal') closeProductModal();
+  document.getElementById('editor-cancel').addEventListener('click', closeProductEditor);
+  document.getElementById('editor-back').addEventListener('click', function (e) {
+    e.preventDefault();
+    closeProductEditor();
   });
 
-  document.getElementById('product-modal-photo').addEventListener('change', function (e) {
+  document.getElementById('editor-photo-input').addEventListener('change', function (e) {
     modalPhotoFile = e.target.files[0] || null;
     if (!modalPhotoFile) return;
     var reader = new FileReader();
     reader.onload = function () {
-      var img = document.getElementById('product-modal-img');
+      var img = document.getElementById('editor-img');
       img.src = reader.result;
       img.hidden = false;
-      document.getElementById('product-modal-img-placeholder').hidden = true;
+      document.getElementById('editor-img-placeholder').hidden = true;
     };
     reader.readAsDataURL(modalPhotoFile);
   });
 
-  document.getElementById('product-modal-save').addEventListener('click', function () {
-    var msg = document.getElementById('product-modal-msg');
-    var saveBtn = document.getElementById('product-modal-save');
+  document.getElementById('editor-save').addEventListener('click', function () {
+    var msg = document.getElementById('editor-msg');
+    var saveBtn = document.getElementById('editor-save');
     var payload = {
-      title: document.getElementById('product-modal-title-input').value.trim(),
-      description: document.getElementById('product-modal-description').value.trim(),
-      price: Number(document.getElementById('product-modal-price').value),
-      stockQty: Number(document.getElementById('product-modal-stock').value) || 0
+      title: document.getElementById('editor-title').value.trim(),
+      description: document.getElementById('editor-description').value.trim(),
+      price: Number(document.getElementById('editor-price').value),
+      stockQty: Number(document.getElementById('editor-stock').value) || 0
     };
 
-    var productId = modalMode === 'new' ? document.getElementById('product-modal-id').value.trim() : modalProductId;
+    var productId = modalMode === 'new' ? document.getElementById('editor-id').value.trim() : modalProductId;
     if (!productId || !payload.title || payload.price == null || isNaN(payload.price)) {
       msg.textContent = 'Vyplňte aspoň ID, název a cenu.';
       msg.className = 'status-msg err';
@@ -1442,7 +1457,7 @@ body.lightbox-open { overflow: hidden; }
       })
       .then(function () {
         saveBtn.textContent = 'Uložit';
-        closeProductModal();
+        closeProductEditor();
         loadProducts();
       })
       .catch(function (err) {
