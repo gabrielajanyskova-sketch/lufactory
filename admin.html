@@ -1183,7 +1183,9 @@ body.lightbox-open { overflow: hidden; }
           tr.innerHTML =
             '<td>' + order.order_number + '</td>' +
             '<td>' + (order.created_at || '').replace('T', ' ').slice(0, 16) + '</td>' +
-            '<td>' + order.customer_name + '<br><small>' + order.customer_email + '<br>' + (order.customer_phone || '') + '</small></td>' +
+            '<td>' + order.customer_name + '<br><small>' +
+              order.customer_street + ', ' + order.customer_zip + ' ' + order.customer_city + '<br>' +
+              order.customer_email + '<br>' + (order.customer_phone || '') + '</small></td>' +
             '<td>' + itemsHtml + '</td>' +
             '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + order.delivery_detail + '</small>' : '') + '</td>' +
             '<td>' + formatPrice(order.total) + '</td>' +

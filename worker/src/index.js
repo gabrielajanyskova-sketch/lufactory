@@ -439,6 +439,9 @@ function buildInvoiceHtml(order, items) {
     </tr>`).join('');
 
   const today = new Date().toLocaleDateString('cs-CZ');
+  const shippingInfo = SHIPPING[order.delivery_method];
+  const shippingLabel = shippingInfo ? shippingInfo.label : order.delivery_method;
+  const paymentLabel = order.payment_method === 'cash' ? 'Hotově při odběru' : 'Bankovním převodem';
 
   return `<!doctype html>
 <html lang="cs"><head><meta charset="utf-8"><title>Faktura ${escapeHtml(order.order_number)}</title></head>
@@ -461,8 +464,17 @@ function buildInvoiceHtml(order, items) {
         ${escapeHtml(order.customer_name)}<br>
         ${escapeHtml(order.customer_street)}<br>
         ${escapeHtml(order.customer_zip)} ${escapeHtml(order.customer_city)}<br>
-        ${escapeHtml(order.customer_email)}
+        ${escapeHtml(order.customer_email)}${order.customer_phone ? '<br>' + escapeHtml(order.customer_phone) : ''}
       </td>
+    </tr>
+  </table>
+
+  <table role="presentation" width="100%" style="margin-bottom:24px;font-size:14px;background:#faf6ef;border-radius:8px;">
+    <tr>
+      <td style="padding:8px 12px;"><strong>Doprava:</strong> ${escapeHtml(shippingLabel)}${order.delivery_detail ? ' — ' + escapeHtml(order.delivery_detail) : ''}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px;"><strong>Platba:</strong> ${escapeHtml(paymentLabel)}</td>
     </tr>
   </table>
 
