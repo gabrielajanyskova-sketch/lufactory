@@ -31,10 +31,10 @@ Bindings a proměnné (Settings → Bindings / Variables and Secrets), viz
 
 ## Propojení s webem
 
-`API_BASE` v `assets/js/cart.js`, `assets/js/main.js`, `admin.html` a
-`produkty/produkt.html` musí ukazovat na URL tohohle workeru
-(`https://lufactory-api.<subdomain>.workers.dev`). Musí sedět na všech
-čtyřech místech současně.
+`API_BASE` v `assets/js/cart.js`, `assets/js/main.js`, `admin.html`,
+`produkty/produkt.html` a `recenze.html` musí ukazovat na URL tohohle
+workeru (`https://lufactory-api.<subdomain>.workers.dev`). Musí sedět na
+všech pěti místech současně.
 
 ## Databáze (`lufactory-orders`)
 
