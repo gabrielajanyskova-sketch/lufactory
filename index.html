@@ -523,6 +523,17 @@ body.cart-open { overflow: hidden; }
   cursor: zoom-in;
 }
 
+/* ---------- FAQ ---------- */
+.faq-list {
+  max-width: 760px;
+  margin: 40px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.faq-item h3 { font-size: 1.08rem; margin-bottom: 6px; }
+.faq-item p { color: var(--text-muted); font-size: 0.95rem; margin: 0; }
+
 /* ---------- lightbox ---------- */
 .lightbox {
   position: fixed;
@@ -983,6 +994,7 @@ body.lightbox-open { overflow: hidden; }
 }
 </style>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "lufactory", "url": "https://www.lufactory.cz/", "email": "info@lufactory.cz", "logo": "https://www.lufactory.cz/assets/img/logo.webp", "sameAs": ["https://www.instagram.com/lufactory.cz/"], "description": "Ručně vyráběné houbičky z pravé lufy — přírodní alternativa plastových hub na mytí nádobí i těla."}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Je houbička z lufy vhodná na mytí nádobí, nebo jen na tělo?", "acceptedAnswer": {"@type": "Answer", "text": "Obojí. Houbičky na nádobí jsou ve třech velikostech i jako mix, samostatně je i peelingová houbička na tělo."}}, {"@type": "Question", "name": "Z čeho jsou houbičky vyrobené a odkud pochází lufa?", "acceptedAnswer": {"@type": "Answer", "text": "Ze 100% přírodní lufy, rostliny rodu Luffa, dovážené z Egypta. Houbičky jsou ručně tvarované, bez plastů a chemie."}}, {"@type": "Question", "name": "Proč se houbička po namočení zvětší?", "acceptedAnswer": {"@type": "Answer", "text": "To je normální vlastnost přírodního materiálu — po namočení houbička nafoukne, zvětší objem a zjemní se. Velikosti jsou uváděné v suchém, stlačeném stavu."}}, {"@type": "Question", "name": "Je houbička z lufy biologicky rozložitelná?", "acceptedAnswer": {"@type": "Answer", "text": "Ano. Po skončení životnosti ji lze vyhodit na kompost — je to 100% přírodní produkt bez plastů a chemie."}}, {"@type": "Question", "name": "Jaké jsou možnosti a ceny doručení?", "acceptedAnswer": {"@type": "Answer", "text": "Osobní odběr (Nová Ves u Prahy / Praha 8, Čimice) je zdarma. Zásilkovna na výdejní místo 89 Kč, na adresu 129 Kč. PPL na výdejní místo 76 Kč, na adresu 106 Kč."}}, {"@type": "Question", "name": "Jak mohu zaplatit?", "acceptedAnswer": {"@type": "Answer", "text": "Bankovním převodem s QR platbou přímo v potvrzení objednávky, nebo hotově při osobním odběru."}}]}</script>
 </head>
 <body>
 <header class="site-header">
@@ -993,6 +1005,7 @@ body.lightbox-open { overflow: hidden; }
         <li><a href="/produkty.html">Produkty</a></li>
         <li><a href="#o-mne">O mně</a></li>
         <li><a href="#o-houbickach">Co je lufa</a></li>
+        <li><a href="#faq">Časté otázky</a></li>
         <li><a href="#kontakt">Kontakt</a></li>
       </ul>
     </nav>
@@ -1148,6 +1161,41 @@ body.lightbox-open { overflow: hidden; }
         <p class="script">Tak na co ještě čekáte?</p>
         <p>Jděte a vyzkoušejte moje houbičky a já věřím, že nebudete litovat!</p>
         <a href="/produkty.html" class="btn">Prohlédnout houbičky</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Časté otázky</span>
+        <h2>Co lidi nejčastěji zajímá</h2>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item">
+          <h3>Je houbička z lufy vhodná na mytí nádobí, nebo jen na tělo?</h3>
+          <p>Obojí. Houbičky na nádobí nabízím ve třech velikostech i jako mix, a samostatně i peelingovou houbičku na tělo — najdete je všechny v <a href="/produkty.html">nabídce produktů</a>.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Z čeho jsou houbičky vyrobené a odkud pochází lufa?</h3>
+          <p>Ze 100% přírodní lufy, rostliny rodu Luffa, kterou dovážím z Egypta. Houbičky jsou ručně tvarované, bez plastů a chemie.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Proč se houbička po namočení zvětší?</h3>
+          <p>To je normální vlastnost přírodního materiálu — po namočení houbička „nafoukne", zvětší objem a zjemní se. Velikosti v e-shopu jsou uváděné v suchém, stlačeném stavu.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Je houbička z lufy biologicky rozložitelná?</h3>
+          <p>Ano. Až houbičku doslouží, můžete ji vyhodit na kompost — je to 100% přírodní produkt, který nezanechává žádný odpad ani mikroplasty.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Jaké jsou možnosti a ceny doručení?</h3>
+          <p>Osobní odběr (Nová Ves u Prahy / Praha 8, Čimice) je zdarma. Zásilkovna na výdejní místo vyjde na 89 Kč, na adresu na 129 Kč. PPL na výdejní místo 76 Kč, na adresu 106 Kč.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Jak mohu zaplatit?</h3>
+          <p>Bankovním převodem s QR platbou přímo v potvrzení objednávky, nebo hotově při osobním odběru.</p>
+        </div>
       </div>
     </div>
   </section>
