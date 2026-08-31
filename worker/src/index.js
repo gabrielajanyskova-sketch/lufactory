@@ -62,6 +62,10 @@ export default {
         if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
         return await listOrders(env, cors);
       }
+      if (url.pathname === '/api/admin/orders-export.csv' && request.method === 'GET') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await exportOrdersCsv(env, cors);
+      }
       const orderInvoiceMatch = url.pathname.match(/^\/api\/admin\/orders\/(\d+)\/invoice$/);
       if (orderInvoiceMatch && request.method === 'GET') {
         if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
@@ -248,7 +252,13 @@ async function createOrder(request, env, cors) {
     if (product.stock_qty < qty) {
       return json({ error: 'insufficient_stock', productId: line.productId, available: product.stock_qty }, 409, cors);
     }
-    items.push({ productId: product.product_id, title: product.title, price: product.price, qty });
+    items.push({
+      productId: product.product_id,
+      title: product.title,
+      price: product.price,
+      qty,
+      remainingStock: product.stock_qty - qty
+    });
   }
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
@@ -304,6 +314,15 @@ async function createOrder(request, env, cors) {
     } catch (err) {
       console.error('sendOrderEmails failed', err);
     }
+
+    const lowStockItems = items.filter((item) => item.remainingStock <= LOW_STOCK_THRESHOLD);
+    if (lowStockItems.length > 0) {
+      try {
+        await sendLowStockAlert(env, lowStockItems);
+      } catch (err) {
+        console.error('sendLowStockAlert failed', err);
+      }
+    }
   }
 
   return json({ orderNumber, status: 'nova', subtotal, discountAmount: discount, shippingPrice: shipping.price, total, variableSymbol, paymentMethod: body.payment.method }, 200, cors);
@@ -342,6 +361,24 @@ function itemRowsHtml(items) {
 
 function totalsRowsHtml(rows) {
   return rows.map(([label, value]) => `<tr><td style="padding:3px 0;">${label}</td><td style="padding:3px 0;text-align:right;">${value}</td></tr>`).join('');
+}
+
+const LOW_STOCK_THRESHOLD = 2;
+
+async function sendLowStockAlert(env, lowStockItems) {
+  const rows = lowStockItems.map((item) => [
+    escapeHtml(item.title),
+    item.remainingStock > 0 ? `zbývá ${item.remainingStock} ks` : 'vyprodáno'
+  ]);
+  const html = emailLayout(`
+    <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Dochází sklad</p>
+    <table role="presentation" width="100%" style="border-collapse:collapse;font-size:14px;">${totalsRowsHtml(rows)}</table>
+  `);
+  await sendResendEmail(env, {
+    to: env.SHOP_NOTIFICATION_EMAIL,
+    subject: 'Dochází sklad u ' + lowStockItems.length + ' produktu' + (lowStockItems.length > 1 ? 'ů' : ''),
+    html
+  });
 }
 
 async function sendOrderEmails(env, { orderNumber, variableSymbol, body, items, subtotal, discount, shipping, total }) {
@@ -430,6 +467,62 @@ async function listOrders(env, cors) {
   }
   const withItems = orders.map((o) => Object.assign({}, o, { items: itemsByOrder[o.id] || [] }));
   return json({ orders: withItems }, 200, cors);
+}
+
+function csvEscape(value) {
+  const str = String(value == null ? '' : value);
+  if (/["\n,]/.test(str)) return '"' + str.replace(/"/g, '""') + '"';
+  return str;
+}
+
+async function exportOrdersCsv(env, cors) {
+  const { results: orders } = await env.DB.prepare(
+    `SELECT id, order_number, status, customer_name, customer_email, customer_phone,
+       customer_street, customer_zip, customer_city, delivery_method, delivery_detail,
+       payment_method, discount_code, subtotal, discount_amount, shipping_price, total, created_at
+     FROM orders ORDER BY created_at DESC`
+  ).all();
+  const { results: items } = await env.DB.prepare(
+    'SELECT order_id, title, qty FROM order_items'
+  ).all();
+  const itemsByOrder = {};
+  for (const item of items) {
+    (itemsByOrder[item.order_id] = itemsByOrder[item.order_id] || []).push(item.title + ' x' + item.qty);
+  }
+
+  const header = [
+    'Číslo objednávky', 'Datum', 'Stav', 'Jméno', 'Ulice', 'PSČ', 'Město', 'E-mail', 'Telefon',
+    'Doprava', 'Detail dopravy', 'Položky', 'Slevový kód', 'Mezisoučet', 'Sleva', 'Doprava (Kč)', 'Celkem', 'Platba'
+  ];
+  const rows = orders.map((o) => [
+    o.order_number,
+    o.created_at,
+    ORDER_STATUS_LABELS[o.status] || o.status,
+    o.customer_name,
+    o.customer_street,
+    o.customer_zip,
+    o.customer_city,
+    o.customer_email,
+    o.customer_phone,
+    (SHIPPING[o.delivery_method] && SHIPPING[o.delivery_method].label) || o.delivery_method,
+    o.delivery_detail || '',
+    (itemsByOrder[o.id] || []).join('; '),
+    o.discount_code || '',
+    o.subtotal,
+    o.discount_amount,
+    o.shipping_price,
+    o.total,
+    o.payment_method === 'cash' ? 'hotově' : 'převod'
+  ]);
+
+  const csv = [header].concat(rows).map((row) => row.map(csvEscape).join(',')).join('\r\n');
+  const bom = String.fromCharCode(0xfeff);
+  return new Response(bom + csv, {
+    headers: Object.assign({
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="objednavky.csv"'
+    }, cors)
+  });
 }
 
 async function deleteOrder(env, cors, orderId) {
