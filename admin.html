@@ -1010,7 +1010,7 @@ body.lightbox-open { overflow: hidden; }
     width: 100%; margin-top: 18px; padding: 10px 12px; border: 1px solid var(--border);
     border-radius: 8px; font-family: inherit; font-size: 1rem; color: var(--text); resize: vertical;
   }
-  .order-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .order-actions { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; }
   .icon-btn-delete {
     width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: var(--white);
     color: var(--text-muted); font-size: 13px; cursor: pointer; display: flex; align-items: center;
@@ -1030,7 +1030,9 @@ body.lightbox-open { overflow: hidden; }
     font-size: 13px; color: var(--text-muted); cursor: pointer; background: none;
   }
   .admin-table select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
-  .order-items-list { margin: 0; padding-left: 16px; font-size: 13px; color: var(--text-muted); }
+  .order-items-list { margin: 0; font-size: 13px; color: var(--text-muted); min-width: 180px; }
+  .order-item-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; }
+  .order-item-qty { color: var(--ink); font-weight: 600; white-space: nowrap; }
   .save-btn { padding: 6px 12px; font-size: 13px; }
   .add-product-form { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; background: var(--white); padding: 16px; border-radius: var(--radius); box-shadow: var(--shadow); align-items: flex-end; }
   .add-product-form .form-group { margin: 0; }
@@ -1292,9 +1294,9 @@ body.lightbox-open { overflow: hidden; }
         data.orders.forEach(function (order) {
           var tr = document.createElement('tr');
 
-          var itemsHtml = '<ul class="order-items-list">' + order.items.map(function (i) {
-            return '<li>' + i.title + ' × ' + i.qty + '</li>';
-          }).join('') + '</ul>';
+          var itemsHtml = '<div class="order-items-list">' + order.items.map(function (i) {
+            return '<div class="order-item-row"><span>' + i.title + '</span><span class="order-item-qty">' + i.qty + ' ks</span></div>';
+          }).join('') + '</div>';
 
           var statusOptions = ORDER_STATUSES.map(function (s) {
             return '<option value="' + s[0] + '"' + (s[0] === order.status ? ' selected' : '') + '>' + s[1] + '</option>';
