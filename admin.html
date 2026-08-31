@@ -1009,6 +1009,18 @@ body.lightbox-open { overflow: hidden; }
     width: 100%; margin-top: 18px; padding: 10px 12px; border: 1px solid var(--border);
     border-radius: 8px; font-family: inherit; font-size: 1rem; color: var(--text); resize: vertical;
   }
+  .editor-gallery { justify-content: flex-start; }
+  .editor-gallery-item { position: relative; width: 140px; height: 140px; }
+  .editor-gallery-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+  .editor-gallery-item .gallery-remove-btn {
+    position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(46,36,25,0.75); color: var(--white); border: none; font-size: 13px; line-height: 1; cursor: pointer;
+  }
+  .editor-gallery-add {
+    width: 140px; height: 140px; border-radius: 8px; border: 1px dashed var(--border);
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    font-size: 13px; color: var(--text-muted); cursor: pointer; background: none;
+  }
   .admin-table select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
   .order-items-list { margin: 0; padding-left: 16px; font-size: 13px; color: var(--text-muted); }
   .save-btn { padding: 6px 12px; font-size: 13px; }
@@ -1099,6 +1111,12 @@ body.lightbox-open { overflow: hidden; }
             <button type="button" class="btn btn--outline" id="editor-cancel">Zrušit</button>
           </div>
         </div>
+      </div>
+
+      <div>
+        <h2>Další fotky</h2>
+        <div class="gallery editor-gallery" id="editor-gallery"></div>
+        <input type="file" id="editor-gallery-input" accept="image/*" hidden>
       </div>
     </div>
   </section>
@@ -1306,12 +1324,12 @@ body.lightbox-open { overflow: hidden; }
     });
   }
 
-  function uploadProductPhoto(productId, file) {
+  function uploadProductPhoto(productId, file, target) {
     return fileToBase64(file).then(function (base64) {
       return fetch(API_BASE + '/api/admin/products/' + encodeURIComponent(productId) + '/image', {
         method: 'POST',
         headers: authHeaders(),
-        body: JSON.stringify({ contentBase64: base64, contentType: file.type })
+        body: JSON.stringify({ contentBase64: base64, contentType: file.type, target: target })
       });
     });
   }
@@ -1320,6 +1338,7 @@ body.lightbox-open { overflow: hidden; }
   var modalMode = 'new';
   var modalProductId = null;
   var modalPhotoFile = null;
+  var editorGalleryUrls = [];
 
   function loadProducts() {
     fetch(API_BASE + '/api/products')
@@ -1373,6 +1392,7 @@ body.lightbox-open { overflow: hidden; }
       else { img.hidden = true; placeholder.hidden = false; }
       stockBadge.textContent = p.stockQty > 0 ? 'Skladem: ' + p.stockQty + ' ks' : 'Není skladem';
       stockBadge.className = 'stock-badge ' + (p.stockQty > 0 ? 'stock-badge--in' : 'stock-badge--out');
+      editorGalleryUrls = (p.galleryUrls || []).slice();
     } else {
       idInput.value = '';
       idInput.disabled = false;
@@ -1385,12 +1405,60 @@ body.lightbox-open { overflow: hidden; }
       placeholder.hidden = false;
       stockBadge.textContent = 'Není skladem';
       stockBadge.className = 'stock-badge stock-badge--out';
+      editorGalleryUrls = [];
     }
 
+    renderEditorGallery();
     document.getElementById('editor-msg').textContent = '';
     document.getElementById('products-list-view').hidden = true;
     document.getElementById('product-editor').hidden = false;
   }
+
+  function renderEditorGallery() {
+    var gallery = document.getElementById('editor-gallery');
+    gallery.innerHTML = '';
+    editorGalleryUrls.forEach(function (url, index) {
+      var item = document.createElement('div');
+      item.className = 'editor-gallery-item';
+      item.innerHTML = '<img src="' + url + '" alt=""><button type="button" class="gallery-remove-btn" title="Smazat fotku">✕</button>';
+      item.querySelector('.gallery-remove-btn').addEventListener('click', function () {
+        editorGalleryUrls.splice(index, 1);
+        saveGalleryUrls();
+      });
+      gallery.appendChild(item);
+    });
+
+    if (modalMode === 'edit') {
+      var addTile = document.createElement('button');
+      addTile.type = 'button';
+      addTile.className = 'editor-gallery-add';
+      addTile.textContent = '+ Přidat fotku';
+      addTile.addEventListener('click', function () {
+        document.getElementById('editor-gallery-input').click();
+      });
+      gallery.appendChild(addTile);
+    }
+  }
+
+  function saveGalleryUrls() {
+    return fetch(API_BASE + '/api/admin/products/' + encodeURIComponent(modalProductId), {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({ galleryUrls: editorGalleryUrls })
+    }).then(function () { renderEditorGallery(); });
+  }
+
+  document.getElementById('editor-gallery-input').addEventListener('change', function (e) {
+    var file = e.target.files[0];
+    if (!file || !modalProductId) return;
+    uploadProductPhoto(modalProductId, file, 'gallery')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        editorGalleryUrls.push(data.imageUrl);
+        renderEditorGallery();
+      });
+    e.target.value = '';
+  });
 
   function closeProductEditor() {
     document.getElementById('product-editor').hidden = true;

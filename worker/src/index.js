@@ -148,9 +148,18 @@ function resolveImageUrl(imageUrl) {
   return WORKER_BASE + '/api/images/' + imageUrl;
 }
 
+function parseGalleryUrls(raw) {
+  try {
+    const arr = JSON.parse(raw || '[]');
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) {
+    return [];
+  }
+}
+
 async function getProducts(env, cors) {
   const { results } = await env.DB.prepare(
-    'SELECT product_id, title, price, stock_qty, description, image_url FROM products'
+    'SELECT product_id, title, price, stock_qty, description, image_url, gallery_urls FROM products'
   ).all();
   const products = {};
   for (const row of results) {
@@ -159,7 +168,8 @@ async function getProducts(env, cors) {
       price: row.price,
       stockQty: row.stock_qty,
       description: row.description || '',
-      imageUrl: resolveImageUrl(row.image_url)
+      imageUrl: resolveImageUrl(row.image_url),
+      galleryUrls: parseGalleryUrls(row.gallery_urls).map(resolveImageUrl)
     };
   }
   return json(products, 200, cors);
@@ -622,6 +632,7 @@ async function updateProduct(request, env, cors, productId) {
   if (body.price != null) { fields.push('price = ?'); values.push(Number(body.price)); }
   if (body.stockQty != null) { fields.push('stock_qty = ?'); values.push(Number(body.stockQty)); }
   if (body.description != null) { fields.push('description = ?'); values.push(body.description); }
+  if (body.galleryUrls != null) { fields.push('gallery_urls = ?'); values.push(JSON.stringify(body.galleryUrls)); }
   if (fields.length === 0) return json({ error: 'nothing_to_update' }, 400, cors);
   values.push(productId);
   await env.DB.prepare(`UPDATE products SET ${fields.join(', ')} WHERE product_id = ?`).bind(...values).run();
@@ -639,7 +650,16 @@ async function uploadProductImage(request, env, cors, productId) {
   const ext = (body.contentType.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
   const key = productId + '-' + Date.now() + '.' + ext;
   await env.IMAGES.put(key, bytes, { metadata: { contentType: body.contentType } });
-  await env.DB.prepare('UPDATE products SET image_url = ? WHERE product_id = ?').bind(key, productId).run();
+
+  if (body.target === 'gallery') {
+    const row = await env.DB.prepare('SELECT gallery_urls FROM products WHERE product_id = ?').bind(productId).first();
+    const gallery = parseGalleryUrls(row && row.gallery_urls);
+    gallery.push(key);
+    await env.DB.prepare('UPDATE products SET gallery_urls = ? WHERE product_id = ?').bind(JSON.stringify(gallery), productId).run();
+  } else {
+    await env.DB.prepare('UPDATE products SET image_url = ? WHERE product_id = ?').bind(key, productId).run();
+  }
+
   return json({ ok: true, imageUrl: WORKER_BASE + '/api/images/' + key }, 200, cors);
 }
 

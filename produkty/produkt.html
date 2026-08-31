@@ -1050,6 +1050,20 @@ body.lightbox-open { overflow: hidden; }
         ? '<img src="' + p.imageUrl + '" alt="' + p.title.replace(/"/g, '&quot;') + '">'
         : '<div class="img-placeholder"></div>';
 
+      var descriptionHtml = (p.description || '')
+        .split(/\n\s*\n/)
+        .filter(function (para) { return para.trim(); })
+        .map(function (para) { return '<p>' + para.replace(/\n/g, '<br>') + '</p>'; })
+        .join('');
+
+      var galleryHtml = (p.galleryUrls && p.galleryUrls.length)
+        ? '<h2>Další fotky</h2><div class="gallery">' +
+            p.galleryUrls.map(function (url) {
+              return '<img src="' + url + '" alt="' + p.title.replace(/"/g, '&quot;') + '" loading="lazy">';
+            }).join('') +
+          '</div>'
+        : '';
+
       root.innerHTML =
         '<div class="product-detail">' +
           '<div class="product-detail-img">' + imgHtml + '</div>' +
@@ -1057,7 +1071,7 @@ body.lightbox-open { overflow: hidden; }
             '<h1>' + p.title + '</h1>' +
             '<p class="product-price-lg">' + p.price + ' Kč</p>' +
             '<span class="stock-badge stock-badge--out" data-stock-badge="' + id + '">Není skladem</span>' +
-            (p.description ? '<p>' + p.description + '</p>' : '') +
+            descriptionHtml +
             '<div class="add-to-cart-row">' +
               '<div class="qty-stepper" data-qty-for="' + id + '">' +
                 '<button type="button" data-action="dec" aria-label="Ubrat kus" disabled>−</button>' +
@@ -1067,15 +1081,17 @@ body.lightbox-open { overflow: hidden; }
               '<button type="button" class="btn" data-add-to-cart data-id="' + id + '" data-name="' + p.title.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" disabled>Přidat do košíku</button>' +
             '</div>' +
           '</div>' +
-        '</div>';
+        '</div>' +
+        galleryHtml;
 
-      // cart.js už doběhlo DOMContentLoaded dřív, než se tohle vykreslilo,
-      // takže tlačítka nově vloženého bloku potřebují vlastní zapojení.
+      // cart.js a main.js už doběhly DOMContentLoaded dřív, než se tohle
+      // vykreslilo, takže nově vložený obsah potřebuje vlastní zapojení.
       if (window.lufactoryCart) {
         window.lufactoryCart.wireQtyStepper(root.querySelector('.qty-stepper'));
         window.lufactoryCart.wireAddToCartBtn(root.querySelector('[data-add-to-cart]'));
         window.lufactoryCart.refreshStock();
       }
+      if (typeof wireGalleryLightbox === 'function') wireGalleryLightbox();
     })
     .catch(function () {
       root.innerHTML = '<p>Produkt se nepodařilo načíst. <a href="/produkty.html">Zpět na produkty</a></p>';
