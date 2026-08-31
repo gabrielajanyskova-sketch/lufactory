@@ -175,7 +175,7 @@
       '<a href="' + detailUrl + '" class="product-img">' + imgHtml + '</a>' +
       '<div class="product-body">' +
         '<h3><a href="' + detailUrl + '">' + data.title + '</a></h3>' +
-        (data.description ? '<p>' + data.description + '</p>' : '') +
+        (data.teaser ? '<p>' + data.teaser + '</p>' : '') +
         '<span class="product-price">' + data.price + ' Kč</span>' +
         '<span class="stock-badge stock-badge--out" data-stock-badge="' + id + '">Není skladem</span>' +
         '<div class="add-to-cart-row">' +

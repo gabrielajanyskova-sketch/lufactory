@@ -1020,7 +1020,7 @@ body.lightbox-open { overflow: hidden; }
   .icon-btn-delete:hover { background: #b5442e; color: var(--white); border-color: #b5442e; }
   .editor-gallery { justify-content: flex-start; }
   .editor-gallery-item { position: relative; width: 140px; height: 140px; }
-  .editor-gallery-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+  .editor-gallery-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; }
   .editor-gallery-item .gallery-remove-btn {
     position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%;
     background: rgba(46,36,25,0.75); color: var(--white); border: none; font-size: 13px; line-height: 1; cursor: pointer;
@@ -1118,7 +1118,11 @@ body.lightbox-open { overflow: hidden; }
             <label for="editor-stock">Sklad (ks)</label>
             <input type="number" id="editor-stock" min="0">
           </div>
-          <textarea id="editor-description" placeholder="Popis produktu, jak se zobrazí na webu" class="editor-description-input" rows="6" maxlength="1000"></textarea>
+          <div class="form-group" style="margin-top:14px;">
+            <label for="editor-teaser">Krátká věta na kartičku (přehled produktů)</label>
+            <input type="text" id="editor-teaser" class="wide" maxlength="150" placeholder="Např. Spolehlivá při mytí nádobí, padne dobře i do menší ruky.">
+          </div>
+          <textarea id="editor-description" placeholder="Celý popis produktu na jeho vlastní stránce" class="editor-description-input" rows="6" maxlength="1000"></textarea>
           <p class="status-msg" id="editor-description-count" style="text-align:right;"></p>
           <p class="status-msg" id="editor-msg"></p>
           <div class="modal-actions" style="justify-content:flex-start;margin-top:16px;">
@@ -1389,6 +1393,7 @@ body.lightbox-open { overflow: hidden; }
   var modalProductId = null;
   var modalPhotoFile = null;
   var editorGalleryUrls = [];
+  var editorMainImageUrl = '';
 
   function loadProducts() {
     fetch(API_BASE + '/api/products')
@@ -1402,8 +1407,7 @@ body.lightbox-open { overflow: hidden; }
           var thumb = p.imageUrl
             ? '<img src="' + p.imageUrl + '" alt="">'
             : '<div class="product-thumb-placeholder">bez fotky</div>';
-          var descriptionSnippet = (p.description || '').slice(0, 90);
-          if (p.description && p.description.length > 90) descriptionSnippet += '…';
+          var descriptionSnippet = p.teaser || '';
 
           var card = document.createElement('div');
           card.className = 'product-admin-card';
@@ -1448,19 +1452,23 @@ body.lightbox-open { overflow: hidden; }
       document.getElementById('editor-id-group').hidden = true;
       document.getElementById('editor-title').value = p.title;
       document.getElementById('editor-description').value = p.description || '';
+      document.getElementById('editor-teaser').value = p.teaser || '';
       document.getElementById('editor-price').value = p.price;
       document.getElementById('editor-stock').value = p.stockQty;
+      editorMainImageUrl = p.imageUrl || '';
       if (p.imageUrl) { img.src = p.imageUrl; img.hidden = false; placeholder.hidden = true; }
       else { img.hidden = true; placeholder.hidden = false; }
       stockBadge.textContent = p.stockQty > 0 ? 'Skladem: ' + p.stockQty + ' ks' : 'Není skladem';
       stockBadge.className = 'stock-badge ' + (p.stockQty > 0 ? 'stock-badge--in' : 'stock-badge--out');
       editorGalleryUrls = (p.galleryUrls || []).slice();
     } else {
+      editorMainImageUrl = '';
       idInput.value = '';
       idInput.disabled = false;
       document.getElementById('editor-id-group').hidden = false;
       document.getElementById('editor-title').value = '';
       document.getElementById('editor-description').value = '';
+      document.getElementById('editor-teaser').value = '';
       document.getElementById('editor-price').value = '';
       document.getElementById('editor-stock').value = '0';
       img.hidden = true;
@@ -1483,8 +1491,14 @@ body.lightbox-open { overflow: hidden; }
     editorGalleryUrls.forEach(function (url, index) {
       var item = document.createElement('div');
       item.className = 'editor-gallery-item';
-      item.innerHTML = '<img src="' + url + '" alt=""><button type="button" class="gallery-remove-btn" title="Smazat fotku">✕</button>';
-      item.querySelector('.gallery-remove-btn').addEventListener('click', function () {
+      item.innerHTML =
+        '<img src="' + url + '" alt="" title="Nastavit jako hlavní fotku">' +
+        '<button type="button" class="gallery-remove-btn" title="Smazat fotku">✕</button>';
+      item.querySelector('img').addEventListener('click', function () {
+        setAsMainImage(index);
+      });
+      item.querySelector('.gallery-remove-btn').addEventListener('click', function (e) {
+        e.stopPropagation();
         editorGalleryUrls.splice(index, 1);
         saveGalleryUrls();
       });
@@ -1508,6 +1522,25 @@ body.lightbox-open { overflow: hidden; }
       method: 'PATCH',
       headers: authHeaders(),
       body: JSON.stringify({ galleryUrls: editorGalleryUrls })
+    }).then(function () { renderEditorGallery(); });
+  }
+
+  function setAsMainImage(galleryIndex) {
+    var newMain = editorGalleryUrls[galleryIndex];
+    var oldMain = editorMainImageUrl;
+    editorGalleryUrls.splice(galleryIndex, 1);
+    if (oldMain) editorGalleryUrls.push(oldMain);
+    editorMainImageUrl = newMain;
+
+    var img = document.getElementById('editor-img');
+    img.src = newMain;
+    img.hidden = false;
+    document.getElementById('editor-img-placeholder').hidden = true;
+
+    return fetch(API_BASE + '/api/admin/products/' + encodeURIComponent(modalProductId), {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({ imageUrl: newMain, galleryUrls: editorGalleryUrls })
     }).then(function () { renderEditorGallery(); });
   }
 
@@ -1563,6 +1596,7 @@ body.lightbox-open { overflow: hidden; }
     var payload = {
       title: document.getElementById('editor-title').value.trim(),
       description: document.getElementById('editor-description').value.trim(),
+      teaser: document.getElementById('editor-teaser').value.trim(),
       price: Number(document.getElementById('editor-price').value),
       stockQty: Number(document.getElementById('editor-stock').value) || 0
     };

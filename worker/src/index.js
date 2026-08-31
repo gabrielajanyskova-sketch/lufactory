@@ -170,7 +170,7 @@ function parseGalleryUrls(raw) {
 
 async function getProducts(env, cors) {
   const { results } = await env.DB.prepare(
-    'SELECT product_id, title, price, stock_qty, description, image_url, gallery_urls FROM products'
+    'SELECT product_id, title, price, stock_qty, description, teaser, image_url, gallery_urls FROM products'
   ).all();
   const products = {};
   for (const row of results) {
@@ -179,6 +179,7 @@ async function getProducts(env, cors) {
       price: row.price,
       stockQty: row.stock_qty,
       description: row.description || '',
+      teaser: row.teaser || '',
       imageUrl: resolveImageUrl(row.image_url),
       galleryUrls: parseGalleryUrls(row.gallery_urls).map(resolveImageUrl)
     };
@@ -761,8 +762,8 @@ async function createProduct(request, env, cors) {
     return json({ error: 'description_too_long' }, 400, cors);
   }
   await env.DB.prepare(
-    'INSERT INTO products (product_id, title, price, stock_qty, description) VALUES (?, ?, ?, ?, ?)'
-  ).bind(body.productId, body.title, Number(body.price), Number(body.stockQty) || 0, body.description || '').run();
+    'INSERT INTO products (product_id, title, price, stock_qty, description, teaser) VALUES (?, ?, ?, ?, ?, ?)'
+  ).bind(body.productId, body.title, Number(body.price), Number(body.stockQty) || 0, body.description || '', body.teaser || '').run();
   return json({ ok: true }, 200, cors);
 }
 
@@ -777,6 +778,8 @@ async function updateProduct(request, env, cors, productId) {
   if (body.price != null) { fields.push('price = ?'); values.push(Number(body.price)); }
   if (body.stockQty != null) { fields.push('stock_qty = ?'); values.push(Number(body.stockQty)); }
   if (body.description != null) { fields.push('description = ?'); values.push(body.description); }
+  if (body.teaser != null) { fields.push('teaser = ?'); values.push(body.teaser); }
+  if (body.imageUrl != null) { fields.push('image_url = ?'); values.push(body.imageUrl); }
   if (body.galleryUrls != null) { fields.push('gallery_urls = ?'); values.push(JSON.stringify(body.galleryUrls)); }
   if (fields.length === 0) return json({ error: 'nothing_to_update' }, 400, cors);
   values.push(productId);
