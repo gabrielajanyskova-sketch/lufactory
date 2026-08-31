@@ -356,11 +356,46 @@ async function listOrders(env, cors) {
   return json({ orders: withItems }, 200, cors);
 }
 
+const ORDER_STATUS_LABELS = {
+  nova: 'Nová',
+  zaplaceno: 'Zaplaceno',
+  odeslano: 'Odesláno',
+  hotovo: 'Vyřízeno',
+  zruseno: 'Zrušeno'
+};
+
 async function updateOrderStatus(request, env, cors, orderId) {
   const body = await request.json();
   if (!body.status) return json({ error: 'missing_status' }, 400, cors);
   await env.DB.prepare('UPDATE orders SET status = ? WHERE id = ?').bind(body.status, orderId).run();
+
+  if (env.RESEND_API_KEY) {
+    // Stejně jako u potvrzení objednávky — selhání e-mailu nesmí shodit
+    // samotnou změnu stavu, ta už je v databázi hotová.
+    try {
+      const order = await env.DB.prepare(
+        'SELECT order_number, customer_email FROM orders WHERE id = ?'
+      ).bind(orderId).first();
+      if (order) await sendStatusChangeEmail(env, order, body.status);
+    } catch (err) {
+      console.error('sendStatusChangeEmail failed', err);
+    }
+  }
+
   return json({ ok: true }, 200, cors);
+}
+
+async function sendStatusChangeEmail(env, order, status) {
+  const label = ORDER_STATUS_LABELS[status] || status;
+  const html = emailLayout(`
+    <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Stav objednávky č. <strong>${escapeHtml(order.order_number)}</strong> se změnil.</p>
+    <p style="margin:0;">Nový stav: <strong>${escapeHtml(label)}</strong></p>
+  `);
+  await sendResendEmail(env, {
+    to: order.customer_email,
+    subject: `Objednávka ${order.order_number} — ${label}`,
+    html
+  });
 }
 
 async function createProduct(request, env, cors) {
