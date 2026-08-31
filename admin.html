@@ -977,6 +977,25 @@ body.lightbox-open { overflow: hidden; }
   .admin-table input.wide { width: 100%; }
   .product-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); display: block; }
   .product-thumb-placeholder { width: 48px; height: 48px; border-radius: 6px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted); text-align: center; }
+
+  .product-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 20px; }
+  .product-admin-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; cursor: pointer; border: none; text-align: left; padding: 0; font-family: inherit; }
+  .product-admin-card img { width: 100%; height: 140px; object-fit: cover; display: block; }
+  .product-admin-card .product-thumb-placeholder { width: 100%; height: 140px; border-radius: 0; }
+  .product-admin-card-body { padding: 12px 14px; }
+  .product-admin-card-body h4 { margin: 0 0 4px; font-size: 15px; color: var(--ink); }
+  .product-admin-card-body p { margin: 0; font-size: 13px; color: var(--text-muted); }
+  .product-admin-card-body .stock-low { color: #b5442e; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(46,36,25,0.5); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+  .modal { background: var(--white); border-radius: var(--radius); padding: 24px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  .modal .form-group { margin-bottom: 14px; }
+  .modal .form-group label { display: block; font-size: 13px; margin-bottom: 4px; color: var(--text-muted); }
+  .modal textarea, .modal input[type="text"], .modal input[type="number"] { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; font-family: inherit; }
+  .modal-photo-preview { margin-bottom: 14px; }
+  .modal-photo-preview img { width: 100%; height: 220px; object-fit: cover; border-radius: 8px; }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
   .admin-table select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
   .order-items-list { margin: 0; padding-left: 16px; font-size: 13px; color: var(--text-muted); }
   .save-btn { padding: 6px 12px; font-size: 13px; }
@@ -1032,49 +1051,8 @@ body.lightbox-open { overflow: hidden; }
   </section>
 
   <section id="tab-products" hidden>
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>Fotka</th>
-          <th>ID</th>
-          <th>Název</th>
-          <th>Popisek</th>
-          <th>Cena (Kč)</th>
-          <th>Sklad (ks)</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="products-tbody"></tbody>
-    </table>
-
-    <form class="add-product-form" id="add-product-form">
-      <div class="form-group">
-        <label for="new-product-id">ID produktu</label>
-        <input type="text" id="new-product-id" placeholder="napr-novy-produkt" required>
-      </div>
-      <div class="form-group">
-        <label for="new-product-title">Název</label>
-        <input type="text" id="new-product-title" placeholder="Název produktu" required>
-      </div>
-      <div class="form-group">
-        <label for="new-product-price">Cena (Kč)</label>
-        <input type="number" id="new-product-price" min="0" required>
-      </div>
-      <div class="form-group">
-        <label for="new-product-stock">Sklad (ks)</label>
-        <input type="number" id="new-product-stock" min="0" value="0">
-      </div>
-      <div class="form-group" style="flex:1 1 260px;">
-        <label for="new-product-description">Popisek</label>
-        <input type="text" id="new-product-description" placeholder="Krátký popis produktu" class="wide">
-      </div>
-      <div class="form-group">
-        <label for="new-product-photo">Fotka</label>
-        <input type="file" id="new-product-photo" accept="image/*">
-      </div>
-      <button type="submit" class="btn">Přidat produkt</button>
-    </form>
-    <p class="status-msg" id="add-product-msg"></p>
+    <button type="button" class="btn" id="open-add-product">+ Přidat produkt</button>
+    <div class="product-cards" id="products-cards"></div>
   </section>
 
   <section id="tab-discounts" hidden>
@@ -1112,6 +1090,47 @@ body.lightbox-open { overflow: hidden; }
     <p class="status-msg" id="add-discount-msg"></p>
   </section>
 </main>
+
+<div class="modal-overlay" id="product-modal" hidden>
+  <div class="modal">
+    <h2 id="product-modal-title">Upravit produkt</h2>
+    <div class="modal-photo-preview">
+      <img id="product-modal-img" src="" alt="" hidden>
+      <div id="product-modal-img-placeholder" class="product-thumb-placeholder" style="width:100%;height:220px;">bez fotky</div>
+    </div>
+    <div class="form-group">
+      <label for="product-modal-photo">Fotka (nahradí stávající)</label>
+      <input type="file" id="product-modal-photo" accept="image/*">
+    </div>
+    <div class="form-group" id="product-modal-id-group">
+      <label for="product-modal-id">ID produktu</label>
+      <input type="text" id="product-modal-id" placeholder="napr-novy-produkt">
+    </div>
+    <div class="form-group">
+      <label for="product-modal-title-input">Název</label>
+      <input type="text" id="product-modal-title-input" class="wide">
+    </div>
+    <div class="form-group">
+      <label for="product-modal-description">Popisek</label>
+      <textarea id="product-modal-description" rows="3" class="wide"></textarea>
+    </div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label for="product-modal-price">Cena (Kč)</label>
+        <input type="number" id="product-modal-price" min="0">
+      </div>
+      <div class="form-group">
+        <label for="product-modal-stock">Sklad (ks)</label>
+        <input type="number" id="product-modal-stock" min="0">
+      </div>
+    </div>
+    <p class="status-msg" id="product-modal-msg"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn--outline" id="product-modal-cancel">Zrušit</button>
+      <button type="button" class="btn" id="product-modal-save">Uložit</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (function () {
@@ -1290,89 +1309,146 @@ body.lightbox-open { overflow: hidden; }
     });
   }
 
+  var currentProducts = {};
+  var modalMode = 'new';
+  var modalProductId = null;
+  var modalPhotoFile = null;
+
   function loadProducts() {
     fetch(API_BASE + '/api/products')
       .then(function (r) { return r.json(); })
       .then(function (products) {
-        var tbody = document.getElementById('products-tbody');
-        tbody.innerHTML = '';
+        currentProducts = products;
+        var grid = document.getElementById('products-cards');
+        grid.innerHTML = '';
         Object.keys(products).forEach(function (productId) {
           var p = products[productId];
-          var tr = document.createElement('tr');
           var thumb = p.imageUrl
-            ? '<img class="product-thumb" src="' + p.imageUrl + '" alt="">'
+            ? '<img src="' + p.imageUrl + '" alt="">'
             : '<div class="product-thumb-placeholder">bez fotky</div>';
-          tr.innerHTML =
-            '<td>' + thumb + '<input type="file" accept="image/*" data-field="photo" style="margin-top:6px;font-size:11px;width:100px;"></td>' +
-            '<td>' + productId + '</td>' +
-            '<td><input type="text" class="wide" data-field="title" value="' + p.title.replace(/"/g, '&quot;') + '"></td>' +
-            '<td><input type="text" class="wide" data-field="description" value="' + (p.description || '').replace(/"/g, '&quot;') + '"></td>' +
-            '<td><input type="number" min="0" data-field="price" value="' + p.price + '"></td>' +
-            '<td><input type="number" min="0" data-field="stockQty" value="' + p.stockQty + '"></td>' +
-            '<td><button type="button" class="btn btn--outline save-btn">Uložit</button></td>';
-          tr.dataset.productId = productId;
-          tbody.appendChild(tr);
-        });
-
-        tbody.querySelectorAll('.save-btn').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            var tr = btn.closest('tr');
-            var productId = tr.dataset.productId;
-            var payload = {
-              title: tr.querySelector('[data-field="title"]').value,
-              description: tr.querySelector('[data-field="description"]').value,
-              price: Number(tr.querySelector('[data-field="price"]').value),
-              stockQty: Number(tr.querySelector('[data-field="stockQty"]').value)
-            };
-            var photoFile = tr.querySelector('[data-field="photo"]').files[0];
-            btn.textContent = 'Ukládám…';
-
-            fetch(API_BASE + '/api/admin/products/' + encodeURIComponent(productId), {
-              method: 'PATCH',
-              headers: authHeaders(),
-              body: JSON.stringify(payload)
-            })
-              .then(function () { return photoFile ? uploadProductPhoto(productId, photoFile) : null; })
-              .then(function () {
-                btn.textContent = 'Uloženo ✓';
-                setTimeout(function () { btn.textContent = 'Uložit'; loadProducts(); }, 1000);
-              })
-              .catch(function () { btn.textContent = 'Chyba'; });
-          });
+          var card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'product-admin-card';
+          card.innerHTML =
+            thumb +
+            '<div class="product-admin-card-body">' +
+              '<h4>' + p.title + '</h4>' +
+              '<p>' + p.price + ' Kč &middot; <span class="' + (p.stockQty > 0 ? '' : 'stock-low') + '">' +
+                (p.stockQty > 0 ? p.stockQty + ' ks skladem' : 'není skladem') + '</span></p>' +
+            '</div>';
+          card.addEventListener('click', function () { openProductModal(productId); });
+          grid.appendChild(card);
         });
       });
   }
 
-  document.getElementById('add-product-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var msg = document.getElementById('add-product-msg');
-    var productId = document.getElementById('new-product-id').value.trim();
-    var photoFile = document.getElementById('new-product-photo').files[0];
-    var payload = {
-      productId: productId,
-      title: document.getElementById('new-product-title').value.trim(),
-      description: document.getElementById('new-product-description').value.trim(),
-      price: Number(document.getElementById('new-product-price').value),
-      stockQty: Number(document.getElementById('new-product-stock').value) || 0
+  function openProductModal(productId) {
+    modalMode = productId ? 'edit' : 'new';
+    modalProductId = productId;
+    modalPhotoFile = null;
+    document.getElementById('product-modal-photo').value = '';
+
+    var idInput = document.getElementById('product-modal-id');
+    var img = document.getElementById('product-modal-img');
+    var placeholder = document.getElementById('product-modal-img-placeholder');
+
+    if (modalMode === 'edit') {
+      var p = currentProducts[productId];
+      document.getElementById('product-modal-title').textContent = 'Upravit produkt';
+      idInput.value = productId;
+      idInput.disabled = true;
+      document.getElementById('product-modal-title-input').value = p.title;
+      document.getElementById('product-modal-description').value = p.description || '';
+      document.getElementById('product-modal-price').value = p.price;
+      document.getElementById('product-modal-stock').value = p.stockQty;
+      if (p.imageUrl) { img.src = p.imageUrl; img.hidden = false; placeholder.hidden = true; }
+      else { img.hidden = true; placeholder.hidden = false; }
+    } else {
+      document.getElementById('product-modal-title').textContent = 'Přidat produkt';
+      idInput.value = '';
+      idInput.disabled = false;
+      document.getElementById('product-modal-title-input').value = '';
+      document.getElementById('product-modal-description').value = '';
+      document.getElementById('product-modal-price').value = '';
+      document.getElementById('product-modal-stock').value = '0';
+      img.hidden = true;
+      placeholder.hidden = false;
+    }
+
+    document.getElementById('product-modal-msg').textContent = '';
+    document.getElementById('product-modal').hidden = false;
+  }
+
+  function closeProductModal() {
+    document.getElementById('product-modal').hidden = true;
+  }
+
+  document.getElementById('open-add-product').addEventListener('click', function () {
+    openProductModal(null);
+  });
+  document.getElementById('product-modal-cancel').addEventListener('click', closeProductModal);
+  document.getElementById('product-modal').addEventListener('click', function (e) {
+    if (e.target.id === 'product-modal') closeProductModal();
+  });
+
+  document.getElementById('product-modal-photo').addEventListener('change', function (e) {
+    modalPhotoFile = e.target.files[0] || null;
+    if (!modalPhotoFile) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = document.getElementById('product-modal-img');
+      img.src = reader.result;
+      img.hidden = false;
+      document.getElementById('product-modal-img-placeholder').hidden = true;
     };
-    fetch(API_BASE + '/api/admin/products', {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify(payload)
-    })
+    reader.readAsDataURL(modalPhotoFile);
+  });
+
+  document.getElementById('product-modal-save').addEventListener('click', function () {
+    var msg = document.getElementById('product-modal-msg');
+    var saveBtn = document.getElementById('product-modal-save');
+    var payload = {
+      title: document.getElementById('product-modal-title-input').value.trim(),
+      description: document.getElementById('product-modal-description').value.trim(),
+      price: Number(document.getElementById('product-modal-price').value),
+      stockQty: Number(document.getElementById('product-modal-stock').value) || 0
+    };
+
+    var productId = modalMode === 'new' ? document.getElementById('product-modal-id').value.trim() : modalProductId;
+    if (!productId || !payload.title || payload.price == null || isNaN(payload.price)) {
+      msg.textContent = 'Vyplňte aspoň ID, název a cenu.';
+      msg.className = 'status-msg err';
+      return;
+    }
+
+    saveBtn.textContent = 'Ukládám…';
+    var request = modalMode === 'new'
+      ? fetch(API_BASE + '/api/admin/products', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify(Object.assign({ productId: productId }, payload))
+        })
+      : fetch(API_BASE + '/api/admin/products/' + encodeURIComponent(productId), {
+          method: 'PATCH',
+          headers: authHeaders(),
+          body: JSON.stringify(payload)
+        });
+
+    request
       .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
       .then(function (res) {
-        if (!res.ok) {
-          msg.textContent = 'Nepodařilo se přidat produkt (' + (res.data.error || 'chyba') + ').';
-          msg.className = 'status-msg err';
-          return;
-        }
-        return Promise.resolve(photoFile ? uploadProductPhoto(productId, photoFile) : null).then(function () {
-          msg.textContent = 'Produkt přidán.';
-          msg.className = 'status-msg ok';
-          document.getElementById('add-product-form').reset();
-          loadProducts();
-        });
+        if (!res.ok) throw new Error(res.data.error || 'chyba');
+        return modalPhotoFile ? uploadProductPhoto(productId, modalPhotoFile) : null;
+      })
+      .then(function () {
+        saveBtn.textContent = 'Uložit';
+        closeProductModal();
+        loadProducts();
+      })
+      .catch(function (err) {
+        saveBtn.textContent = 'Uložit';
+        msg.textContent = 'Nepodařilo se uložit (' + err.message + ').';
+        msg.className = 'status-msg err';
       });
   });
 

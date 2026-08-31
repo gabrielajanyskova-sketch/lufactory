@@ -140,6 +140,14 @@ function escapeHtml(value) {
 
 // ---------- products ----------
 
+// image_url je buď statická cesta webu (/assets/img/...), plná URL, nebo
+// holý klíč nahraný přes admin do KV — ten jediný potřebuje prefix.
+function resolveImageUrl(imageUrl) {
+  if (!imageUrl) return '';
+  if (imageUrl.startsWith('http') || imageUrl.startsWith('/')) return imageUrl;
+  return WORKER_BASE + '/api/images/' + imageUrl;
+}
+
 async function getProducts(env, cors) {
   const { results } = await env.DB.prepare(
     'SELECT product_id, title, price, stock_qty, description, image_url FROM products'
@@ -151,7 +159,7 @@ async function getProducts(env, cors) {
       price: row.price,
       stockQty: row.stock_qty,
       description: row.description || '',
-      imageUrl: row.image_url ? WORKER_BASE + '/api/images/' + row.image_url : ''
+      imageUrl: resolveImageUrl(row.image_url)
     };
   }
   return json(products, 200, cors);
