@@ -1,3 +1,7 @@
+// Musí zůstat stejné jako API_BASE v assets/js/cart.js, admin.html a
+// produkty/produkt.html — viz worker/README.md.
+var API_BASE = 'https://lufactory-api.gabriela-janyskova.workers.dev';
+
 document.addEventListener('DOMContentLoaded', function () {
   wireNavToggle();
   wireContactForm();
@@ -50,10 +54,9 @@ function wireWithdrawalForm() {
   var form = document.getElementById('withdrawal-form');
   if (!form) return;
 
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var val = function (id) { return document.getElementById(id).value.trim(); };
+  var val = function (id) { return document.getElementById(id).value.trim(); };
 
+  function buildWithdrawalMailto() {
     var lines = [
       'Oznamuji, že tímto odstupuji od smlouvy o nákupu tohoto zboží: ' + val('w-goods'),
       '',
@@ -67,11 +70,48 @@ function wireWithdrawalForm() {
     if (received) lines.push('Datum obdržení zboží: ' + received);
     lines.push('', 'Datum: ' + new Date().toLocaleDateString('cs-CZ'));
 
-    var mailto = 'mailto:info@lufactory.cz'
+    return 'mailto:info@lufactory.cz'
       + '?subject=' + encodeURIComponent('Odstoupení od smlouvy')
       + '&body=' + encodeURIComponent(lines.join('\n'));
+  }
 
-    window.location.href = mailto;
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!form.reportValidity()) return;
+
+    if (!API_BASE) {
+      window.location.href = buildWithdrawalMailto();
+      return;
+    }
+
+    var submitBtn = form.querySelector('.legal-form-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Odesílám…';
+
+    fetch(API_BASE + '/api/withdrawal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: val('w-name'),
+        email: val('w-email'),
+        address: val('w-address'),
+        orderNumber: val('w-order'),
+        receivedDate: val('w-received'),
+        goods: val('w-goods')
+      })
+    })
+      .then(function (r) { return r.ok; })
+      .catch(function () { return false; })
+      .then(function (ok) {
+        if (ok) {
+          form.hidden = true;
+          document.getElementById('withdrawal-success').hidden = false;
+        } else {
+          window.location.href = buildWithdrawalMailto();
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Odeslat odstoupení od smlouvy';
+        }
+      });
   });
 }
 

@@ -390,6 +390,14 @@ body.cart-open { overflow: hidden; }
 .legal-form-box form { display: grid; gap: 16px; margin: 18px 0; }
 .legal-form-box .form-note { margin: 4px 0 0; }
 .legal-form-alt { font-size: 0.92rem; }
+.legal-form-success {
+  background: rgba(122, 139, 82, 0.15);
+  color: var(--sage-dark);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-weight: 600;
+  margin: 18px 0;
+}
 
 /* ---------- products ---------- */
 .product-grid {

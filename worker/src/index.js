@@ -52,6 +52,9 @@ export default {
       if (url.pathname === '/api/orders' && request.method === 'POST') {
         return await createOrder(request, env, cors);
       }
+      if (url.pathname === '/api/withdrawal' && request.method === 'POST') {
+        return await submitWithdrawal(request, env, cors);
+      }
 
       if (url.pathname === '/api/admin/login' && request.method === 'POST') {
         const body = await request.json();
@@ -441,6 +444,69 @@ async function sendOrderEmails(env, { orderNumber, variableSymbol, body, items, 
     to: env.SHOP_NOTIFICATION_EMAIL,
     subject: `Nová objednávka ${orderNumber}`,
     html: shopHtml
+  });
+}
+
+// ---------- odstoupení od smlouvy ----------
+
+async function submitWithdrawal(request, env, cors) {
+  const body = await request.json();
+  const name = String(body.name || '').trim();
+  const email = String(body.email || '').trim();
+  const address = String(body.address || '').trim();
+  const goods = String(body.goods || '').trim();
+  const orderNumber = String(body.orderNumber || '').trim();
+  const receivedDate = String(body.receivedDate || '').trim();
+
+  if (!name || !email || !address || !goods) {
+    return json({ error: 'missing_fields' }, 400, cors);
+  }
+
+  // Uložit vždy, i kdyby e-mail selhal — jde o právně důležité oznámení,
+  // nesmí zmizet jen proto, že Resend zrovna nejde.
+  await env.DB.prepare(
+    `INSERT INTO withdrawal_requests (customer_name, customer_email, customer_address, order_number, received_date, goods)
+     VALUES (?, ?, ?, ?, ?, ?)`
+  ).bind(name, email, address, orderNumber || null, receivedDate || null, goods).run();
+
+  if (env.RESEND_API_KEY) {
+    try {
+      await sendWithdrawalEmails(env, { name, email, address, orderNumber, receivedDate, goods });
+    } catch (err) {
+      console.error('withdrawal email failed', err);
+    }
+  }
+
+  return json({ ok: true }, 200, cors);
+}
+
+async function sendWithdrawalEmails(env, { name, email, address, orderNumber, receivedDate, goods }) {
+  const declarationRows = [['Jméno a příjmení', escapeHtml(name)], ['E-mail', escapeHtml(email)], ['Adresa', escapeHtml(address)]];
+  if (orderNumber) declarationRows.push(['Číslo objednávky', escapeHtml(orderNumber)]);
+  if (receivedDate) declarationRows.push(['Datum obdržení zboží', escapeHtml(receivedDate)]);
+  declarationRows.push(['Datum odeslání', new Date().toLocaleDateString('cs-CZ')]);
+
+  const shopHtml = emailLayout(`
+    <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Odstoupení od smlouvy</p>
+    <p style="margin:0 0 16px;">Oznamuji, že tímto odstupuji od smlouvy o nákupu tohoto zboží:</p>
+    <p style="margin:0 0 16px;font-weight:bold;">${escapeHtml(goods)}</p>
+    <table role="presentation" width="100%" style="border-collapse:collapse;font-size:14px;">${totalsRowsHtml(declarationRows)}</table>
+  `);
+  await sendResendEmail(env, {
+    to: env.SHOP_NOTIFICATION_EMAIL,
+    subject: `Odstoupení od smlouvy — ${name}`,
+    html: shopHtml
+  });
+
+  const customerHtml = emailLayout(`
+    <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Odstoupení od smlouvy jsme přijali</p>
+    <p style="margin:0;">Dobrý den, ${escapeHtml(name)},</p>
+    <p style="margin:8px 0 0;">vaše oznámení o odstoupení od smlouvy jsme v pořádku přijali. Brzy se vám ozveme s dalšími kroky ohledně vrácení zboží a peněz.</p>
+  `);
+  await sendResendEmail(env, {
+    to: email,
+    subject: 'Odstoupení od smlouvy jsme přijali — lufactory.cz',
+    html: customerHtml
   });
 }
 

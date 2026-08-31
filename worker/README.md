@@ -31,9 +31,10 @@ Bindings a proměnné (Settings → Bindings / Variables and Secrets), viz
 
 ## Propojení s webem
 
-`API_BASE` v `assets/js/cart.js`, `admin.html` a `produkty/produkt.html` musí
-ukazovat na URL tohohle workeru (`https://lufactory-api.<subdomain>.workers.dev`).
-Musí sedět na všech třech místech současně.
+`API_BASE` v `assets/js/cart.js`, `assets/js/main.js`, `admin.html` a
+`produkty/produkt.html` musí ukazovat na URL tohohle workeru
+(`https://lufactory-api.<subdomain>.workers.dev`). Musí sedět na všech
+čtyřech místech současně.
 
 ## Databáze (`lufactory-orders`)
 
@@ -44,6 +45,9 @@ Musí sedět na všech třech místech současně.
 - **`discount_codes`** — `code`, `type` (`percent`/`fixed`), `value`, `active`
 - **`orders`** — objednávky včetně fakturační adresy a `variable_symbol`
 - **`order_items`** — položky jednotlivých objednávek
+- **`withdrawal_requests`** — oznámení o odstoupení od smlouvy z formuláře na
+  `obchodni-podminky.html` (jméno, e-mail, adresa, zboží, volitelně číslo
+  objednávky a datum obdržení) — ukládá se vždy, i kdyby e-mail selhal
 
 U 6 původních ručně napsaných produktů (houbičky, peeling, celá lufa) zůstává
 zdroj pravdy pro vzhled/text jejich **vlastní stránky** v HTML
