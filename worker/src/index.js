@@ -175,7 +175,14 @@ async function createOrder(request, env, cors) {
   await env.DB.batch(itemStmts.concat(stockStmts));
 
   if (env.RESEND_API_KEY) {
-    await sendOrderEmails(env, { orderNumber, body, items, subtotal, discount, shipping, total });
+    // E-mail je jen doprovodný krok — objednávka a sklad jsou už uložené,
+    // takže selhání Resendu nesmí shodit odpověď na chybu (klient by pak
+    // objednávku zbytečně odeslal znovu přes mailto).
+    try {
+      await sendOrderEmails(env, { orderNumber, body, items, subtotal, discount, shipping, total });
+    } catch (err) {
+      console.error('sendOrderEmails failed', err);
+    }
   }
 
   return json({ orderNumber, status: 'nova', subtotal, discountAmount: discount, shippingPrice: shipping.price, total, variableSymbol: orderId, paymentMethod: body.payment.method }, 200, cors);
