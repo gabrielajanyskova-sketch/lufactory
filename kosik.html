@@ -1134,7 +1134,10 @@ body.lightbox-open { overflow: hidden; }
                 </div>
                 <div id="address-fields" class="form-group" hidden>
                   <label for="c-address">Výdejní místo</label>
-                  <input type="text" id="c-address" placeholder="Název a adresa pobočky">
+                  <div class="discount-row">
+                    <input type="text" id="c-address" placeholder="Název a adresa pobočky">
+                    <button type="button" id="pick-branch-btn" class="btn btn--outline" hidden>Vybrat na mapě</button>
+                  </div>
                 </div>
                 <div class="form-group">
                   <label for="c-note">Poznámka k objednávce</label>
@@ -1203,6 +1206,7 @@ body.lightbox-open { overflow: hidden; }
   </div>
 </aside>
 
+<script src="https://widget.packeta.com/v6/www/js/library.js"></script>
 <script src="/assets/js/qrcode.js"></script>
 <script src="/assets/js/cart.js"></script>
 <script src="/assets/js/main.js"></script>

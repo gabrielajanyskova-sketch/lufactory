@@ -21,6 +21,10 @@
   // doručení na adresu, kde stačí fakturační adresa už vyplněná výše).
   var PICKUP_POINT_SHIPPING = { 'zasilkovna-pickup': true, 'ppl-pickup': true };
 
+  // Veřejný API klíč pro widget výdejních míst Zásilkovny (client.packeta.com
+  // → Klientská podpora) — jen pro výběr pobočky, ne pro podávání zásilek.
+  var PACKETA_API_KEY = '284305c314c8d873';
+
   // Účet pro QR platbu na stránce "Objednávka odeslána" — IBAN spočítaný
   // z 211573669/0300. Když se změní číslo účtu, přepočti IBAN znovu.
   var BANK_IBAN = 'CZ6503000000000211573669';
@@ -320,6 +324,9 @@
 
     var addressFields = document.getElementById('address-fields');
     if (addressFields) addressFields.hidden = !PICKUP_POINT_SHIPPING[shippingKey];
+
+    var pickBranchBtn = document.getElementById('pick-branch-btn');
+    if (pickBranchBtn) pickBranchBtn.hidden = shippingKey !== 'zasilkovna-pickup';
   }
 
   function setText(id, text) {
@@ -433,6 +440,17 @@
     document.querySelectorAll('input[name="shipping"], input[name="payment"]').forEach(function (input) {
       input.addEventListener('change', renderCartPage);
     });
+
+    var pickBranchBtn = document.getElementById('pick-branch-btn');
+    if (pickBranchBtn && typeof Packeta !== 'undefined') {
+      pickBranchBtn.addEventListener('click', function () {
+        Packeta.Widget.pick(PACKETA_API_KEY, function (point) {
+          if (!point) return;
+          var addressInput = document.getElementById('c-address');
+          if (addressInput) addressInput.value = point.name + ', ' + point.street + ', ' + point.city;
+        }, { country: 'cz', language: 'cs' });
+      });
+    }
 
     var submitOrderBtn = document.getElementById('submit-order');
     if (submitOrderBtn) {
