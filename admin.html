@@ -1009,19 +1009,31 @@ body.lightbox-open { overflow: hidden; }
   .admin-table th { background: var(--cream-dark); font-weight: 600; }
   .admin-table input[type="text"], .admin-table input[type="number"] { width: 90px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
   .admin-table input.wide { width: 100%; }
-  .product-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); display: block; }
-  .product-thumb-placeholder { width: 48px; height: 48px; border-radius: 6px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted); text-align: center; }
-
-  .product-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 20px; }
-  .product-admin-card { position: relative; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; cursor: pointer; text-align: left; }
-  .product-admin-card-delete { z-index: 2; }
-  .product-admin-card img { width: 100%; height: 140px; object-fit: cover; display: block; }
-  .product-admin-card .product-thumb-placeholder { width: 100%; height: 140px; border-radius: 0; }
-  .product-admin-card-body { padding: 12px 14px; }
-  .product-admin-card-body h4 { margin: 0 0 4px; font-size: 15px; color: var(--ink); }
-  .product-admin-card-body p { margin: 0; font-size: 13px; color: var(--text-muted); }
-  .product-admin-card-body .stock-low { color: #b5442e; }
-  .product-admin-card-description { margin-top: 6px !important; font-size: 12px !important; line-height: 1.4; }
+  .product-cards { display: flex; flex-direction: column; gap: 4px; margin-top: 20px; }
+  .product-admin-card {
+    position: relative; display: flex; align-items: center; gap: 12px;
+    background: var(--white); border: 1px solid var(--border); border-radius: 0;
+    padding: 6px 12px; cursor: pointer; text-align: left;
+  }
+  .product-admin-card-body { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 10px; }
+  .product-admin-card-body h4 { margin: 0; font-size: 14px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .product-admin-card-body p { margin: 0; font-size: 12px; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
+  .admin-stock-control { display: flex; align-items: center; gap: 0; border: 1px solid var(--border); flex-shrink: 0; }
+  .admin-stock-control.stock-empty { border-color: #b5442e; }
+  .admin-stock-control button {
+    width: 22px; height: 22px; border: none; background: var(--white); color: var(--ink);
+    font-size: 13px; line-height: 1; cursor: pointer; padding: 0;
+  }
+  .admin-stock-control button:first-child { border-right: 1px solid var(--border); }
+  .admin-stock-control button:last-child { border-left: 1px solid var(--border); }
+  .admin-stock-control button:hover { background: var(--cream); }
+  .admin-stock-control input {
+    width: 36px; text-align: center; border: none; font-family: inherit; font-size: 13px;
+    -moz-appearance: textfield; padding: 3px 0;
+  }
+  .admin-stock-control input::-webkit-outer-spin-button,
+  .admin-stock-control input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .product-admin-card-delete { flex-shrink: 0; }
 
   .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
 
@@ -1438,23 +1450,48 @@ body.lightbox-open { overflow: hidden; }
         grid.innerHTML = '';
         Object.keys(products).forEach(function (productId) {
           var p = products[productId];
-          var thumb = p.imageUrl
-            ? '<img src="' + p.imageUrl + '" alt="">'
-            : '<div class="product-thumb-placeholder">bez fotky</div>';
-          var descriptionSnippet = p.teaser || '';
 
           var card = document.createElement('div');
           card.className = 'product-admin-card';
           card.innerHTML =
-            '<button type="button" class="gallery-remove-btn product-admin-card-delete" title="Smazat produkt">✕</button>' +
-            thumb +
             '<div class="product-admin-card-body">' +
               '<h4>' + p.title + '</h4>' +
-              '<p>' + p.price + ' Kč &middot; <span class="' + (p.stockQty > 0 ? '' : 'stock-low') + '">' +
-                (p.stockQty > 0 ? p.stockQty + ' ks skladem' : 'není skladem') + '</span></p>' +
-              (descriptionSnippet ? '<p class="product-admin-card-description">' + descriptionSnippet + '</p>' : '') +
-            '</div>';
+              '<p>' + p.price + ' Kč</p>' +
+            '</div>' +
+            '<div class="admin-stock-control' + (p.stockQty > 0 ? '' : ' stock-empty') + '">' +
+              '<button type="button" data-stock-dec aria-label="Ubrat kus">−</button>' +
+              '<input type="number" min="0" value="' + p.stockQty + '" data-stock-input aria-label="Počet kusů skladem">' +
+              '<button type="button" data-stock-inc aria-label="Přidat kus">+</button>' +
+            '</div>' +
+            '<button type="button" class="gallery-remove-btn product-admin-card-delete" title="Smazat produkt">✕</button>';
           card.addEventListener('click', function () { openProductEditor(productId); });
+
+          var stockInput = card.querySelector('[data-stock-input]');
+          var stockControl = card.querySelector('.admin-stock-control');
+          function saveStock(newQty) {
+            newQty = Math.max(0, newQty);
+            stockInput.value = newQty;
+            stockControl.classList.toggle('stock-empty', newQty === 0);
+            currentProducts[productId].stockQty = newQty;
+            fetch(API_BASE + '/api/admin/products/' + encodeURIComponent(productId), {
+              method: 'PATCH',
+              headers: authHeaders(),
+              body: JSON.stringify({ stockQty: newQty })
+            });
+          }
+          card.querySelector('[data-stock-dec]').addEventListener('click', function (e) {
+            e.stopPropagation();
+            saveStock((parseInt(stockInput.value, 10) || 0) - 1);
+          });
+          card.querySelector('[data-stock-inc]').addEventListener('click', function (e) {
+            e.stopPropagation();
+            saveStock((parseInt(stockInput.value, 10) || 0) + 1);
+          });
+          stockInput.addEventListener('click', function (e) { e.stopPropagation(); });
+          stockInput.addEventListener('change', function () {
+            saveStock(parseInt(stockInput.value, 10) || 0);
+          });
+
           card.querySelector('.product-admin-card-delete').addEventListener('click', function (e) {
             e.stopPropagation();
             if (!confirm('Opravdu smazat produkt "' + p.title + '"? Nejde vrátit zpět.')) return;
