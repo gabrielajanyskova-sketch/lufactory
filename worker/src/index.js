@@ -1,4 +1,8 @@
-const SITE_URL = 'https://www.lufactory.cz';
+// TODO: přepnout zpátky na 'https://www.lufactory.cz', až doména poběží na
+// Cloudflare — do té doby by tam logo v e-mailu bylo rozbité.
+const SITE_URL = 'https://lufactory.pages.dev';
+
+const BANK_ACCOUNT = '211573669/0300';
 
 // Musí zůstat stejné jako SHIPPING v assets/js/cart.js — tady se cena dopravy
 // ověřuje server-side (nikdy se nevěří ceně poslané klientem).
@@ -187,7 +191,7 @@ async function createOrder(request, env, cors) {
     // takže selhání Resendu nesmí shodit odpověď na chybu (klient by pak
     // objednávku zbytečně odeslal znovu přes mailto).
     try {
-      await sendOrderEmails(env, { orderNumber, body, items, subtotal, discount, shipping, total });
+      await sendOrderEmails(env, { orderNumber, orderId, body, items, subtotal, discount, shipping, total });
     } catch (err) {
       console.error('sendOrderEmails failed', err);
     }
@@ -231,10 +235,23 @@ function totalsRowsHtml(rows) {
   return rows.map(([label, value]) => `<tr><td style="padding:3px 0;">${label}</td><td style="padding:3px 0;text-align:right;">${value}</td></tr>`).join('');
 }
 
-async function sendOrderEmails(env, { orderNumber, body, items, subtotal, discount, shipping, total }) {
+async function sendOrderEmails(env, { orderNumber, orderId, body, items, subtotal, discount, shipping, total }) {
   const totalsRows = [['Mezisoučet', `${subtotal} Kč`]];
   if (discount > 0) totalsRows.push([`Sleva (${(body.discountCode || '').toUpperCase()})`, `−${discount} Kč`]);
   totalsRows.push(['Doprava', shipping.price === 0 ? 'zdarma' : `${shipping.price} Kč`]);
+
+  const isCash = body.payment.method === 'cash';
+  const paymentHtml = isCash
+    ? `<p style="margin:20px 0 0;">Platba: hotově při odběru.</p>`
+    : `
+    <p style="margin:20px 0 0;">Platba: bankovním převodem na účet níže.</p>
+    <table role="presentation" width="100%" style="border-collapse:collapse;margin-top:10px;background:#faf6ef;border-radius:8px;font-size:14px;">
+      ${totalsRowsHtml([
+        ['Číslo účtu', BANK_ACCOUNT],
+        ['Variabilní symbol', String(orderId)],
+        ['Částka', `${total} Kč`]
+      ])}
+    </table>`;
 
   const customerHtml = emailLayout(`
     <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Děkujeme za objednávku č. <strong>${escapeHtml(orderNumber)}</strong>!</p>
@@ -243,7 +260,7 @@ async function sendOrderEmails(env, { orderNumber, body, items, subtotal, discou
     <table role="presentation" width="100%" style="border-collapse:collapse;margin-top:10px;background:#faf6ef;border-radius:8px;">
       <tr><td style="padding:10px 14px;font-weight:bold;color:#2e2419;">Celkem</td><td style="padding:10px 14px;text-align:right;font-weight:bold;color:#81665b;font-size:17px;">${total} Kč</td></tr>
     </table>
-    <p style="margin:20px 0 0;">Platba: ${body.payment.method === 'cash' ? 'hotově při odběru' : 'bankovním převodem — číslo účtu a variabilní symbol posíláme zvlášť v následujícím e-mailu'}.</p>
+    ${paymentHtml}
     <p style="margin:8px 0 0;">Brzy se vám ozveme s dalšími informacemi.</p>
   `);
 
