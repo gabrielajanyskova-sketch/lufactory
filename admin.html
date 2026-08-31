@@ -987,6 +987,7 @@ body.lightbox-open { overflow: hidden; }
   .product-admin-card-body h4 { margin: 0 0 4px; font-size: 15px; color: var(--ink); }
   .product-admin-card-body p { margin: 0; font-size: 13px; color: var(--text-muted); }
   .product-admin-card-body .stock-low { color: #b5442e; }
+  .product-admin-card-description { margin-top: 6px !important; font-size: 12px !important; line-height: 1.4; }
 
   .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
 
@@ -1033,6 +1034,7 @@ body.lightbox-open { overflow: hidden; }
   .order-items-list { margin: 0; font-size: 13px; color: var(--text-muted); min-width: 180px; }
   .order-item-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; }
   .order-item-qty { color: var(--ink); font-weight: 600; white-space: nowrap; }
+  .nowrap-cell { white-space: nowrap; }
   .save-btn { padding: 6px 12px; font-size: 13px; }
   .add-product-form { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; background: var(--white); padding: 16px; border-radius: var(--radius); box-shadow: var(--shadow); align-items: flex-end; }
   .add-product-form .form-group { margin: 0; }
@@ -1072,6 +1074,7 @@ body.lightbox-open { overflow: hidden; }
       <thead>
         <tr>
           <th>Číslo</th>
+          <th>VS</th>
           <th>Datum</th>
           <th>Zákazník</th>
           <th>Položky</th>
@@ -1295,7 +1298,7 @@ body.lightbox-open { overflow: hidden; }
           var tr = document.createElement('tr');
 
           var itemsHtml = '<div class="order-items-list">' + order.items.map(function (i) {
-            return '<div class="order-item-row"><span>' + i.title + '</span><span class="order-item-qty">' + i.qty + ' ks</span></div>';
+            return '<div class="order-item-row"><span class="nowrap-cell">' + i.title + '</span><span class="order-item-qty">' + i.qty + ' ks</span></div>';
           }).join('') + '</div>';
 
           var statusOptions = ORDER_STATUSES.map(function (s) {
@@ -1305,8 +1308,9 @@ body.lightbox-open { overflow: hidden; }
           var shippingLabel = SHIPPING_LABELS[order.delivery_method] || order.delivery_method;
 
           tr.innerHTML =
-            '<td>' + order.order_number + '</td>' +
-            '<td>' + (order.created_at || '').replace('T', ' ').slice(0, 16) + '</td>' +
+            '<td class="nowrap-cell">' + order.order_number + '</td>' +
+            '<td class="nowrap-cell">' + (order.variable_symbol || '') + '</td>' +
+            '<td class="nowrap-cell">' + (order.created_at || '').replace('T', ' ').slice(0, 16) + '</td>' +
             '<td>' + order.customer_name + '<br><small>' +
               order.customer_street + ', ' + order.customer_zip + ' ' + order.customer_city + '<br>' +
               order.customer_email + '<br>' + (order.customer_phone || '') + '</small></td>' +
@@ -1398,6 +1402,9 @@ body.lightbox-open { overflow: hidden; }
           var thumb = p.imageUrl
             ? '<img src="' + p.imageUrl + '" alt="">'
             : '<div class="product-thumb-placeholder">bez fotky</div>';
+          var descriptionSnippet = (p.description || '').slice(0, 90);
+          if (p.description && p.description.length > 90) descriptionSnippet += '…';
+
           var card = document.createElement('div');
           card.className = 'product-admin-card';
           card.innerHTML =
@@ -1407,6 +1414,7 @@ body.lightbox-open { overflow: hidden; }
               '<h4>' + p.title + '</h4>' +
               '<p>' + p.price + ' Kč &middot; <span class="' + (p.stockQty > 0 ? '' : 'stock-low') + '">' +
                 (p.stockQty > 0 ? p.stockQty + ' ks skladem' : 'není skladem') + '</span></p>' +
+              (descriptionSnippet ? '<p class="product-admin-card-description">' + descriptionSnippet + '</p>' : '') +
             '</div>';
           card.addEventListener('click', function () { openProductEditor(productId); });
           card.querySelector('.product-admin-card-delete').addEventListener('click', function (e) {

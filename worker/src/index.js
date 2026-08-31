@@ -268,13 +268,14 @@ async function createOrder(request, env, cors) {
   const { orderNumber, variableSymbol } = generateOrderNumber();
 
   const insert = await env.DB.prepare(
-    `INSERT INTO orders (order_number, status, customer_name, customer_email, customer_phone,
+    `INSERT INTO orders (order_number, variable_symbol, status, customer_name, customer_email, customer_phone,
        customer_street, customer_zip, customer_city,
        delivery_method, delivery_detail, payment_method, discount_code, note,
        subtotal, discount_amount, shipping_price, total)
-     VALUES (?, 'nova', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+     VALUES (?, ?, 'nova', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).bind(
     orderNumber,
+    variableSymbol,
     body.customer.name,
     body.customer.email,
     body.customer.phone || '',
@@ -452,7 +453,7 @@ function isAdmin(request, env) {
 
 async function listOrders(env, cors) {
   const { results: orders } = await env.DB.prepare(
-    `SELECT id, order_number, status, customer_name, customer_email, customer_phone,
+    `SELECT id, order_number, variable_symbol, status, customer_name, customer_email, customer_phone,
        customer_street, customer_zip, customer_city, delivery_method, delivery_detail,
        payment_method, discount_code, note, subtotal, discount_amount, shipping_price,
        total, created_at
@@ -469,15 +470,17 @@ async function listOrders(env, cors) {
   return json({ orders: withItems }, 200, cors);
 }
 
+// Středník, ne čárka — český Excel s čárkou jako oddělovačem nepočítá a
+// naskládá celý řádek do jednoho sloupce.
 function csvEscape(value) {
   const str = String(value == null ? '' : value);
-  if (/["\n,]/.test(str)) return '"' + str.replace(/"/g, '""') + '"';
+  if (/["\n;]/.test(str)) return '"' + str.replace(/"/g, '""') + '"';
   return str;
 }
 
 async function exportOrdersCsv(env, cors) {
   const { results: orders } = await env.DB.prepare(
-    `SELECT id, order_number, status, customer_name, customer_email, customer_phone,
+    `SELECT id, order_number, variable_symbol, status, customer_name, customer_email, customer_phone,
        customer_street, customer_zip, customer_city, delivery_method, delivery_detail,
        payment_method, discount_code, subtotal, discount_amount, shipping_price, total, created_at
      FROM orders ORDER BY created_at DESC`
@@ -491,11 +494,12 @@ async function exportOrdersCsv(env, cors) {
   }
 
   const header = [
-    'Číslo objednávky', 'Datum', 'Stav', 'Jméno', 'Ulice', 'PSČ', 'Město', 'E-mail', 'Telefon',
+    'Číslo objednávky', 'Variabilní symbol', 'Datum', 'Stav', 'Jméno', 'Ulice', 'PSČ', 'Město', 'E-mail', 'Telefon',
     'Doprava', 'Detail dopravy', 'Položky', 'Slevový kód', 'Mezisoučet', 'Sleva', 'Doprava (Kč)', 'Celkem', 'Platba'
   ];
   const rows = orders.map((o) => [
     o.order_number,
+    o.variable_symbol || '',
     o.created_at,
     ORDER_STATUS_LABELS[o.status] || o.status,
     o.customer_name,
@@ -506,7 +510,7 @@ async function exportOrdersCsv(env, cors) {
     o.customer_phone,
     (SHIPPING[o.delivery_method] && SHIPPING[o.delivery_method].label) || o.delivery_method,
     o.delivery_detail || '',
-    (itemsByOrder[o.id] || []).join('; '),
+    (itemsByOrder[o.id] || []).join(' | '),
     o.discount_code || '',
     o.subtotal,
     o.discount_amount,
@@ -515,7 +519,7 @@ async function exportOrdersCsv(env, cors) {
     o.payment_method === 'cash' ? 'hotově' : 'převod'
   ]);
 
-  const csv = [header].concat(rows).map((row) => row.map(csvEscape).join(',')).join('\r\n');
+  const csv = [header].concat(rows).map((row) => row.map(csvEscape).join(';')).join('\r\n');
   const bom = String.fromCharCode(0xfeff);
   return new Response(bom + csv, {
     headers: Object.assign({
