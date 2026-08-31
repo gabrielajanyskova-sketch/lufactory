@@ -827,6 +827,8 @@ body.lightbox-open { overflow: hidden; }
 .discount-message { margin: 10px 0 0; font-size: 0.85rem; }
 .discount-message--ok { color: var(--sage-dark); }
 .discount-message--error { color: var(--brown-dark); }
+.free-shipping-note { margin: 10px 0 0; font-size: 0.85rem; color: var(--text-muted); }
+.free-shipping-note--ok { color: var(--sage-dark); font-weight: 600; }
 
 .option-group { display: grid; gap: 12px; margin-bottom: 8px; }
 .option-card {
@@ -1268,6 +1270,19 @@ body.lightbox-open { overflow: hidden; }
       <button type="submit" class="btn">Přidat kód</button>
     </form>
     <p class="status-msg" id="add-discount-msg"></p>
+
+    <h3 style="margin-top:32px;">Doprava zdarma</h3>
+    <div class="add-product-form">
+      <div class="form-group">
+        <label><input type="checkbox" id="free-shipping-active"> Aktivní</label>
+      </div>
+      <div class="form-group">
+        <label for="free-shipping-threshold">Od částky (Kč)</label>
+        <input type="number" id="free-shipping-threshold" min="0">
+      </div>
+      <button type="button" class="btn" id="save-shipping-settings">Uložit</button>
+    </div>
+    <p class="status-msg" id="shipping-settings-msg"></p>
   </section>
 
   <section id="tab-reviews" hidden>
@@ -1378,7 +1393,7 @@ body.lightbox-open { overflow: hidden; }
       document.getElementById('tab-products').hidden = tab.dataset.tab !== 'products';
       document.getElementById('tab-discounts').hidden = tab.dataset.tab !== 'discounts';
       document.getElementById('tab-reviews').hidden = tab.dataset.tab !== 'reviews';
-      if (tab.dataset.tab === 'discounts') loadDiscounts();
+      if (tab.dataset.tab === 'discounts') { loadDiscounts(); loadShippingSettings(); }
       if (tab.dataset.tab === 'reviews') loadReviews();
     });
   });
@@ -1852,6 +1867,30 @@ body.lightbox-open { overflow: hidden; }
           msg.className = 'status-msg err';
         }
       });
+  });
+
+  function loadShippingSettings() {
+    fetch(API_BASE + '/api/shipping-settings')
+      .then(function (r) { return r.json(); })
+      .then(function (settings) {
+        document.getElementById('free-shipping-active').checked = !!settings.active;
+        document.getElementById('free-shipping-threshold').value = settings.threshold || 0;
+      });
+  }
+
+  document.getElementById('save-shipping-settings').addEventListener('click', function () {
+    var msg = document.getElementById('shipping-settings-msg');
+    fetch(API_BASE + '/api/admin/shipping-settings', {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        active: document.getElementById('free-shipping-active').checked,
+        threshold: Number(document.getElementById('free-shipping-threshold').value) || 0
+      })
+    }).then(function () {
+      msg.textContent = 'Uloženo.';
+      msg.className = 'status-msg ok';
+    });
   });
 
   function loadReviews() {

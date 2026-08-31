@@ -49,6 +49,13 @@ export default {
       if (discountMatch && request.method === 'GET') {
         return await getDiscount(env, cors, decodeURIComponent(discountMatch[1]));
       }
+      if (url.pathname === '/api/shipping-settings' && request.method === 'GET') {
+        return await getShippingSettingsRoute(env, cors);
+      }
+      if (url.pathname === '/api/admin/shipping-settings' && request.method === 'PATCH') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await updateShippingSettings(request, env, cors);
+      }
       if (url.pathname === '/api/orders' && request.method === 'POST') {
         return await createOrder(request, env, cors);
       }
@@ -235,6 +242,24 @@ async function discountAmount(env, code, subtotal) {
   return Math.min(row.value, subtotal);
 }
 
+// ---------- doprava zdarma nad částku ----------
+
+async function getShippingSettings(env) {
+  const row = await env.DB.prepare('SELECT active, threshold FROM shipping_settings WHERE id = 1').first();
+  return row ? { active: !!row.active, threshold: row.threshold } : { active: false, threshold: 0 };
+}
+
+async function getShippingSettingsRoute(env, cors) {
+  return json(await getShippingSettings(env), 200, cors);
+}
+
+async function updateShippingSettings(request, env, cors) {
+  const body = await request.json();
+  await env.DB.prepare('UPDATE shipping_settings SET active = ?, threshold = ? WHERE id = 1')
+    .bind(body.active ? 1 : 0, Math.max(0, Number(body.threshold) || 0)).run();
+  return json({ ok: true }, 200, cors);
+}
+
 // ---------- orders ----------
 
 // Variabilní symbol musí být čistě číselný a max 10 číslic, takže z čísla
@@ -292,7 +317,10 @@ async function createOrder(request, env, cors) {
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
   const discount = await discountAmount(env, body.discountCode, subtotal);
-  const shipping = SHIPPING[body.delivery.method];
+  const shippingInfo = SHIPPING[body.delivery.method];
+  const freeShipping = await getShippingSettings(env);
+  const shippingPrice = (freeShipping.active && subtotal >= freeShipping.threshold) ? 0 : shippingInfo.price;
+  const shipping = { label: shippingInfo.label, price: shippingPrice };
   const total = Math.max(0, subtotal - discount) + shipping.price;
   const { orderNumber, variableSymbol } = generateOrderNumber();
 

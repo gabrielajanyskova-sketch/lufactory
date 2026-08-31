@@ -193,6 +193,42 @@
   }
 
   var lastStockMap = null;
+  var shippingSettings = { active: false, threshold: 0 };
+
+  function loadShippingSettings() {
+    if (!API_BASE) return;
+    fetch(API_BASE + '/api/shipping-settings')
+      .then(function (r) { return r.json(); })
+      .then(function (settings) {
+        shippingSettings = settings;
+        renderCartPage();
+      })
+      .catch(function () {});
+  }
+
+  function updateFreeShippingUi(subtotal, freeShippingApplies) {
+    document.querySelectorAll('#shipping-options .option-card').forEach(function (card) {
+      var input = card.querySelector('input[name="shipping"]');
+      var priceEl = card.querySelector('.option-price');
+      var info = input && SHIPPING[input.value];
+      if (!info || info.price === 0 || !priceEl) return;
+      priceEl.textContent = freeShippingApplies ? 'Zdarma' : formatPrice(info.price);
+    });
+
+    var note = document.getElementById('free-shipping-note');
+    if (!note) return;
+    if (!shippingSettings.active || shippingSettings.threshold <= 0) {
+      note.hidden = true;
+    } else if (freeShippingApplies) {
+      note.hidden = false;
+      note.textContent = 'Máte nárok na dopravu zdarma!';
+      note.className = 'free-shipping-note free-shipping-note--ok';
+    } else {
+      note.hidden = false;
+      note.textContent = 'Ještě ' + formatPrice(shippingSettings.threshold - subtotal) + ' a doprava je zdarma.';
+      note.className = 'free-shipping-note';
+    }
+  }
 
   function loadStock() {
     if (!API_BASE) return;
@@ -347,7 +383,10 @@
     var discount = discountAmount(subtotal);
     var shippingKey = selectedShippingKey();
     var shipping = SHIPPING[shippingKey] || SHIPPING.pickup;
-    var total = Math.max(0, subtotal - discount) + shipping.price;
+    var freeShippingApplies = shippingSettings.active && shippingSettings.threshold > 0 && subtotal >= shippingSettings.threshold;
+    var shippingPrice = freeShippingApplies ? 0 : shipping.price;
+    var total = Math.max(0, subtotal - discount) + shippingPrice;
+    updateFreeShippingUi(subtotal, freeShippingApplies);
 
     var discountInput = document.getElementById('discount-code');
     var discountMsg = document.getElementById('discount-message');
@@ -371,7 +410,7 @@
     var discountRow = document.getElementById('summary-discount-row');
     if (discountRow) discountRow.hidden = discount === 0;
     setText('summary-discount', '−' + formatPrice(discount));
-    setText('summary-shipping', shipping.price === 0 ? 'Zdarma' : formatPrice(shipping.price));
+    setText('summary-shipping', shippingPrice === 0 ? 'Zdarma' : formatPrice(shippingPrice));
     setText('summary-total', formatPrice(total));
 
     // Hotově při odběru dává smysl jen u osobního odběru.
@@ -506,6 +545,7 @@
     renderCartPage();
     wireQtySteppers();
     loadStock();
+    loadShippingSettings();
 
     document.querySelectorAll('[data-add-to-cart]').forEach(wireAddToCartBtn);
 
