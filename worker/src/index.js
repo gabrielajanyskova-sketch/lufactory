@@ -20,6 +20,14 @@ export default {
     }
 
     try {
+      if (url.pathname === '/api/health' && request.method === 'GET') {
+        return json({
+          hasResendKey: !!env.RESEND_API_KEY,
+          hasMailFrom: !!env.MAIL_FROM,
+          hasNotificationEmail: !!env.SHOP_NOTIFICATION_EMAIL,
+          hasDb: !!env.DB
+        }, 200, cors);
+      }
       if (url.pathname === '/api/products' && request.method === 'GET') {
         return await getProducts(env, cors);
       }
