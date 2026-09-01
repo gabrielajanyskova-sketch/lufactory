@@ -1230,14 +1230,14 @@ body.lightbox-open { overflow: hidden; }
       <thead>
         <tr>
           <th>Číslo</th>
+          <th>Stav</th>
+          <th></th>
+          <th>Celkem</th>
           <th>VS</th>
           <th>Datum</th>
           <th>Zákazník</th>
           <th>Položky</th>
           <th>Doprava</th>
-          <th>Celkem</th>
-          <th>Stav</th>
-          <th></th>
         </tr>
       </thead>
       <tbody id="orders-tbody"></tbody>
@@ -1516,15 +1516,7 @@ body.lightbox-open { overflow: hidden; }
 
           tr.innerHTML =
             '<td class="nowrap-cell">' + order.order_number + '</td>' +
-            '<td class="nowrap-cell">' + (order.variable_symbol || '') + '</td>' +
-            '<td class="nowrap-cell">' + (order.created_at || '').replace('T', ' ').slice(0, 16) + '</td>' +
-            '<td>' + order.customer_name + '<br><small>' +
-              order.customer_street + ', ' + order.customer_zip + ' ' + order.customer_city + '<br>' +
-              order.customer_email + '<br>' + (order.customer_phone || '') + '</small></td>' +
-            '<td>' + itemsHtml + '</td>' +
-            '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + order.delivery_detail + '</small>' : '') + '</td>' +
-            '<td>' + formatPrice(order.total) + '</td>' +
-            '<td><select data-order-id="' + order.id + '">' + statusOptions + '</select></td>' +
+            '<td class="nowrap-cell"><select data-order-id="' + order.id + '">' + statusOptions + '</select></td>' +
             '<td>' +
               '<div class="order-actions">' +
                 '<button type="button" class="btn btn--outline save-btn" data-invoice-order="' + order.id + '" data-invoice-number="' + order.order_number + '">Faktura</button>' +
@@ -1538,7 +1530,15 @@ body.lightbox-open { overflow: hidden; }
               (order.packeta_error
                 ? '<p class="packeta-error-note" title="' + escapeHtml(order.packeta_error) + '">Zásilkovna: ' + escapeHtml(order.packeta_error) + '</p>'
                 : '') +
-            '</td>';
+            '</td>' +
+            '<td class="nowrap-cell">' + formatPrice(order.total) + '</td>' +
+            '<td class="nowrap-cell">' + (order.variable_symbol || '') + '</td>' +
+            '<td class="nowrap-cell">' + (order.created_at || '').replace('T', ' ').slice(0, 16) + '</td>' +
+            '<td>' + order.customer_name + '<br><small>' +
+              order.customer_street + ', ' + order.customer_zip + ' ' + order.customer_city + '<br>' +
+              order.customer_email + '<br>' + (order.customer_phone || '') + '</small></td>' +
+            '<td>' + itemsHtml + '</td>' +
+            '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + order.delivery_detail + '</small>' : '') + '</td>';
 
           tbody.appendChild(tr);
         });
