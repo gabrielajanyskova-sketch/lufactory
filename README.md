@@ -66,9 +66,11 @@ neaktivní a zobrazuje se „Není skladem" — bezpečný výchozí stav.
 
 ## Košík a objednávka
 
-`assets/js/cart.js` drží obsah košíku v `localStorage`. Při checkoutu se
-sklad ověřuje živě proti API — pokud mezitím někdo koupí poslední kus, košík
-to zahlásí a neumožní odeslání, dokud se množství neopraví. Objednávka jde
+`assets/js/cart.js` drží obsah košíku v `localStorage`. Zboží v košíku není
+nijak rezervované, takže se množství vždy porovnává proti aktuálnímu API —
+pokud mezitím někdo koupí poslední kus (nebo si zákazník naklikal víc, než
+je skladem), množství se v košíku samo upraví dolů a zobrazí se, co přesně
+se změnilo. Objednávka jde
 přes `worker/` (skutečné ceny, sklad a slevy ověřené server-side, uložení do
 D1, e-mailové potvrzení přes Resend) — pokud by worker byl nedostupný, web se
 sám přepne na mailto, takže se nic nikdy „nerozbije".

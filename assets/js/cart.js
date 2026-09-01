@@ -55,13 +55,29 @@
     qty = Math.max(1, parseInt(qty, 10) || 1);
     var cart = getCart();
     var item = cart.find(function (i) { return i.id === id; });
-    if (item) {
-      item.qty += qty;
+    var newQty = (item ? item.qty : 0) + qty;
+
+    var available = availableStock(id);
+    var capped = available != null && newQty > available;
+    if (capped) newQty = available;
+
+    if (newQty <= 0) {
+      cart = cart.filter(function (i) { return i.id !== id; });
+    } else if (item) {
+      item.qty = newQty;
     } else {
-      cart.push({ id: id, name: name, price: price, qty: qty });
+      cart.push({ id: id, name: name, price: price, qty: newQty });
     }
     saveCart(cart);
     openCart();
+
+    if (capped) {
+      var warningEl = document.getElementById('cart-stock-warning');
+      if (warningEl) {
+        warningEl.hidden = false;
+        warningEl.textContent = 'V košíku může být nejvýš ' + available + ' ks — ' + name + '.';
+      }
+    }
   }
 
   function removeFromCart(id) {
@@ -242,6 +258,7 @@
         lastStockMap = stockMap;
         renderDynamicProducts(stockMap);
         applyStock(stockMap);
+        renderCart();
         renderCartPage();
       })
       .catch(function () {});
@@ -299,6 +316,15 @@
       setQty(item.id, item.qty - 1);
     });
     li.querySelector('[data-action="inc"]').addEventListener('click', function () {
+      var available = availableStock(item.id);
+      if (available != null && item.qty + 1 > available) {
+        var warningEl = document.getElementById('cart-stock-warning');
+        if (warningEl) {
+          warningEl.hidden = false;
+          warningEl.textContent = 'V košíku může být nejvýš ' + available + ' ks — ' + item.name + '.';
+        }
+        return;
+      }
       setQty(item.id, item.qty + 1);
     });
     li.querySelector('.cart-remove').addEventListener('click', function () {
@@ -316,6 +342,7 @@
 
   // ---------- cart drawer (header flyout) ----------
   function renderCart() {
+    reconcileCartWithStock();
     var cart = getCart();
 
     var countEl = document.querySelector('.cart-count');
@@ -365,6 +392,7 @@
   }
 
   function renderCartPage() {
+    reconcileCartWithStock();
     var pageRoot = document.getElementById('cart-page');
     if (!pageRoot) return;
 
@@ -444,44 +472,45 @@
 
     var pickBranchBtn = document.getElementById('pick-branch-btn');
     if (pickBranchBtn) pickBranchBtn.hidden = shippingKey !== 'zasilkovna-pickup';
-
-    checkCartStock(cart);
   }
 
-  // Košík si nic neblokuje na skladě (nic se "nerezervuje") — kontroluje se
-  // vždy proti aktuálnímu stavu, takže když mezitím někdo koupí poslední
-  // kus, tady se to hned ukáže a nejde odeslat, dokud se množství neopraví.
-  function checkCartStock(cart) {
+  function availableStock(id) {
+    if (!lastStockMap) return null;
+    var entry = lastStockMap[id];
+    return entry ? entry.stockQty : 0;
+  }
+
+  // Košík si nic neblokuje na skladě (nic se "nerezervuje"), takže se
+  // množství vždy porovnává proti aktuálnímu stavu — pokud mezitím někdo
+  // koupí poslední kus (nebo si zákazník sám naklikal víc, než je skladem),
+  // množství se rovnou upraví dolů a zobrazí se, co přesně se změnilo.
+  function reconcileCartWithStock() {
     var warningEl = document.getElementById('cart-stock-warning');
-    var submitBtn = document.getElementById('submit-order');
-    if (!warningEl || !submitBtn) return;
+    if (!lastStockMap) return;
+    var cart = getCart();
+    var changes = [];
+    var next = [];
 
-    if (!lastStockMap) {
-      warningEl.hidden = true;
-      submitBtn.disabled = false;
-      return;
-    }
-
-    var problems = [];
     cart.forEach(function (item) {
-      var entry = lastStockMap[item.id];
-      var available = entry ? entry.stockQty : 0;
-      if (item.qty > available) {
-        problems.push(
-          available > 0
-            ? item.name + ' — skladem už jen ' + available + ' ks (v košíku máte ' + item.qty + ')'
-            : item.name + ' — už není skladem'
-        );
+      var available = availableStock(item.id);
+      if (available == null || item.qty <= available) {
+        next.push(item);
+      } else if (available > 0) {
+        changes.push(item.name + ' — skladem už jen ' + available + ' ks');
+        next.push(Object.assign({}, item, { qty: available }));
+      } else {
+        changes.push(item.name + ' — už není skladem');
       }
     });
 
-    if (problems.length > 0) {
-      warningEl.hidden = false;
-      warningEl.textContent = 'Upravte prosím množství v košíku: ' + problems.join('; ') + '.';
-      submitBtn.disabled = true;
-    } else {
+    if (changes.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      if (warningEl) {
+        warningEl.hidden = false;
+        warningEl.textContent = 'Stav skladu se změnil: ' + changes.join('; ') + '.';
+      }
+    } else if (warningEl) {
       warningEl.hidden = true;
-      submitBtn.disabled = false;
     }
   }
 
