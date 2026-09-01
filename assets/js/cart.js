@@ -92,7 +92,7 @@
     openCart();
 
     if (capped) {
-      showStockToast('V košíku může být nejvýš ' + available + ' ks — ' + name + '.');
+      showStockToast('Množství jsme upravili na dostupný sklad — ' + name + '.');
     }
   }
 
@@ -162,7 +162,7 @@
       var qtyInput = stepper ? stepper.querySelector('[data-qty-input]') : null;
       var notifyBox = document.querySelector('[data-stock-notify="' + id + '"]');
       if (qty > 0) {
-        el.textContent = 'Skladem: ' + qty + ' ks';
+        el.textContent = 'Skladem';
         el.className = 'stock-badge stock-badge--in';
         if (addBtn) addBtn.disabled = false;
         if (qtyInput) {
@@ -334,7 +334,7 @@
     li.querySelector('[data-action="inc"]').addEventListener('click', function () {
       var available = availableStock(item.id);
       if (available != null && item.qty + 1 > available) {
-        showStockToast('V košíku může být nejvýš ' + available + ' ks — ' + item.name + '.');
+        showStockToast('Víc už jich v košíku být nemůže — ' + item.name + '.');
         return;
       }
       setQty(item.id, item.qty + 1);
@@ -507,7 +507,7 @@
       if (available == null || item.qty <= available) {
         next.push(item);
       } else if (available > 0) {
-        changes.push(item.name + ' — skladem už jen ' + available + ' ks');
+        changes.push(item.name + ' — snížené množství podle skladu');
         next.push(Object.assign({}, item, { qty: available }));
       } else {
         changes.push(item.name + ' — už není skladem');
