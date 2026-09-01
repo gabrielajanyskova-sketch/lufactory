@@ -136,6 +136,11 @@ export default {
         if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
         return await getOrderLabel(env, cors, Number(orderLabelMatch[1]));
       }
+      const orderShipmentMatch = url.pathname.match(/^\/api\/admin\/orders\/(\d+)\/shipment$/);
+      if (orderShipmentMatch && request.method === 'POST') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await createOrderShipment(env, cors, Number(orderShipmentMatch[1]));
+      }
       const orderStatusMatch = url.pathname.match(/^\/api\/admin\/orders\/(\d+)$/);
       if (orderStatusMatch && request.method === 'PATCH') {
         if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
@@ -826,6 +831,23 @@ async function getPacketaLabelPdf(env, packetaId) {
   return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 }
 
+// Zavolá createPacketaShipment a výsledek (úspěch, nebo chybová hláška)
+// vždycky uloží k objednávce — nikdy netiše nezmizí jen do logu, který
+// nikdo nevidí. Volá se automaticky při "Zaplaceno" i ručně z adminu.
+async function tryCreatePacketaShipment(env, order) {
+  try {
+    const shipment = await createPacketaShipment(env, order);
+    await env.DB.prepare('UPDATE orders SET packeta_id = ?, packeta_barcode = ?, packeta_error = NULL WHERE id = ?')
+      .bind(shipment.id, shipment.barcode || null, order.id).run();
+    return { ok: true, id: shipment.id };
+  } catch (err) {
+    const message = String((err && err.message) || err).slice(0, 500);
+    console.error('createPacketaShipment failed', message);
+    await env.DB.prepare('UPDATE orders SET packeta_error = ? WHERE id = ?').bind(message, order.id).run();
+    return { ok: false, error: message };
+  }
+}
+
 // ---------- admin ----------
 
 function isAdmin(request, env) {
@@ -839,7 +861,7 @@ async function listOrders(env, cors) {
     `SELECT id, order_number, variable_symbol, status, customer_name, customer_email, customer_phone,
        customer_street, customer_zip, customer_city, delivery_method, delivery_detail,
        payment_method, discount_code, note, subtotal, discount_amount, shipping_price,
-       total, created_at, packeta_id
+       total, created_at, packeta_id, packeta_error
      FROM orders ORDER BY created_at DESC LIMIT 200`
   ).all();
   const { results: items } = await env.DB.prepare(
@@ -938,15 +960,8 @@ async function updateOrderStatus(request, env, cors, orderId) {
   if (order && env.PACKETA_API_PASSWORD && body.status === 'zaplaceno'
     && order.delivery_method.startsWith('zasilkovna-') && !order.packeta_id) {
     // Selhání tady nesmí shodit samotnou změnu stavu — jde jen o vytvoření
-    // zásilky navíc, dá se řešit i ručně, kdyby Zásilkovna API nešla.
-    try {
-      const shipment = await createPacketaShipment(env, order);
-      await env.DB.prepare('UPDATE orders SET packeta_id = ?, packeta_barcode = ? WHERE id = ?')
-        .bind(shipment.id, shipment.barcode || null, orderId).run();
-      order.packeta_id = shipment.id;
-    } catch (err) {
-      console.error('createPacketaShipment failed', err);
-    }
+    // zásilky navíc, dá se zkusit znovu ručně (viz tlačítko v adminu).
+    await tryCreatePacketaShipment(env, order);
   }
 
   if (order && env.RESEND_API_KEY) {
@@ -1136,6 +1151,17 @@ async function getOrderInvoice(env, cors, orderId) {
   return new Response(html, {
     headers: Object.assign({ 'Content-Type': 'text/html; charset=utf-8' }, cors)
   });
+}
+
+async function createOrderShipment(env, cors, orderId) {
+  if (!env.PACKETA_API_PASSWORD) return json({ error: 'packeta_not_configured' }, 400, cors);
+  const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
+  if (!order) return json({ error: 'not_found' }, 404, cors);
+  if (!order.delivery_method.startsWith('zasilkovna-')) return json({ error: 'not_zasilkovna' }, 400, cors);
+  if (order.packeta_id) return json({ error: 'already_created', id: order.packeta_id }, 409, cors);
+
+  const result = await tryCreatePacketaShipment(env, order);
+  return json(result, result.ok ? 200 : 502, cors);
 }
 
 async function getOrderLabel(env, cors, orderId) {

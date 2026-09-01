@@ -1509,14 +1509,18 @@ body.lightbox-open { overflow: hidden; }
               order.customer_street + ', ' + order.customer_zip + ' ' + order.customer_city + '<br>' +
               order.customer_email + '<br>' + (order.customer_phone || '') + '</small></td>' +
             '<td>' + itemsHtml + '</td>' +
-            '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + order.delivery_detail + '</small>' : '') + '</td>' +
+            '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + order.delivery_detail + '</small>' : '') +
+              (order.packeta_error ? '<br><small style="color:#b5442e;">Zásilkovna: ' + escapeHtml(order.packeta_error) + '</small>' : '') +
+            '</td>' +
             '<td>' + formatPrice(order.total) + '</td>' +
             '<td><select data-order-id="' + order.id + '">' + statusOptions + '</select></td>' +
             '<td><div class="order-actions">' +
               '<button type="button" class="btn btn--outline save-btn" data-invoice-order="' + order.id + '" data-invoice-number="' + order.order_number + '">Faktura</button>' +
               (order.packeta_id
                 ? '<button type="button" class="btn btn--outline save-btn" data-label-order="' + order.id + '">Štítek</button>'
-                : '') +
+                : (order.delivery_method.indexOf('zasilkovna-') === 0
+                    ? '<button type="button" class="btn btn--outline save-btn" data-shipment-order="' + order.id + '">Vytvořit zásilku</button>'
+                    : '')) +
               '<button type="button" class="icon-btn-delete" data-delete-order="' + order.id + '" title="Smazat objednávku">✕</button>' +
             '</div></td>';
 
@@ -1546,6 +1550,23 @@ body.lightbox-open { overflow: hidden; }
                 window.open(url, '_blank');
               })
               .finally(function () { btn.textContent = 'Štítek'; });
+          });
+        });
+
+        tbody.querySelectorAll('button[data-shipment-order]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            btn.disabled = true;
+            btn.textContent = 'Vytvářím…';
+            fetch(API_BASE + '/api/admin/orders/' + btn.dataset.shipmentOrder + '/shipment', {
+              method: 'POST',
+              headers: authHeaders()
+            })
+              .then(function (r) { return r.json(); })
+              .then(function () { loadOrders(); })
+              .catch(function () {
+                btn.disabled = false;
+                btn.textContent = 'Vytvořit zásilku';
+              });
           });
         });
 
