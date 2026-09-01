@@ -1105,19 +1105,8 @@ body.lightbox-open { overflow: hidden; }
   .admin-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
   .admin-tab { padding: 8px 18px; border-radius: 999px; border: 1px solid var(--border); background: var(--white); cursor: pointer; font-family: var(--font-body); font-size: 14px; }
   .admin-tab.active { background: var(--brown); color: var(--white); border-color: var(--brown); }
-  .table-scroll { overflow-x: auto; border-radius: var(--radius); box-shadow: var(--shadow); }
-  .admin-table { width: 100%; border-collapse: collapse; background: var(--white); }
-  #tab-orders .admin-table { table-layout: fixed; }
-  #tab-orders .admin-table th:nth-child(1), #tab-orders .admin-table td:nth-child(1) { width: 10%; }
-  #tab-orders .admin-table th:nth-child(2), #tab-orders .admin-table td:nth-child(2) { width: 9%; }
-  #tab-orders .admin-table th:nth-child(3), #tab-orders .admin-table td:nth-child(3) { width: 13%; }
-  #tab-orders .admin-table th:nth-child(4), #tab-orders .admin-table td:nth-child(4) { width: 7%; }
-  #tab-orders .admin-table th:nth-child(5), #tab-orders .admin-table td:nth-child(5) { width: 8%; }
-  #tab-orders .admin-table th:nth-child(6), #tab-orders .admin-table td:nth-child(6) { width: 9%; }
-  #tab-orders .admin-table th:nth-child(7), #tab-orders .admin-table td:nth-child(7) { width: 16%; }
-  #tab-orders .admin-table th:nth-child(8), #tab-orders .admin-table td:nth-child(8) { width: 17%; }
-  #tab-orders .admin-table th:nth-child(9), #tab-orders .admin-table td:nth-child(9) { width: 11%; }
-  .admin-table th, .admin-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; font-size: 14px; vertical-align: top; overflow-wrap: break-word; }
+  .admin-table { width: 100%; border-collapse: collapse; background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+  .admin-table th, .admin-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; font-size: 14px; vertical-align: top; }
   .admin-table th { background: var(--cream-dark); font-weight: 600; }
   .admin-table input[type="text"], .admin-table input[type="number"] { width: 90px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
   .admin-table input.wide { width: 100%; }
@@ -1169,12 +1158,7 @@ body.lightbox-open { overflow: hidden; }
     width: 100%; margin-top: 18px; padding: 10px 12px; border: 1px solid var(--border);
     border-radius: 8px; font-family: inherit; font-size: 1rem; color: var(--text); resize: vertical;
   }
-  .order-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .packeta-error-note {
-    margin: 6px 0 0; font-size: 12px; color: #b5442e; white-space: normal;
-    max-width: 220px; overflow: hidden; text-overflow: ellipsis;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-  }
+  .order-actions { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; }
   .icon-btn-delete {
     width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: var(--white);
     color: var(--text-muted); font-size: 13px; cursor: pointer; display: flex; align-items: center;
@@ -1193,11 +1177,10 @@ body.lightbox-open { overflow: hidden; }
     display: flex; align-items: center; justify-content: center; text-align: center;
     font-size: 13px; color: var(--text-muted); cursor: pointer; background: none;
   }
-  .admin-table select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; max-width: 100%; }
+  .admin-table select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
   .order-items-list { margin: 0; font-size: 13px; color: var(--text-muted); min-width: 180px; }
   .order-item-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; }
-  .order-item-row span:first-child { min-width: 0; overflow-wrap: break-word; }
-  .order-item-qty { color: var(--ink); font-weight: 600; white-space: nowrap; flex: 0 0 auto; }
+  .order-item-qty { color: var(--ink); font-weight: 600; white-space: nowrap; }
   .nowrap-cell { white-space: nowrap; }
   .save-btn { padding: 6px 12px; font-size: 13px; }
   .add-product-form { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; background: var(--white); padding: 16px; border-radius: var(--radius); box-shadow: var(--shadow); align-items: flex-end; }
@@ -1235,24 +1218,22 @@ body.lightbox-open { overflow: hidden; }
 
   <section id="tab-orders">
     <button type="button" class="btn btn--outline" id="export-orders-csv" style="margin-bottom:16px;">Export do CSV</button>
-    <div class="table-scroll">
     <table class="admin-table">
       <thead>
         <tr>
           <th>Číslo</th>
-          <th>Stav</th>
-          <th></th>
-          <th>Celkem</th>
           <th>VS</th>
           <th>Datum</th>
           <th>Zákazník</th>
           <th>Položky</th>
           <th>Doprava</th>
+          <th>Celkem</th>
+          <th>Stav</th>
+          <th></th>
         </tr>
       </thead>
       <tbody id="orders-tbody"></tbody>
     </table>
-    </div>
     <p id="orders-empty" class="status-msg" hidden>Zatím žádné objednávky.</p>
   </section>
 
@@ -1308,7 +1289,6 @@ body.lightbox-open { overflow: hidden; }
   </section>
 
   <section id="tab-discounts" hidden>
-    <div class="table-scroll">
     <table class="admin-table">
       <thead>
         <tr>
@@ -1321,7 +1301,6 @@ body.lightbox-open { overflow: hidden; }
       </thead>
       <tbody id="discounts-tbody"></tbody>
     </table>
-    </div>
 
     <form class="add-product-form" id="add-discount-form">
       <div class="form-group">
@@ -1358,7 +1337,6 @@ body.lightbox-open { overflow: hidden; }
   </section>
 
   <section id="tab-reviews" hidden>
-    <div class="table-scroll">
     <table class="admin-table">
       <thead>
         <tr>
@@ -1372,7 +1350,6 @@ body.lightbox-open { overflow: hidden; }
       </thead>
       <tbody id="reviews-tbody"></tbody>
     </table>
-    </div>
     <p id="reviews-empty" class="status-msg" hidden>Zatím žádné recenze.</p>
   </section>
 </main>
@@ -1515,7 +1492,7 @@ body.lightbox-open { overflow: hidden; }
           var tr = document.createElement('tr');
 
           var itemsHtml = '<div class="order-items-list">' + order.items.map(function (i) {
-            return '<div class="order-item-row"><span>' + i.title + '</span><span class="order-item-qty">' + i.qty + ' ks</span></div>';
+            return '<div class="order-item-row"><span class="nowrap-cell">' + i.title + '</span><span class="order-item-qty">' + i.qty + ' ks</span></div>';
           }).join('') + '</div>';
 
           var statusOptions = ORDER_STATUSES.map(function (s) {
@@ -1525,30 +1502,20 @@ body.lightbox-open { overflow: hidden; }
           var shippingLabel = SHIPPING_LABELS[order.delivery_method] || order.delivery_method;
 
           tr.innerHTML =
-            '<td>' + order.order_number + '</td>' +
-            '<td><select data-order-id="' + order.id + '">' + statusOptions + '</select></td>' +
-            '<td>' +
-              '<div class="order-actions">' +
-                '<button type="button" class="btn btn--outline save-btn" data-invoice-order="' + order.id + '" data-invoice-number="' + order.order_number + '">Faktura</button>' +
-                (order.packeta_id
-                  ? '<button type="button" class="btn btn--outline save-btn" data-label-order="' + order.id + '">Štítek</button>'
-                  : (order.delivery_method.indexOf('zasilkovna-') === 0
-                      ? '<button type="button" class="btn btn--outline save-btn" data-shipment-order="' + order.id + '">Vytvořit zásilku</button>'
-                      : '')) +
-                '<button type="button" class="icon-btn-delete" data-delete-order="' + order.id + '" title="Smazat objednávku">✕</button>' +
-              '</div>' +
-              (order.packeta_error
-                ? '<p class="packeta-error-note" title="' + escapeHtml(order.packeta_error) + '">Zásilkovna: ' + escapeHtml(order.packeta_error) + '</p>'
-                : '') +
-            '</td>' +
-            '<td class="nowrap-cell">' + formatPrice(order.total) + '</td>' +
-            '<td>' + (order.variable_symbol || '') + '</td>' +
-            '<td>' + (order.created_at || '').replace('T', ' ').slice(0, 16) + '</td>' +
+            '<td class="nowrap-cell">' + order.order_number + '</td>' +
+            '<td class="nowrap-cell">' + (order.variable_symbol || '') + '</td>' +
+            '<td class="nowrap-cell">' + (order.created_at || '').replace('T', ' ').slice(0, 16) + '</td>' +
             '<td>' + order.customer_name + '<br><small>' +
               order.customer_street + ', ' + order.customer_zip + ' ' + order.customer_city + '<br>' +
               order.customer_email + '<br>' + (order.customer_phone || '') + '</small></td>' +
             '<td>' + itemsHtml + '</td>' +
-            '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + order.delivery_detail + '</small>' : '') + '</td>';
+            '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + order.delivery_detail + '</small>' : '') + '</td>' +
+            '<td>' + formatPrice(order.total) + '</td>' +
+            '<td><select data-order-id="' + order.id + '">' + statusOptions + '</select></td>' +
+            '<td><div class="order-actions">' +
+              '<button type="button" class="btn btn--outline save-btn" data-invoice-order="' + order.id + '" data-invoice-number="' + order.order_number + '">Faktura</button>' +
+              '<button type="button" class="icon-btn-delete" data-delete-order="' + order.id + '" title="Smazat objednávku">✕</button>' +
+            '</div></td>';
 
           tbody.appendChild(tr);
         });
@@ -1563,36 +1530,6 @@ body.lightbox-open { overflow: hidden; }
                 window.open(url, '_blank');
               })
               .finally(function () { btn.textContent = 'Faktura'; });
-          });
-        });
-
-        tbody.querySelectorAll('button[data-label-order]').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            btn.textContent = 'Načítám…';
-            fetch(API_BASE + '/api/admin/orders/' + btn.dataset.labelOrder + '/label', { headers: authHeaders() })
-              .then(function (r) { return r.blob(); })
-              .then(function (blob) {
-                var url = URL.createObjectURL(blob);
-                window.open(url, '_blank');
-              })
-              .finally(function () { btn.textContent = 'Štítek'; });
-          });
-        });
-
-        tbody.querySelectorAll('button[data-shipment-order]').forEach(function (btn) {
-          btn.addEventListener('click', function () {
-            btn.disabled = true;
-            btn.textContent = 'Vytvářím…';
-            fetch(API_BASE + '/api/admin/orders/' + btn.dataset.shipmentOrder + '/shipment', {
-              method: 'POST',
-              headers: authHeaders()
-            })
-              .then(function (r) { return r.json(); })
-              .then(function () { loadOrders(); })
-              .catch(function () {
-                btn.disabled = false;
-                btn.textContent = 'Vytvořit zásilku';
-              });
           });
         });
 
