@@ -149,8 +149,9 @@
   }
 
   // ---------- stock ----------
-  // Dokud API nepotvrdí skutečný počet kusů, zůstává vše "Není skladem"
-  // (viz disabled tlačítka a text rovnou v HTML) — bezpečný výchozí stav.
+  // Nastavuje se oběma směry — badge, tlačítka i formulář na upozornění se
+  // vždy přepočítají podle živých dat, i kdyby stránka měla v HTML natvrdo
+  // napsaný opačný stav (např. původně skladem, mezitím vyprodáno).
   function applyStock(stockMap) {
     if (!stockMap) return;
     document.querySelectorAll('[data-stock-badge]').forEach(function (el) {
@@ -175,8 +176,17 @@
           });
         }
         if (notifyBox) notifyBox.hidden = true;
-      } else if (notifyBox) {
-        notifyBox.hidden = false;
+      } else {
+        el.textContent = 'Není skladem';
+        el.className = 'stock-badge stock-badge--out';
+        if (addBtn) addBtn.disabled = true;
+        if (qtyInput) qtyInput.disabled = true;
+        if (stepper) {
+          stepper.querySelectorAll('[data-action]').forEach(function (btn) {
+            btn.disabled = true;
+          });
+        }
+        if (notifyBox) notifyBox.hidden = false;
       }
     });
   }
