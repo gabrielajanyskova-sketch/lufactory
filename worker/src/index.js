@@ -1117,7 +1117,7 @@ async function deleteDiscountCode(env, cors, code) {
   return json({ ok: true }, 200, cors);
 }
 
-async function sendResendEmail(env, { to, subject, html, attachments }) {
+async function sendResendEmail(env, { to, subject, html, attachments = null }) {
   const payload = { from: env.MAIL_FROM, to: [to], subject, html };
   if (attachments) payload.attachments = attachments;
   const res = await fetch('https://api.resend.com/emails', {
