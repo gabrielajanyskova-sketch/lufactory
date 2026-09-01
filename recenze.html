@@ -833,6 +833,30 @@ body.lightbox-open { overflow: hidden; }
 .free-shipping-note--ok { color: var(--sage-dark); font-weight: 600; }
 .cart-reservation-note { margin: 10px 0 0; font-size: 0.8rem; color: var(--text-muted); }
 
+.stock-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  z-index: 300;
+  max-width: min(90vw, 420px);
+  text-align: center;
+  background: #b5442e;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 14px 22px;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -16px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.stock-toast.is-visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .stock-toast { transition: none; }
+}
+
 .option-group { display: grid; gap: 12px; margin-bottom: 8px; }
 .option-card {
   display: flex;

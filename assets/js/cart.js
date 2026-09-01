@@ -2,6 +2,26 @@
   var STORAGE_KEY = 'lufactory_cart';
   var DISCOUNT_KEY = 'lufactory_discount';
 
+  // Výrazná bublina nahoře na obrazovce pro změny skladu — na rozdíl od
+  // tichého textu v souhrnu objednávky si jí zákazník všimne, ať je na
+  // stránce kdekoliv.
+  var stockToastTimer = null;
+  function showStockToast(message) {
+    var toast = document.getElementById('stock-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'stock-toast';
+      toast.className = 'stock-toast';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add('is-visible');
+    clearTimeout(stockToastTimer);
+    stockToastTimer = setTimeout(function () {
+      toast.classList.remove('is-visible');
+    }, 6000);
+  }
+
   // Vyplň adresou nasazeného workeru (worker/README.md), např.
   // 'https://lufactory-api.<tvuj-subdomain>.workers.dev' — dokud je prázdné,
   // web dál funguje na mailto přesně jako dosud.
@@ -72,11 +92,7 @@
     openCart();
 
     if (capped) {
-      var warningEl = document.getElementById('cart-stock-warning');
-      if (warningEl) {
-        warningEl.hidden = false;
-        warningEl.textContent = 'V košíku může být nejvýš ' + available + ' ks — ' + name + '.';
-      }
+      showStockToast('V košíku může být nejvýš ' + available + ' ks — ' + name + '.');
     }
   }
 
@@ -318,11 +334,7 @@
     li.querySelector('[data-action="inc"]').addEventListener('click', function () {
       var available = availableStock(item.id);
       if (available != null && item.qty + 1 > available) {
-        var warningEl = document.getElementById('cart-stock-warning');
-        if (warningEl) {
-          warningEl.hidden = false;
-          warningEl.textContent = 'V košíku může být nejvýš ' + available + ' ks — ' + item.name + '.';
-        }
+        showStockToast('V košíku může být nejvýš ' + available + ' ks — ' + item.name + '.');
         return;
       }
       setQty(item.id, item.qty + 1);
@@ -485,7 +497,6 @@
   // koupí poslední kus (nebo si zákazník sám naklikal víc, než je skladem),
   // množství se rovnou upraví dolů a zobrazí se, co přesně se změnilo.
   function reconcileCartWithStock() {
-    var warningEl = document.getElementById('cart-stock-warning');
     if (!lastStockMap) return;
     var cart = getCart();
     var changes = [];
@@ -505,12 +516,7 @@
 
     if (changes.length > 0) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      if (warningEl) {
-        warningEl.hidden = false;
-        warningEl.textContent = 'Stav skladu se změnil: ' + changes.join('; ') + '.';
-      }
-    } else if (warningEl) {
-      warningEl.hidden = true;
+      showStockToast('Stav skladu se změnil: ' + changes.join('; ') + '.');
     }
   }
 
@@ -643,7 +649,6 @@
 
         submitOrderBtn.disabled = true;
         submitOrderBtn.textContent = 'Odesílám…';
-        var warningEl = document.getElementById('cart-stock-warning');
         submitOrderViaApi()
           .then(function (res) {
             if (res.ok) {
@@ -651,12 +656,10 @@
             } else if (res.data && res.data.error === 'insufficient_stock') {
               // Mezitím někdo koupil poslední kus — neposílat přes mailto
               // (to by vypadalo jako objednávka, co ve skutečnosti nejde
-              // splnit), místo toho jasně říct, co opravit, a dotáhnout
-              // čerstvý stav skladu.
-              if (warningEl) {
-                warningEl.hidden = false;
-                warningEl.textContent = 'Mezitím došel sklad u některé položky v košíku — upravte prosím množství.';
-              }
+              // splnit), místo toho jasně říct, co se změnilo, a dotáhnout
+              // čerstvý stav skladu (loadStock → reconcileCartWithStock
+              // množství rovnou opraví).
+              showStockToast('Mezitím došel sklad u některé položky v košíku — množství jsme upravili.');
               loadStock();
             } else {
               window.location.href = buildOrderMailto();
