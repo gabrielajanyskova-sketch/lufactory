@@ -27,7 +27,9 @@ Bindings a proměnné (Settings → Bindings / Variables and Secrets), viz
 - KV namespace `lufactory-product-images` → binding `IMAGES`
 - Text proměnné `MAIL_FROM`, `SHOP_NOTIFICATION_EMAIL`
 - Secrety `RESEND_API_KEY`, `ADMIN_PASSWORD`, volitelně `CF_API_TOKEN`
-  (PDF faktury — bez něj se posílá faktura jako HTML příloha)
+  (PDF faktury — bez něj se posílá faktura jako HTML příloha), volitelně
+  `PACKETA_API_PASSWORD` (vytvoření zásilky a štítku na Zásilkovně — bez
+  něj se štítky negenerují, nic jiného to neovlivní)
 
 ## Propojení s webem
 
@@ -84,6 +86,20 @@ Když po objednávce klesne sklad produktu na 2 ks nebo míň, přijde e-mail na
 `SHOP_NOTIFICATION_EMAIL`. Nastavením stavu objednávky na "Odesláno" v adminu
 se zákazníkovi automaticky pošle faktura (PDF, pokud je nastavený
 `CF_API_TOKEN`, jinak HTML příloha).
+
+## Zásilkovna — automatický štítek
+
+Když se objednávka s dopravou Zásilkovnou (`zasilkovna-pickup` nebo
+`zasilkovna-address`) nastaví v adminu na "Zaplaceno", worker sám vytvoří
+zásilku přes Packeta API (`orders.packeta_id`, `orders.packeta_barcode`) —
+u výdejního místa se použije `pickup_point_id` uložené z widgetu v košíku,
+u doručení na adresu fakturační adresa zákazníka. Zásilka se vytvoří jen
+jednou (podle `packeta_id`), i kdyby se stav "Zaplaceno" nastavil vícekrát.
+
+V adminu se pak u objednávky objeví tlačítko **Štítek** — stáhne PDF štítek
+přímo od Zásilkovny. Váha balíčku je zatím pevná (`PACKETA_DEFAULT_WEIGHT_KG`
+ve `worker/src/index.js`), dá se upravit podle skutečnosti. PPL zásilky se
+zatím vytváří ručně, tahle automatizace řeší jen Zásilkovnu.
 
 ## Recenze
 

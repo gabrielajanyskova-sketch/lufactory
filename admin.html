@@ -1514,6 +1514,9 @@ body.lightbox-open { overflow: hidden; }
             '<td><select data-order-id="' + order.id + '">' + statusOptions + '</select></td>' +
             '<td><div class="order-actions">' +
               '<button type="button" class="btn btn--outline save-btn" data-invoice-order="' + order.id + '" data-invoice-number="' + order.order_number + '">Faktura</button>' +
+              (order.packeta_id
+                ? '<button type="button" class="btn btn--outline save-btn" data-label-order="' + order.id + '">Štítek</button>'
+                : '') +
               '<button type="button" class="icon-btn-delete" data-delete-order="' + order.id + '" title="Smazat objednávku">✕</button>' +
             '</div></td>';
 
@@ -1530,6 +1533,19 @@ body.lightbox-open { overflow: hidden; }
                 window.open(url, '_blank');
               })
               .finally(function () { btn.textContent = 'Faktura'; });
+          });
+        });
+
+        tbody.querySelectorAll('button[data-label-order]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            btn.textContent = 'Načítám…';
+            fetch(API_BASE + '/api/admin/orders/' + btn.dataset.labelOrder + '/label', { headers: authHeaders() })
+              .then(function (r) { return r.blob(); })
+              .then(function (blob) {
+                var url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+              })
+              .finally(function () { btn.textContent = 'Štítek'; });
           });
         });
 

@@ -5,6 +5,12 @@ const BANK_ACCOUNT = '211573669/0300';
 // assets/js/cart.js. Mění se jen když se změní číslo účtu.
 const BANK_IBAN = 'CZ6503000000000211573669';
 
+// Zásilkovna — vytvoření zásilky a štítku. PACKETA_API_PASSWORD je secret
+// (Settings → Variables and Secrets), NIKDY to samé jako veřejný
+// PACKETA_API_KEY v assets/js/cart.js (ten jen zobrazuje výdejní místa).
+const PACKETA_SOAP_URL = 'https://www.zasilkovna.cz/api/soap';
+const PACKETA_DEFAULT_WEIGHT_KG = 0.5;
+
 const SELLER = {
   name: 'Ing. Nikola Drnková',
   ico: '09999035',
@@ -124,6 +130,11 @@ export default {
       if (orderInvoiceMatch && request.method === 'GET') {
         if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
         return await getOrderInvoice(env, cors, Number(orderInvoiceMatch[1]));
+      }
+      const orderLabelMatch = url.pathname.match(/^\/api\/admin\/orders\/(\d+)\/label$/);
+      if (orderLabelMatch && request.method === 'GET') {
+        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        return await getOrderLabel(env, cors, Number(orderLabelMatch[1]));
       }
       const orderStatusMatch = url.pathname.match(/^\/api\/admin\/orders\/(\d+)$/);
       if (orderStatusMatch && request.method === 'PATCH') {
@@ -739,6 +750,82 @@ async function notifyBackInStock(env, productId) {
   }
 }
 
+// ---------- Zásilkovna (Packeta) ----------
+
+function xmlEscape(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c]
+  ));
+}
+
+function xmlTag(name, value) {
+  return value == null || value === '' ? '' : `<${name}>${xmlEscape(value)}</${name}>`;
+}
+
+// Packeta odpovídá jednoduchým XML (ne skutečná SOAP obálka) — kořenový
+// element je název volané metody, potomci jsou její parametry.
+async function packetaCall(env, method, innerXml) {
+  const body = `<?xml version="1.0" encoding="utf-8"?><${method}>${innerXml}</${method}>`;
+  const res = await fetch(PACKETA_SOAP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/xml; charset=utf-8' },
+    body
+  });
+  const text = await res.text();
+  const fault = text.match(/<faultString>([\s\S]*?)<\/faultString>/) || text.match(/<string>([\s\S]*?)<\/string>/);
+  if (!res.ok || /<fault>|<status>fault<\/status>/.test(text)) {
+    throw new Error(`Packeta ${method} error: ${fault ? fault[1] : text.slice(0, 300)}`);
+  }
+  return text;
+}
+
+function xmlField(text, tag) {
+  const m = text.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`));
+  return m ? m[1] : null;
+}
+
+// Vytvoří zásilku na Zásilkovně pro objednávku — buď na výdejní místo
+// (pickup_point_id z widgetu v košíku), nebo na adresu zákazníka. Vrací
+// { id, barcode }. Objednávka musí mít vždy platbu převodem (dobírka se
+// v tomhle e-shopu nepoužívá — hotově jde jen při osobním odběru).
+async function createPacketaShipment(env, order) {
+  const [firstName, ...restName] = order.customer_name.trim().split(/\s+/);
+  const surname = restName.join(' ') || firstName;
+
+  const attrs = [
+    xmlTag('number', order.order_number),
+    xmlTag('name', firstName),
+    xmlTag('surname', surname),
+    xmlTag('email', order.customer_email),
+    xmlTag('phone', order.customer_phone),
+    order.pickup_point_id
+      ? xmlTag('addressId', order.pickup_point_id)
+      : xmlTag('street', order.customer_street) + xmlTag('city', order.customer_city) + xmlTag('zip', order.customer_zip),
+    xmlTag('value', String(order.total)),
+    xmlTag('currency', 'CZK'),
+    xmlTag('weight', String(PACKETA_DEFAULT_WEIGHT_KG))
+  ].join('');
+
+  const inner = xmlTag('apiPassword', env.PACKETA_API_PASSWORD) + `<packetAttributes>${attrs}</packetAttributes>`;
+  const text = await packetaCall(env, 'createPacket', inner);
+  const id = xmlField(text, 'id');
+  const barcode = xmlField(text, 'barcode');
+  if (!id) throw new Error(`Packeta createPacket: no id in response — ${text.slice(0, 300)}`);
+  return { id, barcode };
+}
+
+// Stáhne štítek jako PDF (base64 v odpovědi) pro dřív vytvořenou zásilku.
+async function getPacketaLabelPdf(env, packetaId) {
+  const inner = xmlTag('apiPassword', env.PACKETA_API_PASSWORD)
+    + xmlTag('packetId', packetaId)
+    + xmlTag('format', 'A6 on A4')
+    + xmlTag('offset', '0');
+  const text = await packetaCall(env, 'packetLabelPdf', inner);
+  const base64 = xmlField(text, 'string') || xmlField(text, 'packetLabelPdfResult');
+  if (!base64) throw new Error(`Packeta packetLabelPdf: no PDF in response — ${text.slice(0, 300)}`);
+  return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+}
+
 // ---------- admin ----------
 
 function isAdmin(request, env) {
@@ -752,7 +839,7 @@ async function listOrders(env, cors) {
     `SELECT id, order_number, variable_symbol, status, customer_name, customer_email, customer_phone,
        customer_street, customer_zip, customer_city, delivery_method, delivery_detail,
        payment_method, discount_code, note, subtotal, discount_amount, shipping_price,
-       total, created_at
+       total, created_at, packeta_id
      FROM orders ORDER BY created_at DESC LIMIT 200`
   ).all();
   const { results: items } = await env.DB.prepare(
@@ -846,24 +933,37 @@ async function updateOrderStatus(request, env, cors, orderId) {
   if (!body.status) return json({ error: 'missing_status' }, 400, cors);
   await env.DB.prepare('UPDATE orders SET status = ? WHERE id = ?').bind(body.status, orderId).run();
 
-  if (env.RESEND_API_KEY) {
+  const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
+
+  if (order && env.PACKETA_API_PASSWORD && body.status === 'zaplaceno'
+    && order.delivery_method.startsWith('zasilkovna-') && !order.packeta_id) {
+    // Selhání tady nesmí shodit samotnou změnu stavu — jde jen o vytvoření
+    // zásilky navíc, dá se řešit i ručně, kdyby Zásilkovna API nešla.
+    try {
+      const shipment = await createPacketaShipment(env, order);
+      await env.DB.prepare('UPDATE orders SET packeta_id = ?, packeta_barcode = ? WHERE id = ?')
+        .bind(shipment.id, shipment.barcode || null, orderId).run();
+      order.packeta_id = shipment.id;
+    } catch (err) {
+      console.error('createPacketaShipment failed', err);
+    }
+  }
+
+  if (order && env.RESEND_API_KEY) {
     // Stejně jako u potvrzení objednávky — selhání e-mailu nesmí shodit
     // samotnou změnu stavu, ta už je v databázi hotová.
     try {
-      const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
-      if (order) {
-        await sendStatusChangeEmail(env, order, body.status);
-        if (body.status === 'odeslano') {
-          const { results: items } = await env.DB.prepare(
-            'SELECT title, price, qty FROM order_items WHERE order_id = ?'
-          ).bind(orderId).all();
-          await sendInvoiceEmail(env, order, items);
-        }
-        if (body.status === 'hotovo' && !order.review_token) {
-          const token = crypto.randomUUID();
-          await env.DB.prepare('UPDATE orders SET review_token = ? WHERE id = ?').bind(token, orderId).run();
-          await sendReviewRequestEmail(env, order, token);
-        }
+      await sendStatusChangeEmail(env, order, body.status);
+      if (body.status === 'odeslano') {
+        const { results: items } = await env.DB.prepare(
+          'SELECT title, price, qty FROM order_items WHERE order_id = ?'
+        ).bind(orderId).all();
+        await sendInvoiceEmail(env, order, items);
+      }
+      if (body.status === 'hotovo' && !order.review_token) {
+        const token = crypto.randomUUID();
+        await env.DB.prepare('UPDATE orders SET review_token = ? WHERE id = ?').bind(token, orderId).run();
+        await sendReviewRequestEmail(env, order, token);
       }
     } catch (err) {
       console.error('order status email failed', err);
@@ -1035,6 +1135,20 @@ async function getOrderInvoice(env, cors, orderId) {
 
   return new Response(html, {
     headers: Object.assign({ 'Content-Type': 'text/html; charset=utf-8' }, cors)
+  });
+}
+
+async function getOrderLabel(env, cors, orderId) {
+  const order = await env.DB.prepare('SELECT order_number, packeta_id FROM orders WHERE id = ?').bind(orderId).first();
+  if (!order) return json({ error: 'not_found' }, 404, cors);
+  if (!order.packeta_id) return json({ error: 'no_shipment' }, 404, cors);
+
+  const pdfBytes = await getPacketaLabelPdf(env, order.packeta_id);
+  return new Response(pdfBytes, {
+    headers: Object.assign({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="stitek-${order.order_number}.pdf"`
+    }, cors)
   });
 }
 
