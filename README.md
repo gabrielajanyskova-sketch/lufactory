@@ -27,6 +27,7 @@ assets/js/qrcode.js            knihovna třetí strany pro QR platbu v košíku
 assets/img/                    fotky produktů a webu
 worker/                        Cloudflare Worker + D1 + KV — objednávky, sklad, admin API
 scripts/inline-css.py          viz "Úprava CSS" níže
+_headers                       cache-control pro Cloudflare Pages, viz "Nasazení" níže
 robots.txt, sitemap.xml, llms.txt   SEO/AI crawler soubory
 ```
 
@@ -82,6 +83,12 @@ sám přepne na mailto, takže se nic nikdy „nerozbije".
 - **Worker:** nasazuje se ručně, viz `worker/README.md` — `wrangler deploy`
   z tohohle prostředí nejde (síťové omezení), takže se kód vkládá přímo do
   Cloudflare dashboardu
+
+Soubor `_headers` v kořeni říká Cloudflare Pages, ať si HTML stránky a
+`assets/js/*` nikdy neukládá jako "starou verzi na později" v prohlížeči —
+vždycky se ověří, jestli není novější verze, takže se po nasazení nové
+verze hned projeví (fotky v `assets/img/` se naopak cachují dlouho, ty se
+skoro nemění).
 
 ## Další kroky / nápady
 
