@@ -1161,6 +1161,11 @@ body.lightbox-open { overflow: hidden; }
     border-radius: 8px; font-family: inherit; font-size: 1rem; color: var(--text); resize: vertical;
   }
   .order-actions { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; }
+  .packeta-error-note {
+    margin: 6px 0 0; font-size: 12px; color: #b5442e; white-space: normal;
+    max-width: 220px; overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
   .icon-btn-delete {
     width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: var(--white);
     color: var(--text-muted); font-size: 13px; cursor: pointer; display: flex; align-items: center;
@@ -1517,20 +1522,23 @@ body.lightbox-open { overflow: hidden; }
               order.customer_street + ', ' + order.customer_zip + ' ' + order.customer_city + '<br>' +
               order.customer_email + '<br>' + (order.customer_phone || '') + '</small></td>' +
             '<td>' + itemsHtml + '</td>' +
-            '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + order.delivery_detail + '</small>' : '') +
-              (order.packeta_error ? '<br><small style="color:#b5442e;">Zásilkovna: ' + escapeHtml(order.packeta_error) + '</small>' : '') +
-            '</td>' +
+            '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + order.delivery_detail + '</small>' : '') + '</td>' +
             '<td>' + formatPrice(order.total) + '</td>' +
             '<td><select data-order-id="' + order.id + '">' + statusOptions + '</select></td>' +
-            '<td><div class="order-actions">' +
-              '<button type="button" class="btn btn--outline save-btn" data-invoice-order="' + order.id + '" data-invoice-number="' + order.order_number + '">Faktura</button>' +
-              (order.packeta_id
-                ? '<button type="button" class="btn btn--outline save-btn" data-label-order="' + order.id + '">Štítek</button>'
-                : (order.delivery_method.indexOf('zasilkovna-') === 0
-                    ? '<button type="button" class="btn btn--outline save-btn" data-shipment-order="' + order.id + '">Vytvořit zásilku</button>'
-                    : '')) +
-              '<button type="button" class="icon-btn-delete" data-delete-order="' + order.id + '" title="Smazat objednávku">✕</button>' +
-            '</div></td>';
+            '<td>' +
+              '<div class="order-actions">' +
+                '<button type="button" class="btn btn--outline save-btn" data-invoice-order="' + order.id + '" data-invoice-number="' + order.order_number + '">Faktura</button>' +
+                (order.packeta_id
+                  ? '<button type="button" class="btn btn--outline save-btn" data-label-order="' + order.id + '">Štítek</button>'
+                  : (order.delivery_method.indexOf('zasilkovna-') === 0
+                      ? '<button type="button" class="btn btn--outline save-btn" data-shipment-order="' + order.id + '">Vytvořit zásilku</button>'
+                      : '')) +
+                '<button type="button" class="icon-btn-delete" data-delete-order="' + order.id + '" title="Smazat objednávku">✕</button>' +
+              '</div>' +
+              (order.packeta_error
+                ? '<p class="packeta-error-note" title="' + escapeHtml(order.packeta_error) + '">Zásilkovna: ' + escapeHtml(order.packeta_error) + '</p>'
+                : '') +
+            '</td>';
 
           tbody.appendChild(tr);
         });
