@@ -855,7 +855,10 @@ function buildInvoiceHtml(order, items) {
       <td style="padding:6px 8px;border-bottom:1px solid #e6dcc8;text-align:right;">${i.price * i.qty} Kč</td>
     </tr>`).join('');
 
-  const today = new Date().toLocaleDateString('cs-CZ');
+  // Datum vystavení = datum objednávky, ne datum kdy se faktura zrovna
+  // prohlíží/generuje — created_at je uložené jako UTC bez 'Z', bez toho
+  // by ho new Date() v některých enginech vzalo jako lokální čas.
+  const orderDate = new Date(order.created_at.replace(' ', 'T') + 'Z').toLocaleDateString('cs-CZ');
   const shippingInfo = SHIPPING[order.delivery_method];
   const shippingLabel = shippingInfo ? shippingInfo.label : order.delivery_method;
   const paymentLabel = order.payment_method === 'cash' ? 'Hotově při odběru' : 'Bankovním převodem';
@@ -864,7 +867,7 @@ function buildInvoiceHtml(order, items) {
 <html lang="cs"><head><meta charset="utf-8"><title>Faktura ${escapeHtml(order.order_number)}</title></head>
 <body style="font-family:Georgia,'Times New Roman',serif;color:#2e2419;max-width:640px;margin:0 auto;padding:32px;">
   <h1 style="font-size:22px;margin:0 0 4px;">Faktura č. ${escapeHtml(order.order_number)}</h1>
-  <p style="color:#786b58;margin:0 0 24px;">Datum vystavení: ${today}</p>
+  <p style="color:#786b58;margin:0 0 24px;">Datum vystavení: ${orderDate}</p>
 
   <table role="presentation" width="100%" style="margin-bottom:24px;">
     <tr>
