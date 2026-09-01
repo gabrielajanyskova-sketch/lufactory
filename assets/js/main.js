@@ -10,7 +10,45 @@ document.addEventListener('DOMContentLoaded', function () {
   if (document.getElementById('product-reviews-section')) wireProductReviews();
   wireHomepageReviews();
   wireScrollReveal();
+  wireStockNotifyForms();
 });
+
+// Formulář "Dej mi vědět, až bude skladem" — cart.js odkryje .stock-notify
+// box podle aktuálního skladu (viz applyStock), tahle funkce jen zapojí
+// odeslání. Volatelná znovu z produkty/produkt.html po vykreslení obsahu.
+function wireStockNotifyForms() {
+  document.querySelectorAll('.stock-notify-form').forEach(function (form) {
+    if (form.dataset.wired) return;
+    form.dataset.wired = 'true';
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var box = form.closest('[data-stock-notify]');
+      var productId = box && box.getAttribute('data-stock-notify');
+      var emailInput = form.querySelector('input[type="email"]');
+      if (!productId || !API_BASE) return;
+
+      var submitBtn = form.querySelector('button');
+      submitBtn.disabled = true;
+
+      fetch(API_BASE + '/api/stock-notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: productId, email: emailInput.value.trim() })
+      })
+        .then(function (r) { return r.ok; })
+        .catch(function () { return false; })
+        .then(function (ok) {
+          if (ok) {
+            form.hidden = true;
+            box.querySelector('.stock-notify-success').hidden = false;
+          } else {
+            submitBtn.disabled = false;
+          }
+        });
+    });
+  });
+}
 
 // Jemné zobrazení sekcí při scrollování dolů — hero (nad ohybem) zůstává bez
 // animace, aby se hned při načtení nic neschovávalo. Respektuje

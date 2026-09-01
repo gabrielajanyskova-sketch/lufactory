@@ -27,6 +27,16 @@ const SHIPPING = {
   'ppl-address': { label: 'PPL – doručení na adresu', price: 106 }
 };
 
+// Musí zůstat stejné jako STATIC_PRODUCT_IDS v assets/js/main.js — šest
+// původních produktů má vlastní stránku, zbytek generickou šablonu.
+const STATIC_PRODUCT_IDS = ['houbicka-mala', 'houbicka-stredni', 'houbicka-velka', 'houbicka-mix', 'peeling', 'cela-lufa'];
+
+function productPageUrl(productId) {
+  return STATIC_PRODUCT_IDS.includes(productId)
+    ? `${SITE_URL}/produkty/${productId}.html`
+    : `${SITE_URL}/produkty/produkt.html?id=${encodeURIComponent(productId)}`;
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -64,6 +74,9 @@ export default {
       }
       if (url.pathname === '/api/withdrawal' && request.method === 'POST') {
         return await submitWithdrawal(request, env, cors);
+      }
+      if (url.pathname === '/api/stock-notify' && request.method === 'POST') {
+        return await submitStockNotify(request, env, cors);
       }
 
       const reviewInviteMatch = url.pathname.match(/^\/api\/reviews\/invite\/([^/]+)$/);
@@ -678,6 +691,53 @@ async function deleteReview(env, cors, id) {
   return json({ ok: true }, 200, cors);
 }
 
+// ---------- upozornění na naskladnění ----------
+
+async function submitStockNotify(request, env, cors) {
+  const body = await request.json();
+  const productId = String(body.productId || '').trim();
+  const email = String(body.email || '').trim();
+  if (!productId || !email) return json({ error: 'missing_fields' }, 400, cors);
+
+  const product = await env.DB.prepare('SELECT product_id FROM products WHERE product_id = ?').bind(productId).first();
+  if (!product) return json({ error: 'unknown_product' }, 400, cors);
+
+  const existing = await env.DB.prepare(
+    'SELECT id FROM stock_notifications WHERE product_id = ? AND email = ? AND notified = 0'
+  ).bind(productId, email).first();
+  if (!existing) {
+    await env.DB.prepare(
+      'INSERT INTO stock_notifications (product_id, email) VALUES (?, ?)'
+    ).bind(productId, email).run();
+  }
+
+  return json({ ok: true }, 200, cors);
+}
+
+async function notifyBackInStock(env, productId) {
+  const product = await env.DB.prepare('SELECT title FROM products WHERE product_id = ?').bind(productId).first();
+  if (!product) return;
+  const { results } = await env.DB.prepare(
+    'SELECT id, email FROM stock_notifications WHERE product_id = ? AND notified = 0'
+  ).bind(productId).all();
+  if (!results.length) return;
+
+  const url = productPageUrl(productId);
+  for (const row of results) {
+    const html = emailLayout(`
+      <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">${escapeHtml(product.title)} je zpět skladem!</p>
+      <p style="margin:0;"><a href="${url}" style="display:inline-block;background:#81665b;color:#ffffff;padding:12px 24px;border-radius:999px;text-decoration:none;font-weight:600;">Zobrazit produkt</a></p>
+    `);
+    try {
+      await sendResendEmail(env, { to: row.email, subject: `${product.title} je zpět skladem — lufactory.cz`, html });
+    } catch (err) {
+      console.error('back-in-stock email failed for', row.email, err);
+      continue; // jedno selhání nesmí zastavit doručení ostatním
+    }
+    await env.DB.prepare('UPDATE stock_notifications SET notified = 1 WHERE id = ?').bind(row.id).run();
+  }
+}
+
 // ---------- admin ----------
 
 function isAdmin(request, env) {
@@ -1039,7 +1099,23 @@ async function updateProduct(request, env, cors, productId) {
   if (body.galleryUrls != null) { fields.push('gallery_urls = ?'); values.push(JSON.stringify(body.galleryUrls)); }
   if (fields.length === 0) return json({ error: 'nothing_to_update' }, 400, cors);
   values.push(productId);
+
+  let wasOutOfStock = false;
+  if (body.stockQty != null && Number(body.stockQty) > 0) {
+    const before = await env.DB.prepare('SELECT stock_qty FROM products WHERE product_id = ?').bind(productId).first();
+    wasOutOfStock = !!before && before.stock_qty <= 0;
+  }
+
   await env.DB.prepare(`UPDATE products SET ${fields.join(', ')} WHERE product_id = ?`).bind(...values).run();
+
+  if (wasOutOfStock && env.RESEND_API_KEY) {
+    try {
+      await notifyBackInStock(env, productId);
+    } catch (err) {
+      console.error('notifyBackInStock failed', err);
+    }
+  }
+
   return json({ ok: true }, 200, cors);
 }
 

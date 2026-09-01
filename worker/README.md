@@ -56,6 +56,9 @@ všech pěti místech současně.
 - `orders.review_token` a `orders.review_submitted_at` — jednorázový token
   pro odkaz na `recenze.html`, vygeneruje se při nastavení stavu objednávky
   na "Vyřízeno" a pošle se zákazníkovi e-mailem
+- **`stock_notifications`** — e-maily lidí, kteří chtějí vědět, až bude
+  vyprodaný produkt zase skladem (`product_id`, `email`, `notified`) — pošle
+  se automaticky, jakmile se v adminu zvýší sklad z 0 na víc
 
 U 6 původních ručně napsaných produktů (houbičky, peeling, celá lufa) zůstává
 zdroj pravdy pro vzhled/text jejich **vlastní stránky** v HTML

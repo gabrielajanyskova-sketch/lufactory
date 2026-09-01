@@ -817,6 +817,7 @@ body.lightbox-open { overflow: hidden; }
 .discount-message--error { color: var(--brown-dark); }
 .free-shipping-note { margin: 10px 0 0; font-size: 0.85rem; color: var(--text-muted); }
 .free-shipping-note--ok { color: var(--sage-dark); font-weight: 600; }
+.cart-reservation-note { margin: 10px 0 0; font-size: 0.8rem; color: var(--text-muted); }
 
 .option-group { display: grid; gap: 12px; margin-bottom: 8px; }
 .option-card {
@@ -986,6 +987,20 @@ body.lightbox-open { overflow: hidden; }
 .add-to-cart-row [data-add-to-cart] { flex: 1 1 auto; min-width: 0; text-align: center; }
 [data-add-to-cart]:disabled { opacity: 0.5; cursor: not-allowed; }
 [data-add-to-cart]:disabled:hover { background: transparent; color: var(--brown); }
+
+/* ---------- upozornění na naskladnění ---------- */
+.stock-notify { margin-top: 10px; }
+.stock-notify-form { display: flex; gap: 10px; flex-wrap: wrap; }
+.stock-notify-form input[type="email"] {
+  flex: 1 1 200px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.stock-notify-success { color: var(--sage-dark); font-weight: 600; margin: 4px 0 0; }
 
 /* ---------- scroll reveal ---------- */
 .fade-in-section {

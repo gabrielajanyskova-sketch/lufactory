@@ -128,6 +128,7 @@
       var addBtn = document.querySelector('[data-add-to-cart][data-id="' + id + '"]');
       var stepper = document.querySelector('[data-qty-for="' + id + '"]');
       var qtyInput = stepper ? stepper.querySelector('[data-qty-input]') : null;
+      var notifyBox = document.querySelector('[data-stock-notify="' + id + '"]');
       if (qty > 0) {
         el.textContent = 'Skladem: ' + qty + ' ks';
         el.className = 'stock-badge stock-badge--in';
@@ -141,6 +142,9 @@
             btn.disabled = false;
           });
         }
+        if (notifyBox) notifyBox.hidden = true;
+      } else if (notifyBox) {
+        notifyBox.hidden = false;
       }
     });
   }

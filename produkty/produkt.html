@@ -830,6 +830,7 @@ body.lightbox-open { overflow: hidden; }
 .discount-message--error { color: var(--brown-dark); }
 .free-shipping-note { margin: 10px 0 0; font-size: 0.85rem; color: var(--text-muted); }
 .free-shipping-note--ok { color: var(--sage-dark); font-weight: 600; }
+.cart-reservation-note { margin: 10px 0 0; font-size: 0.8rem; color: var(--text-muted); }
 
 .option-group { display: grid; gap: 12px; margin-bottom: 8px; }
 .option-card {
@@ -999,6 +1000,20 @@ body.lightbox-open { overflow: hidden; }
 .add-to-cart-row [data-add-to-cart] { flex: 1 1 auto; min-width: 0; text-align: center; }
 [data-add-to-cart]:disabled { opacity: 0.5; cursor: not-allowed; }
 [data-add-to-cart]:disabled:hover { background: transparent; color: var(--brown); }
+
+/* ---------- upozornění na naskladnění ---------- */
+.stock-notify { margin-top: 10px; }
+.stock-notify-form { display: flex; gap: 10px; flex-wrap: wrap; }
+.stock-notify-form input[type="email"] {
+  flex: 1 1 200px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.stock-notify-success { color: var(--sage-dark); font-weight: 600; margin: 4px 0 0; }
 
 /* ---------- scroll reveal ---------- */
 .fade-in-section {
@@ -1182,6 +1197,13 @@ body.lightbox-open { overflow: hidden; }
               '</div>' +
               '<button type="button" class="btn" data-add-to-cart data-id="' + id + '" data-name="' + p.title.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" disabled>Přidat do košíku</button>' +
             '</div>' +
+            '<div class="stock-notify" data-stock-notify="' + id + '" hidden>' +
+              '<form class="stock-notify-form">' +
+                '<input type="email" placeholder="Váš e-mail" required>' +
+                '<button type="submit" class="btn btn--outline">Dej mi vědět, až bude skladem</button>' +
+              '</form>' +
+              '<p class="stock-notify-success" hidden>Dáme vám vědět, až bude skladem!</p>' +
+            '</div>' +
           '</div>' +
         '</div>' +
         galleryHtml;
@@ -1195,6 +1217,7 @@ body.lightbox-open { overflow: hidden; }
       }
       if (typeof wireGalleryLightbox === 'function') wireGalleryLightbox();
       if (typeof wireProductReviews === 'function') wireProductReviews(id);
+      if (typeof wireStockNotifyForms === 'function') wireStockNotifyForms();
     })
     .catch(function () {
       root.innerHTML = '<p>Produkt se nepodařilo načíst. <a href="/produkty.html">Zpět na produkty</a></p>';
