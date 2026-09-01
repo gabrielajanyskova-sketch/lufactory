@@ -767,25 +767,33 @@ function xmlTag(name, value) {
   return value == null || value === '' ? '' : `<${name}>${xmlEscape(value)}</${name}>`;
 }
 
-// Packeta odpovídá jednoduchým XML (ne skutečná SOAP obálka) — kořenový
-// element je název volané metody, potomci jsou její parametry.
-async function packetaCall(env, method, innerXml) {
-  const body = `<?xml version="1.0" encoding="utf-8"?><${method}>${innerXml}</${method}>`;
+// Skutečný SOAP 1.1 endpoint (WSDL na https://www.zasilkovna.cz/api/soap.wsdl)
+// — bez obálky <soap:Envelope> server odpoví "VersionMismatch" faultem.
+async function packetaCall(env, method, paramsXml) {
+  const body = `<?xml version="1.0" encoding="UTF-8"?>`
+    + `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">`
+    + `<soap:Body><${method} xmlns="http://www.zasilkovna.cz/api/soap">${paramsXml}</${method}></soap:Body>`
+    + `</soap:Envelope>`;
   const res = await fetch(PACKETA_SOAP_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'text/xml; charset=utf-8' },
+    headers: {
+      'Content-Type': 'text/xml; charset=utf-8',
+      SOAPAction: `"http://www.zasilkovna.cz/api/soap#${method}"`
+    },
     body
   });
   const text = await res.text();
-  const fault = text.match(/<faultString>([\s\S]*?)<\/faultString>/) || text.match(/<string>([\s\S]*?)<\/string>/);
-  if (!res.ok || /<fault>|<status>fault<\/status>/.test(text)) {
+  const fault = text.match(/<faultstring[^>]*>([\s\S]*?)<\/faultstring>/i);
+  if (!res.ok || fault) {
     throw new Error(`Packeta ${method} error: ${fault ? fault[1] : text.slice(0, 300)}`);
   }
   return text;
 }
 
+// Tolerantní k namespace prefixu na tagu (např. <ns1:id>) — SOAP odpovědi
+// je běžně mívají, i když ho v požadavku neposíláme.
 function xmlField(text, tag) {
-  const m = text.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`));
+  const m = text.match(new RegExp(`<(?:[\\w-]+:)?${tag}[^>]*>([\\s\\S]*?)</(?:[\\w-]+:)?${tag}>`, 'i'));
   return m ? m[1] : null;
 }
 
