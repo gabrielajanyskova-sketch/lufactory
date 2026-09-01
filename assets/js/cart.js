@@ -45,6 +45,11 @@
   // → Klientská podpora) — jen pro výběr pobočky, ne pro podávání zásilek.
   var PACKETA_API_KEY = '284305c314c8d873';
 
+  // Číselné ID vybrané pobočky Zásilkovny — na rozdíl od textové adresy (jen
+  // pro zobrazení zákazníkovi) tohle potřebuje worker při vytváření zásilky
+  // přes Packeta API. Zruší se, pokud si zákazník adresu napíše ručně.
+  var selectedPickupPointId = null;
+
   // Účet pro QR platbu na stránce "Objednávka odeslána" — IBAN spočítaný
   // z 211573669/0300. Když se změní číslo účtu, přepočti IBAN znovu.
   var BANK_IBAN = 'CZ6503000000000211573669';
@@ -632,14 +637,23 @@
     }
 
     document.querySelectorAll('input[name="shipping"], input[name="payment"]').forEach(function (input) {
-      input.addEventListener('change', renderCartPage);
+      input.addEventListener('change', function () {
+        if (input.name === 'shipping') selectedPickupPointId = null;
+        renderCartPage();
+      });
     });
 
     var pickBranchBtn = document.getElementById('pick-branch-btn');
+    var addressInputEl = document.getElementById('c-address');
+    if (addressInputEl) {
+      // Ruční přepsání adresy znamená, že už neodpovídá vybranému ID pobočky.
+      addressInputEl.addEventListener('input', function () { selectedPickupPointId = null; });
+    }
     if (pickBranchBtn && typeof Packeta !== 'undefined') {
       pickBranchBtn.addEventListener('click', function () {
         Packeta.Widget.pick(PACKETA_API_KEY, function (point) {
           if (!point) return;
+          selectedPickupPointId = point.id;
           var addressInput = document.getElementById('c-address');
           if (addressInput) addressInput.value = point.name + ', ' + point.street + ', ' + point.city;
         }, { country: 'cz', language: 'cs' });
@@ -688,7 +702,7 @@
     var payload = {
       items: cart.map(function (i) { return { productId: i.id, qty: i.qty }; }),
       discountCode: getDiscountCode() || undefined,
-      delivery: { method: selectedShippingKey(), detail: valueOf('c-address') },
+      delivery: { method: selectedShippingKey(), detail: valueOf('c-address'), pickupPointId: selectedPickupPointId },
       payment: { method: selectedPaymentKey() },
       customer: billingDetails(),
       note: valueOf('c-note')

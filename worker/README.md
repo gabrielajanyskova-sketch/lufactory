@@ -46,7 +46,9 @@ všech pěti místech současně.
 - **`shipping_settings`** — jeden řádek (`id = 1`) s `active` a `threshold`:
   doprava zdarma nad danou částkou, nastavuje se v adminu (záložka
   "Slevové kódy")
-- **`orders`** — objednávky včetně fakturační adresy a `variable_symbol`
+- **`orders`** — objednávky včetně fakturační adresy a `variable_symbol`;
+  `pickup_point_id` je číselné ID pobočky Zásilkovny/PPL z widgetu (na rozdíl
+  od `delivery_detail`, což je jen adresa jako text pro zobrazení)
 - **`order_items`** — položky jednotlivých objednávek
 - **`withdrawal_requests`** — oznámení o odstoupení od smlouvy z formuláře na
   `obchodni-podminky.html` (jméno, e-mail, adresa, zboží, volitelně číslo

@@ -346,9 +346,9 @@ async function createOrder(request, env, cors) {
   const insert = await env.DB.prepare(
     `INSERT INTO orders (order_number, variable_symbol, status, customer_name, customer_email, customer_phone,
        customer_street, customer_zip, customer_city,
-       delivery_method, delivery_detail, payment_method, discount_code, note,
+       delivery_method, delivery_detail, pickup_point_id, payment_method, discount_code, note,
        subtotal, discount_amount, shipping_price, total)
-     VALUES (?, ?, 'nova', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+     VALUES (?, ?, 'nova', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).bind(
     orderNumber,
     variableSymbol,
@@ -360,6 +360,7 @@ async function createOrder(request, env, cors) {
     body.customer.city || '',
     body.delivery.method,
     body.delivery.detail || '',
+    body.delivery.pickupPointId || null,
     body.payment.method,
     (body.discountCode || '').toUpperCase() || null,
     body.note || '',
