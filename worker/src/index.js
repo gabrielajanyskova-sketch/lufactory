@@ -806,7 +806,10 @@ async function createPacketaShipment(env, order) {
   const surname = restName.join(' ') || firstName;
 
   const attrs = [
-    xmlTag('number', order.order_number),
+    // Čistě číselné — pomlčky a písmena v order_number (LF-2026...) by
+    // mohly spadat pod "Failed to validate attributes" stejně jako
+    // chybějící "eshop", tak radši interní číselné ID objednávky.
+    xmlTag('number', String(order.id)),
     xmlTag('name', firstName),
     xmlTag('surname', surname),
     xmlTag('email', order.customer_email),
@@ -816,7 +819,8 @@ async function createPacketaShipment(env, order) {
       : xmlTag('street', order.customer_street) + xmlTag('city', order.customer_city) + xmlTag('zip', order.customer_zip),
     xmlTag('value', String(order.total)),
     xmlTag('currency', 'CZK'),
-    xmlTag('weight', String(PACKETA_DEFAULT_WEIGHT_KG))
+    xmlTag('weight', String(PACKETA_DEFAULT_WEIGHT_KG)),
+    xmlTag('eshop', 'lufactory.cz')
   ].join('');
 
   const inner = xmlTag('apiPassword', env.PACKETA_API_PASSWORD) + `<packetAttributes>${attrs}</packetAttributes>`;
