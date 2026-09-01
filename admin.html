@@ -1901,10 +1901,14 @@ body.lightbox-open { overflow: hidden; }
         active: document.getElementById('free-shipping-active').checked,
         threshold: Number(document.getElementById('free-shipping-threshold').value) || 0
       })
-    }).then(function () {
-      msg.textContent = 'Uloženo.';
-      msg.className = 'status-msg ok';
-    });
+    })
+      .then(function (r) { return r.ok; })
+      .catch(function () { return false; })
+      .then(function (ok) {
+        msg.textContent = ok ? 'Uloženo.' : 'Uložení se nepovedlo, zkuste to prosím znovu.';
+        msg.className = ok ? 'status-msg ok' : 'status-msg err';
+        if (ok) loadShippingSettings();
+      });
   });
 
   function loadReviews() {
