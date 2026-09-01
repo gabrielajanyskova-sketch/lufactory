@@ -1,6 +1,9 @@
 const SITE_URL = 'https://www.lufactory.cz';
 
 const BANK_ACCOUNT = '211573669/0300';
+// IBAN spočítaný z BANK_ACCOUNT — musí zůstat stejné jako BANK_IBAN v
+// assets/js/cart.js. Mění se jen když se změní číslo účtu.
+const BANK_IBAN = 'CZ6503000000000211573669';
 
 const SELLER = {
   name: 'Ing. Nikola Drnková',
@@ -413,6 +416,14 @@ function emailLayout(innerHtml) {
 </body></html>`;
 }
 
+// Stejný SPD (Short Payment Descriptor) formát jako buildPaymentQrSvg v
+// assets/js/cart.js, jen vykreslený přes veřejné qrserver.com API místo
+// místní JS knihovny — e-mail neumí spustit JavaScript, potřebuje hotový obrázek.
+function paymentQrImageUrl(amount, variableSymbol) {
+  const spd = 'SPD*1.0*ACC:' + BANK_IBAN + '*AM:' + amount.toFixed(2) + '*CC:CZK*X-VS:' + variableSymbol + '*MSG:Lufactory';
+  return 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(spd);
+}
+
 function itemRowsHtml(items) {
   return items.map((i) => `<tr>
       <td style="padding:6px 0;border-bottom:1px solid #e6dcc8;">${escapeHtml(i.title)} &times; ${i.qty}</td>
@@ -458,7 +469,9 @@ async function sendOrderEmails(env, { orderNumber, variableSymbol, body, items, 
         ['Variabilní symbol', variableSymbol],
         ['Částka', `${total} Kč`]
       ])}
-    </table>`;
+    </table>
+    <img src="${paymentQrImageUrl(total, variableSymbol)}" width="180" height="180" alt="QR platba" style="display:block;margin:16px auto 0;">
+    <p style="margin:6px 0 0;font-size:13px;color:#786b58;text-align:center;">Naskenujte v bankovní appce — účet, částka i variabilní symbol se vyplní sami.</p>`;
 
   const customerHtml = emailLayout(`
     <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Děkujeme za objednávku č. <strong>${escapeHtml(orderNumber)}</strong>!</p>
