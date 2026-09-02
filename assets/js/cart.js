@@ -188,7 +188,25 @@
         }
         if (notifyBox) notifyBox.hidden = false;
       }
+      updateProductSchemaAvailability(id, qty > 0);
     });
+  }
+
+  // Statické stránky produktů mají schema.org Product/Offer natvrdo jako
+  // "InStock" — bez tohohle by Google mohl ukazovat "skladem" i u
+  // vyprodaného produktu, i když viditelný štítek už správně píše opak.
+  function updateProductSchemaAvailability(id, inStock) {
+    var script = document.querySelector('script[data-product-schema="' + id + '"]');
+    if (!script) return;
+    try {
+      var data = JSON.parse(script.textContent);
+      if (data.offers) {
+        data.offers.availability = inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+        script.textContent = JSON.stringify(data);
+      }
+    } catch (e) {
+      // poškozené schema.org data by neměly shodit zbytek stránky
+    }
   }
 
   // Produkty přidané v adminu (ne napevno v HTML) se sem doplní jako další

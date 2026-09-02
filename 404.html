@@ -1,3 +1,24 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stránka nenalezena | lufactory</title>
+<meta name="description" content="Tahle stránka neexistuje nebo byla přesunuta. Pokračujte na hlavní stránku lufactory.cz.">
+<meta name="robots" content="noindex, follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="lufactory">
+<meta property="og:locale" content="cs_CZ">
+<meta property="og:title" content="Stránka nenalezena | lufactory">
+<meta property="og:description" content="Tahle stránka neexistuje nebo byla přesunuta. Pokračujte na hlavní stránku lufactory.cz.">
+<meta property="og:image" content="https://www.lufactory.cz/assets/img/hero.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap"></noscript>
+<style>
 /* ==========================================================================
    lufactory.cz — design tokens
    ========================================================================== */
@@ -1085,3 +1106,76 @@ body.lightbox-open { overflow: hidden; }
   .qty-stepper input { width: 24px; font-size: 0.85rem; }
   .add-to-cart-row [data-add-to-cart] { padding-left: 14px; padding-right: 14px; font-size: 0.82rem; }
 }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <a href="/index.html" class="logo"><img src="/assets/img/logo.webp" alt="lufactory" width="200" height="84"></a>
+    <nav class="main-nav">
+      <ul>
+        <li><a href="/produkty.html">Produkty</a></li>
+        <li><a href="/index.html#o-mne">O mně</a></li>
+        <li><a href="/index.html#o-houbickach">Co je lufa</a></li>
+        <li><a href="/index.html#kontakt">Kontakt</a></li>
+      </ul>
+    </nav>
+    <div class="header-actions">
+      <button class="cart-toggle" aria-label="Košík" aria-haspopup="dialog" aria-controls="cart-panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 6h2l2.4 12.2a2 2 0 0 0 2 1.8h8.2a2 2 0 0 0 2-1.6L21 8H6"/>
+          <circle cx="10" cy="21" r="1"/>
+          <circle cx="18" cy="21" r="1"/>
+        </svg>
+        <span class="cart-count" hidden>0</span>
+      </button>
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false"><span class="nav-toggle-icon"></span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="section">
+    <div class="container">
+      <div class="not-found">
+        <p class="not-found-code">404</p>
+        <h1>Tahle stránka neexistuje</h1>
+        <p>Možná byla přesunuta, nebo je v adrese překlep. Zkuste to přes hlavní stránku nebo přehled produktů.</p>
+        <div class="not-found-actions">
+          <a href="/index.html" class="btn">Na hlavní stránku</a>
+          <a href="/produkty.html" class="btn btn--outline">Zobrazit produkty</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>&copy; 2026 lufactory — ručně vyráběné houbičky z lufy. <a href="mailto:info@lufactory.cz">info@lufactory.cz</a></p>
+    <p class="site-footer-legal">Ing. Nikola Drnková, IČO 09999035 · <a href="/obchodni-podminky.html">Obchodní podmínky</a> · <a href="/ochrana-osobnich-udaju.html">Ochrana osobních údajů</a></p>
+    <p class="site-footer-credit">Web: <a href="https://janyskovadigital.cz" target="_blank" rel="noopener">janyskovadigital.cz</a></p>
+  </div>
+</footer>
+
+<div class="cart-overlay"></div>
+<aside class="cart-panel" id="cart-panel" aria-label="Košík">
+  <div class="cart-header">
+    <h2>Košík</h2>
+    <button type="button" class="cart-close" aria-label="Zavřít košík">×</button>
+  </div>
+  <p class="cart-empty">Košík je zatím prázdný.</p>
+  <ul class="cart-items"></ul>
+  <div class="cart-footer" hidden>
+    <div class="cart-total">
+      <span>Celkem</span>
+      <span class="cart-total-value">0 Kč</span>
+    </div>
+    <a href="/kosik.html" class="btn cart-checkout">Pokračovat do košíku</a>
+  </div>
+</aside>
+
+<script src="/assets/js/cart.js"></script>
+<script src="/assets/js/main.js"></script>
+</body>
+</html>
