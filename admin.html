@@ -1209,8 +1209,15 @@ body.lightbox-open { overflow: hidden; }
 
 <div id="admin-login" class="admin-login">
   <h2>Přihlášení</h2>
-  <input type="password" id="admin-password" placeholder="Heslo">
-  <button type="button" class="btn" id="login-btn" style="width:100%;">Přihlásit</button>
+  <div id="login-step-password">
+    <input type="password" id="admin-password" placeholder="Heslo">
+    <button type="button" class="btn" id="login-btn" style="width:100%;">Přihlásit</button>
+  </div>
+  <div id="login-step-code" hidden>
+    <p style="margin:0 0 10px;font-size:14px;color:var(--text-muted);">Poslali jsme kód na e-mail, platí 10 minut.</p>
+    <input type="text" id="admin-code" placeholder="Kód z e-mailu" inputmode="numeric" maxlength="6">
+    <button type="button" class="btn" id="verify-code-btn" style="width:100%;">Potvrdit kód</button>
+  </div>
   <p class="admin-error" id="login-error"></p>
 </div>
 
@@ -1400,6 +1407,22 @@ body.lightbox-open { overflow: hidden; }
     return div.innerHTML;
   }
 
+  var pendingLoginId = '';
+
+  function showPasswordStep() {
+    document.getElementById('login-step-password').hidden = false;
+    document.getElementById('login-step-code').hidden = true;
+  }
+
+  function showCodeStep(loginId) {
+    pendingLoginId = loginId;
+    document.getElementById('login-step-password').hidden = true;
+    document.getElementById('login-step-code').hidden = false;
+    document.getElementById('login-error').textContent = '';
+    document.getElementById('admin-code').value = '';
+    document.getElementById('admin-code').focus();
+  }
+
   function showApp() {
     document.getElementById('admin-login').hidden = true;
     document.getElementById('admin-app').hidden = false;
@@ -1412,8 +1435,25 @@ body.lightbox-open { overflow: hidden; }
     document.getElementById('admin-login').hidden = false;
     document.getElementById('admin-app').hidden = true;
     document.getElementById('logout-btn').hidden = true;
+    document.getElementById('admin-password').value = '';
+    pendingLoginId = '';
+    showPasswordStep();
     document.getElementById('login-error').textContent = message || '';
   }
+
+  // Přihlášení teď má reálné vypršení (viz worker) — ať se 401 stane
+  // kdekoliv na stránce, ne jen v jedné konkrétní funkci, znamená to vždycky
+  // totéž: token vypršel nebo je neplatný, tak zpátky na přihlášení.
+  var realFetch = window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    return realFetch(input, init).then(function (r) {
+      var url = typeof input === 'string' ? input : (input && input.url) || '';
+      if (r.status === 401 && url.indexOf('/api/admin/') !== -1 && url.indexOf('/api/admin/login') === -1) {
+        showLogin('Přihlášení vypršelo, přihlaste se znovu.');
+      }
+      return r;
+    });
+  };
 
   document.getElementById('login-btn').addEventListener('click', function () {
     var password = document.getElementById('admin-password').value;
@@ -1425,9 +1465,8 @@ body.lightbox-open { overflow: hidden; }
     })
       .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
       .then(function (res) {
-        if (res.ok && res.data.ok) {
-          localStorage.setItem(TOKEN_KEY, password);
-          showApp();
+        if (res.ok && res.data.ok && res.data.requiresCode) {
+          showCodeStep(res.data.loginId);
         } else if (res.data && res.data.error === 'too_many_attempts') {
           showLogin('Příliš mnoho pokusů o přihlášení. Zkuste to znovu za 15 minut.');
         } else {
@@ -1441,7 +1480,36 @@ body.lightbox-open { overflow: hidden; }
     if (e.key === 'Enter') document.getElementById('login-btn').click();
   });
 
+  document.getElementById('verify-code-btn').addEventListener('click', function () {
+    var code = document.getElementById('admin-code').value.trim();
+    if (!code) return;
+    fetch(API_BASE + '/api/admin/verify-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ loginId: pendingLoginId, code: code })
+    })
+      .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+      .then(function (res) {
+        if (res.ok && res.data.ok) {
+          localStorage.setItem(TOKEN_KEY, res.data.token);
+          showApp();
+        } else if (res.data && res.data.error === 'code_expired') {
+          showLogin('Platnost kódu vypršela, přihlaste se znovu.');
+        } else if (res.data && res.data.error === 'too_many_attempts') {
+          showLogin('Příliš mnoho pokusů o zadání kódu, přihlaste se znovu.');
+        } else {
+          document.getElementById('login-error').textContent = 'Nesprávný kód.';
+        }
+      })
+      .catch(function () { document.getElementById('login-error').textContent = 'Ověření se nezdařilo, zkuste to znovu.'; });
+  });
+
+  document.getElementById('admin-code').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') document.getElementById('verify-code-btn').click();
+  });
+
   document.getElementById('logout-btn').addEventListener('click', function () {
+    fetch(API_BASE + '/api/admin/logout', { method: 'POST', headers: authHeaders() }).catch(function () {});
     localStorage.removeItem(TOKEN_KEY);
     showLogin();
   });

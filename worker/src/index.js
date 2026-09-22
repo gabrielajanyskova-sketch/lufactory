@@ -66,7 +66,7 @@ export default {
         return await getShippingSettingsRoute(env, cors);
       }
       if (url.pathname === '/api/admin/shipping-settings' && request.method === 'PATCH') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await updateShippingSettings(request, env, cors);
       }
       if (url.pathname === '/api/orders' && request.method === 'POST') {
@@ -94,60 +94,66 @@ export default {
         return await getProductReviews(env, cors, decodeURIComponent(productReviewsMatch[1]));
       }
       if (url.pathname === '/api/admin/reviews' && request.method === 'GET') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await listAdminReviews(env, cors);
       }
       const reviewAdminMatch = url.pathname.match(/^\/api\/admin\/reviews\/(\d+)$/);
       if (reviewAdminMatch && request.method === 'PATCH') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await updateReviewStatus(request, env, cors, Number(reviewAdminMatch[1]));
       }
       if (reviewAdminMatch && request.method === 'DELETE') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await deleteReview(env, cors, Number(reviewAdminMatch[1]));
       }
 
       if (url.pathname === '/api/admin/login' && request.method === 'POST') {
         return await handleAdminLogin(request, env, cors);
       }
+      if (url.pathname === '/api/admin/verify-code' && request.method === 'POST') {
+        return await handleAdminVerifyCode(request, env, cors);
+      }
+      if (url.pathname === '/api/admin/logout' && request.method === 'POST') {
+        return await handleAdminLogout(request, env, cors);
+      }
       if (url.pathname === '/api/admin/orders' && request.method === 'GET') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await listOrders(env, cors);
       }
       if (url.pathname === '/api/admin/orders-export.csv' && request.method === 'GET') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await exportOrdersCsv(env, cors);
       }
       const orderInvoiceMatch = url.pathname.match(/^\/api\/admin\/orders\/(\d+)\/invoice$/);
       if (orderInvoiceMatch && request.method === 'GET') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await getOrderInvoice(env, cors, Number(orderInvoiceMatch[1]));
       }
       const orderStatusMatch = url.pathname.match(/^\/api\/admin\/orders\/(\d+)$/);
       if (orderStatusMatch && request.method === 'PATCH') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await updateOrderStatus(request, env, cors, Number(orderStatusMatch[1]));
       }
       if (orderStatusMatch && request.method === 'DELETE') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await deleteOrder(env, cors, Number(orderStatusMatch[1]));
       }
       if (url.pathname === '/api/admin/products' && request.method === 'POST') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await createProduct(request, env, cors);
       }
       const productMatch = url.pathname.match(/^\/api\/admin\/products\/([^/]+)$/);
       if (productMatch && request.method === 'PATCH') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await updateProduct(request, env, cors, decodeURIComponent(productMatch[1]));
       }
       if (productMatch && request.method === 'DELETE') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await deleteProduct(env, cors, decodeURIComponent(productMatch[1]));
       }
       const imageUploadMatch = url.pathname.match(/^\/api\/admin\/products\/([^/]+)\/image$/);
       if (imageUploadMatch && request.method === 'POST') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await uploadProductImage(request, env, cors, decodeURIComponent(imageUploadMatch[1]));
       }
       const imageServeMatch = url.pathname.match(/^\/api\/images\/(.+)$/);
@@ -156,20 +162,20 @@ export default {
       }
 
       if (url.pathname === '/api/admin/discounts' && request.method === 'GET') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await listDiscountCodes(env, cors);
       }
       if (url.pathname === '/api/admin/discounts' && request.method === 'POST') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await createDiscountCode(request, env, cors);
       }
       const discountAdminMatch = url.pathname.match(/^\/api\/admin\/discounts\/([^/]+)$/);
       if (discountAdminMatch && request.method === 'PATCH') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await updateDiscountCode(request, env, cors, decodeURIComponent(discountAdminMatch[1]));
       }
       if (discountAdminMatch && request.method === 'DELETE') {
-        if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await deleteDiscountCode(env, cors, decodeURIComponent(discountAdminMatch[1]));
       }
 
@@ -738,10 +744,20 @@ async function notifyBackInStock(env, productId) {
 
 // ---------- admin ----------
 
-function isAdmin(request, env) {
+// Přihlášení do adminu je token vydaný workerem po ověření hesla + kódu,
+// ne heslo samotné — vyprší, dá se kdykoliv zneplatnit odhlášením a je
+// jiný než ADMIN_PASSWORD, takže i kdyby unikl, sám o sobě heslo neprozradí.
+async function isAdmin(request, env) {
   const auth = request.headers.get('Authorization') || '';
   const token = auth.replace(/^Bearer\s+/i, '');
-  return !!env.ADMIN_PASSWORD && token === env.ADMIN_PASSWORD;
+  if (!token) return false;
+  const row = await env.DB.prepare('SELECT expires_at FROM admin_sessions WHERE token = ?').bind(token).first();
+  if (!row) return false;
+  if (new Date(row.expires_at).getTime() < Date.now()) {
+    await env.DB.prepare('DELETE FROM admin_sessions WHERE token = ?').bind(token).run();
+    return false;
+  }
+  return true;
 }
 
 // Ochrana přihlášení do adminu proti zkoušení hesel dokola — ne přes
@@ -749,6 +765,20 @@ function isAdmin(request, env) {
 // přes tabulku v D1, co už tak jako tak máme napojenou.
 const LOGIN_ATTEMPT_LIMIT = 8;
 const LOGIN_ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
+
+// Druhý krok přihlášení — jednorázový kód e-mailem, aby samotné uniklé
+// heslo nestačilo. Kód platí 10 minut, session pak 24 hodin.
+const LOGIN_CODE_TTL_MS = 10 * 60 * 1000;
+const LOGIN_CODE_MAX_ATTEMPTS = 5;
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+
+function randomToken() {
+  return crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+}
+
+function randomLoginCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
 
 async function handleAdminLogin(request, env, cors) {
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
@@ -767,20 +797,80 @@ async function handleAdminLogin(request, env, cors) {
   const body = await request.json();
   const ok = !!env.ADMIN_PASSWORD && body.password === env.ADMIN_PASSWORD;
 
-  if (ok) {
-    if (row) await env.DB.prepare('DELETE FROM login_attempts WHERE ip = ?').bind(ip).run();
-    return json({ ok: true }, 200, cors);
+  if (!ok) {
+    if (windowActive) {
+      await env.DB.prepare('UPDATE login_attempts SET attempt_count = attempt_count + 1 WHERE ip = ?').bind(ip).run();
+    } else {
+      await env.DB.prepare(
+        `INSERT INTO login_attempts (ip, attempt_count, window_start) VALUES (?, 1, datetime('now'))
+         ON CONFLICT(ip) DO UPDATE SET attempt_count = 1, window_start = datetime('now')`
+      ).bind(ip).run();
+    }
+    return json({ ok: false }, 401, cors);
   }
 
-  if (windowActive) {
-    await env.DB.prepare('UPDATE login_attempts SET attempt_count = attempt_count + 1 WHERE ip = ?').bind(ip).run();
-  } else {
-    await env.DB.prepare(
-      `INSERT INTO login_attempts (ip, attempt_count, window_start) VALUES (?, 1, datetime('now'))
-       ON CONFLICT(ip) DO UPDATE SET attempt_count = 1, window_start = datetime('now')`
-    ).bind(ip).run();
+  if (row) await env.DB.prepare('DELETE FROM login_attempts WHERE ip = ?').bind(ip).run();
+
+  const loginId = crypto.randomUUID();
+  const code = randomLoginCode();
+  const expiresAt = new Date(Date.now() + LOGIN_CODE_TTL_MS).toISOString();
+  await env.DB.prepare(
+    'INSERT INTO login_codes (login_id, code, expires_at, attempts) VALUES (?, ?, ?, 0)'
+  ).bind(loginId, code, expiresAt).run();
+
+  if (env.RESEND_API_KEY && env.SHOP_NOTIFICATION_EMAIL) {
+    await sendResendEmail(env, {
+      to: env.SHOP_NOTIFICATION_EMAIL,
+      subject: 'Přihlašovací kód do adminu lufactory.cz',
+      html: emailLayout(`
+        <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Kód pro dokončení přihlášení do adminu:</p>
+        <p style="margin:0 0 16px;font-size:28px;font-weight:bold;letter-spacing:6px;color:#81665b;">${code}</p>
+        <p style="margin:0;font-size:13px;color:#786b58;">Platí 10 minut. Pokud jste se nepokoušeli přihlásit, kód nikomu nedávejte a heslo do adminu si radši změňte.</p>
+      `)
+    });
   }
-  return json({ ok: false }, 401, cors);
+
+  return json({ ok: true, requiresCode: true, loginId }, 200, cors);
+}
+
+async function handleAdminVerifyCode(request, env, cors) {
+  const body = await request.json();
+  const loginId = String(body.loginId || '');
+  const code = String(body.code || '').trim();
+  if (!loginId || !code) return json({ error: 'missing_fields' }, 400, cors);
+
+  const row = await env.DB.prepare(
+    'SELECT code, expires_at, attempts FROM login_codes WHERE login_id = ?'
+  ).bind(loginId).first();
+  if (!row) return json({ error: 'invalid_code' }, 401, cors);
+
+  if (new Date(row.expires_at).getTime() < Date.now()) {
+    await env.DB.prepare('DELETE FROM login_codes WHERE login_id = ?').bind(loginId).run();
+    return json({ error: 'code_expired' }, 401, cors);
+  }
+  if (row.attempts >= LOGIN_CODE_MAX_ATTEMPTS) {
+    await env.DB.prepare('DELETE FROM login_codes WHERE login_id = ?').bind(loginId).run();
+    return json({ error: 'too_many_attempts' }, 429, cors);
+  }
+  if (row.code !== code) {
+    await env.DB.prepare('UPDATE login_codes SET attempts = attempts + 1 WHERE login_id = ?').bind(loginId).run();
+    return json({ error: 'invalid_code' }, 401, cors);
+  }
+
+  await env.DB.prepare('DELETE FROM login_codes WHERE login_id = ?').bind(loginId).run();
+
+  const token = randomToken();
+  const expiresAt = new Date(Date.now() + SESSION_TTL_MS).toISOString();
+  await env.DB.prepare('INSERT INTO admin_sessions (token, expires_at) VALUES (?, ?)').bind(token, expiresAt).run();
+
+  return json({ ok: true, token }, 200, cors);
+}
+
+async function handleAdminLogout(request, env, cors) {
+  const auth = request.headers.get('Authorization') || '';
+  const token = auth.replace(/^Bearer\s+/i, '');
+  if (token) await env.DB.prepare('DELETE FROM admin_sessions WHERE token = ?').bind(token).run();
+  return json({ ok: true }, 200, cors);
 }
 
 async function listOrders(env, cors) {
