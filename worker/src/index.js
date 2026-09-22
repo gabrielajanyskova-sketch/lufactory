@@ -512,7 +512,7 @@ async function sendOrderEmails(env, { orderNumber, variableSymbol, body, items, 
         ['E-mail', escapeHtml(body.customer.email)],
         ['Telefon', escapeHtml(body.customer.phone || '-')],
         ['Doprava', `${escapeHtml(shipping.label)}${body.delivery.detail ? ' — ' + escapeHtml(body.delivery.detail) : ''}`],
-        ['Platba', escapeHtml(body.payment.method)],
+        ['Platba', isCash ? 'Hotově při odběru' : 'Bankovním převodem'],
         ['Poznámka', escapeHtml(body.note || '-')]
       ])}
     </table>
