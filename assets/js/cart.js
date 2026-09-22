@@ -687,7 +687,9 @@
               // splnit), místo toho jasně říct, co se změnilo, a dotáhnout
               // čerstvý stav skladu (loadStock → reconcileCartWithStock
               // množství rovnou opraví).
-              showStockToast('Mezitím došel sklad u některé položky v košíku — množství jsme upravili.');
+              var changedItem = getCart().find(function (i) { return i.id === res.data.productId; });
+              var changedName = changedItem ? changedItem.name : 'položka v košíku';
+              showStockToast('Mezitím došlo zboží — ' + changedName + '. Množství jsme upravili podle skladu.');
               loadStock();
             } else {
               window.location.href = buildOrderMailto();
