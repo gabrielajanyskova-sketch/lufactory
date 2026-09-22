@@ -768,7 +768,10 @@ async function listOrders(env, cors) {
 // Středník, ne čárka — český Excel s čárkou jako oddělovačem nepočítá a
 // naskládá celý řádek do jednoho sloupce.
 function csvEscape(value) {
-  const str = String(value == null ? '' : value);
+  let str = String(value == null ? '' : value);
+  // Zabránit CSV/formula injection — jméno/adresa začínající na =, +, -, @
+  // by se v Excelu/Sheets mohlo vykonat jako vzorec.
+  if (/^[=+\-@]/.test(str)) str = "'" + str;
   if (/["\n;]/.test(str)) return '"' + str.replace(/"/g, '""') + '"';
   return str;
 }

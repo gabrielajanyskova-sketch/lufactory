@@ -1498,7 +1498,7 @@ body.lightbox-open { overflow: hidden; }
           var tr = document.createElement('tr');
 
           var itemsHtml = '<div class="order-items-list">' + order.items.map(function (i) {
-            return '<div class="order-item-row"><span class="nowrap-cell">' + i.title + '</span><span class="order-item-qty">' + i.qty + ' ks</span></div>';
+            return '<div class="order-item-row"><span class="nowrap-cell">' + escapeHtml(i.title) + '</span><span class="order-item-qty">' + i.qty + ' ks</span></div>';
           }).join('') + '</div>';
 
           var statusOptions = ORDER_STATUSES.map(function (s) {
@@ -1511,11 +1511,11 @@ body.lightbox-open { overflow: hidden; }
             '<td class="nowrap-cell">' + order.order_number + '</td>' +
             '<td class="nowrap-cell">' + (order.variable_symbol || '') + '</td>' +
             '<td class="nowrap-cell">' + (order.created_at || '').replace('T', ' ').slice(0, 16) + '</td>' +
-            '<td>' + order.customer_name + '<br><small>' +
-              order.customer_street + ', ' + order.customer_zip + ' ' + order.customer_city + '<br>' +
-              order.customer_email + '<br>' + (order.customer_phone || '') + '</small></td>' +
+            '<td>' + escapeHtml(order.customer_name) + '<br><small>' +
+              escapeHtml(order.customer_street) + ', ' + escapeHtml(order.customer_zip) + ' ' + escapeHtml(order.customer_city) + '<br>' +
+              escapeHtml(order.customer_email) + '<br>' + escapeHtml(order.customer_phone || '') + '</small></td>' +
             '<td>' + itemsHtml + '</td>' +
-            '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + order.delivery_detail + '</small>' : '') + '</td>' +
+            '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + escapeHtml(order.delivery_detail) + '</small>' : '') + '</td>' +
             '<td>' + formatPrice(order.total) + '</td>' +
             '<td><select data-order-id="' + order.id + '">' + statusOptions + '</select></td>' +
             '<td><div class="order-actions">' +
