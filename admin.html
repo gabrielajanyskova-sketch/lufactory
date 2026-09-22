@@ -1428,6 +1428,8 @@ body.lightbox-open { overflow: hidden; }
         if (res.ok && res.data.ok) {
           localStorage.setItem(TOKEN_KEY, password);
           showApp();
+        } else if (res.data && res.data.error === 'too_many_attempts') {
+          showLogin('Příliš mnoho pokusů o přihlášení. Zkuste to znovu za 15 minut.');
         } else {
           showLogin('Nesprávné heslo.');
         }

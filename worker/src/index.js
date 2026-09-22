@@ -108,9 +108,7 @@ export default {
       }
 
       if (url.pathname === '/api/admin/login' && request.method === 'POST') {
-        const body = await request.json();
-        const ok = !!env.ADMIN_PASSWORD && body.password === env.ADMIN_PASSWORD;
-        return json({ ok }, ok ? 200 : 401, cors);
+        return await handleAdminLogin(request, env, cors);
       }
       if (url.pathname === '/api/admin/orders' && request.method === 'GET') {
         if (!isAdmin(request, env)) return json({ error: 'unauthorized' }, 401, cors);
@@ -744,6 +742,45 @@ function isAdmin(request, env) {
   const auth = request.headers.get('Authorization') || '';
   const token = auth.replace(/^Bearer\s+/i, '');
   return !!env.ADMIN_PASSWORD && token === env.ADMIN_PASSWORD;
+}
+
+// Ochrana přihlášení do adminu proti zkoušení hesel dokola — ne přes
+// Cloudflare WAF (nastavuje se ručně v dashboardu), ale rovnou ve workeru,
+// přes tabulku v D1, co už tak jako tak máme napojenou.
+const LOGIN_ATTEMPT_LIMIT = 8;
+const LOGIN_ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
+
+async function handleAdminLogin(request, env, cors) {
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const now = Date.now();
+
+  const row = await env.DB.prepare(
+    'SELECT attempt_count, window_start FROM login_attempts WHERE ip = ?'
+  ).bind(ip).first();
+  const windowActive = !!row
+    && (now - new Date(row.window_start.replace(' ', 'T') + 'Z').getTime()) < LOGIN_ATTEMPT_WINDOW_MS;
+
+  if (windowActive && row.attempt_count >= LOGIN_ATTEMPT_LIMIT) {
+    return json({ error: 'too_many_attempts' }, 429, cors);
+  }
+
+  const body = await request.json();
+  const ok = !!env.ADMIN_PASSWORD && body.password === env.ADMIN_PASSWORD;
+
+  if (ok) {
+    if (row) await env.DB.prepare('DELETE FROM login_attempts WHERE ip = ?').bind(ip).run();
+    return json({ ok: true }, 200, cors);
+  }
+
+  if (windowActive) {
+    await env.DB.prepare('UPDATE login_attempts SET attempt_count = attempt_count + 1 WHERE ip = ?').bind(ip).run();
+  } else {
+    await env.DB.prepare(
+      `INSERT INTO login_attempts (ip, attempt_count, window_start) VALUES (?, 1, datetime('now'))
+       ON CONFLICT(ip) DO UPDATE SET attempt_count = 1, window_start = datetime('now')`
+    ).bind(ip).run();
+  }
+  return json({ ok: false }, 401, cors);
 }
 
 async function listOrders(env, cors) {

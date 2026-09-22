@@ -59,6 +59,10 @@ všech pěti místech současně.
 - **`stock_notifications`** — e-maily lidí, kteří chtějí vědět, až bude
   vyprodaný produkt zase skladem (`product_id`, `email`, `notified`) — pošle
   se automaticky, jakmile se v adminu zvýší sklad z 0 na víc
+- **`login_attempts`** — ochrana přihlášení do adminu proti zkoušení hesel
+  dokola (`ip`, `attempt_count`, `window_start`): po 8 špatných pokusech z
+  jedné IP během 15 minut worker přihlášení dočasně odmítne, i se správným
+  heslem — vytvoř SQL příkazem níže, jinak přihlašování skončí chybou
 
 U 6 původních ručně napsaných produktů (houbičky, peeling, celá lufa) zůstává
 zdroj pravdy pro vzhled/text jejich **vlastní stránky** v HTML
