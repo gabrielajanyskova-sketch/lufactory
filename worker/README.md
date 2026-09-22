@@ -6,7 +6,13 @@ Resend, fotky produktů ve Workers KV, a admin API pro `/admin.html`.
 
 Dokud tenhle worker neběží (nebo je nedostupný), web funguje dál na mailto —
 tlačítko "Odeslat objednávku" otevře e-mailový klient místo živého API, takže
-se nic nikdy „nerozbije".
+se nic nikdy „nerozbije". Stejný fallback na mailto má i kontaktní formulář
+na hlavní stránce (`/api/contact`) — ten se na rozdíl od objednávek a
+odstoupení od smlouvy nikam neukládá, jen se rovnou pošle e-mailem na
+`SHOP_NOTIFICATION_EMAIL` s nastaveným reply-to na e-mail zákazníka (takže
+odpověď z e-mailového klienta jde rovnou jemu), a když se poslání nepovede,
+worker to nahlásí jako chybu, aby prohlížeč spadl zpátky na mailto místo
+tichého ztracení dotazu.
 
 ## Nasazení
 

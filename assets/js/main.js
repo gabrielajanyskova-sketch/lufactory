@@ -96,19 +96,47 @@ function wireContactForm() {
   var form = document.querySelector('.contact-form');
   if (!form) return;
 
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var name = form.name.value.trim();
-    var email = form.email.value.trim();
-    var message = form.message.value.trim();
-
-    var bodyLines = ['Jméno: ' + name, 'E-mail: ' + email, '', message];
-
-    var mailto = 'mailto:info@lufactory.cz'
+  function buildContactMailto() {
+    var bodyLines = ['Jméno: ' + form.name.value.trim(), 'E-mail: ' + form.email.value.trim(), '', form.message.value.trim()];
+    return 'mailto:info@lufactory.cz'
       + '?subject=' + encodeURIComponent('Dotaz z webu')
       + '&body=' + encodeURIComponent(bodyLines.join('\n'));
+  }
 
-    window.location.href = mailto;
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!form.reportValidity()) return;
+
+    if (!API_BASE) {
+      window.location.href = buildContactMailto();
+      return;
+    }
+
+    var submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Odesílám…';
+
+    fetch(API_BASE + '/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: form.name.value.trim(),
+        email: form.email.value.trim(),
+        message: form.message.value.trim()
+      })
+    })
+      .then(function (r) { return r.ok; })
+      .catch(function () { return false; })
+      .then(function (ok) {
+        if (ok) {
+          form.hidden = true;
+          document.getElementById('contact-success').hidden = false;
+        } else {
+          window.location.href = buildContactMailto();
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Odeslat dotaz';
+        }
+      });
   });
 }
 

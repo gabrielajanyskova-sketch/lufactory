@@ -75,6 +75,9 @@ export default {
       if (url.pathname === '/api/withdrawal' && request.method === 'POST') {
         return await submitWithdrawal(request, env, cors);
       }
+      if (url.pathname === '/api/contact' && request.method === 'POST') {
+        return await submitContact(request, env, cors);
+      }
       if (url.pathname === '/api/stock-notify' && request.method === 'POST') {
         return await submitStockNotify(request, env, cors);
       }
@@ -594,6 +597,47 @@ async function sendWithdrawalEmails(env, { name, email, address, orderNumber, re
     subject: 'Odstoupení od smlouvy jsme přijali — lufactory.cz',
     html: customerHtml
   });
+}
+
+// ---------- kontaktní formulář ----------
+
+async function submitContact(request, env, cors) {
+  const body = await request.json();
+  const name = String(body.name || '').trim();
+  const email = String(body.email || '').trim();
+  const message = String(body.message || '').trim();
+
+  if (!name || !email || !message) {
+    return json({ error: 'missing_fields' }, 400, cors);
+  }
+  if (!env.RESEND_API_KEY || !env.SHOP_NOTIFICATION_EMAIL) {
+    return json({ error: 'mail_not_configured' }, 503, cors);
+  }
+
+  try {
+    await sendResendEmail(env, {
+      to: env.SHOP_NOTIFICATION_EMAIL,
+      subject: 'Dotaz z webu — ' + name,
+      replyTo: email,
+      html: emailLayout(`
+        <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Dotaz z kontaktního formuláře</p>
+        <table role="presentation" width="100%" style="border-collapse:collapse;font-size:14px;margin-bottom:16px;">
+          ${totalsRowsHtml([
+            ['Jméno', escapeHtml(name)],
+            ['E-mail', escapeHtml(email)]
+          ])}
+        </table>
+        <p style="white-space:pre-wrap;margin:0;">${escapeHtml(message)}</p>
+      `)
+    });
+  } catch (err) {
+    // Nic neukládáme do databáze — ať zákazník dostane šanci to poslat
+    // jinak (mailto), místo aby se dotaz beze stopy ztratil.
+    console.error('contact email failed', err);
+    return json({ error: 'send_failed' }, 502, cors);
+  }
+
+  return json({ ok: true }, 200, cors);
 }
 
 // ---------- recenze ----------
@@ -1323,9 +1367,10 @@ async function deleteDiscountCode(env, cors, code) {
   return json({ ok: true }, 200, cors);
 }
 
-async function sendResendEmail(env, { to, subject, html, attachments = null }) {
+async function sendResendEmail(env, { to, subject, html, attachments = null, replyTo = null }) {
   const payload = { from: env.MAIL_FROM, to: [to], subject, html };
   if (attachments) payload.attachments = attachments;
+  if (replyTo) payload.reply_to = replyTo;
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
