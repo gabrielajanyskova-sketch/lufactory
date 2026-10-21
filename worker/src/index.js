@@ -25,9 +25,13 @@ const PPL_SENDER = {
 // Pevná výchozí váha balíčku, dokud nemáme reálné vážení — stejně jako u
 // dřívější Zásilkovny, dá se upravit podle skutečnosti.
 const PPL_DEFAULT_WEIGHT_KG = 0.5;
-// Standardní balík PPL na adresu (bez dobírky, bez výdejního místa) — výběr
-// konkrétní PPL výdejny (Parcelshop) zatím v košíku není, řeší se později.
+// Standardní balík PPL na adresu (bez dobírky).
 const PPL_PRODUCT_TYPE = 'BUSS';
+// Balík na výdejní místo — podle PPL dokumentace musí být jiný typ produktu
+// než na adresu, "BUSS" výdejní místa nepodporuje. Pokud tenhle typ nesedí
+// s konkrétní smlouvou, PPL to při vytvoření zásilky odmítne a chybu
+// uvidíme u objednávky v adminu (žádné tiché selhání).
+const PPL_PARCEL_SHOP_PRODUCT_TYPE = 'PRIV';
 
 // Worker URL musí zůstat stejné jako API_BASE v assets/js/cart.js a admin.html
 // — potřeba pro absolutní adresy fotek vracené z /api/products.
@@ -379,9 +383,9 @@ async function createOrder(request, env, cors) {
   const insert = await env.DB.prepare(
     `INSERT INTO orders (order_number, variable_symbol, status, customer_name, customer_email, customer_phone,
        customer_street, customer_zip, customer_city,
-       delivery_method, delivery_detail, payment_method, discount_code, note,
+       delivery_method, delivery_detail, pickup_point_id, payment_method, discount_code, note,
        subtotal, discount_amount, shipping_price, total)
-     VALUES (?, ?, 'nova', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+     VALUES (?, ?, 'nova', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).bind(
     orderNumber,
     variableSymbol,
@@ -393,6 +397,7 @@ async function createOrder(request, env, cors) {
     body.customer.city || '',
     body.delivery.method,
     body.delivery.detail || '',
+    body.delivery.pickupPointId || null,
     body.payment.method,
     (body.discountCode || '').toUpperCase() || null,
     body.note || '',
@@ -948,7 +953,7 @@ async function handleAdminLogout(request, env, cors) {
 async function listOrders(env, cors) {
   const { results: orders } = await env.DB.prepare(
     `SELECT id, order_number, variable_symbol, status, customer_name, customer_email, customer_phone,
-       customer_street, customer_zip, customer_city, delivery_method, delivery_detail,
+       customer_street, customer_zip, customer_city, delivery_method, delivery_detail, pickup_point_id,
        payment_method, discount_code, note, subtotal, discount_amount, shipping_price,
        total, created_at, ppl_shipment_number, ppl_error
      FROM orders ORDER BY created_at DESC LIMIT 200`
@@ -1065,10 +1070,15 @@ async function pplAccessToken(env) {
 
 async function createPplShipment(env, order) {
   const token = await pplAccessToken(env);
+  const isPickup = order.delivery_method === 'ppl-pickup';
+
+  if (isPickup && !order.pickup_point_id) {
+    throw new Error('Chybí vybrané výdejní místo PPL (pickup_point_id) u objednávky s doručením na výdejní místo');
+  }
 
   const shipment = {
     referenceId: order.order_number,
-    productType: PPL_PRODUCT_TYPE,
+    productType: isPickup ? PPL_PARCEL_SHOP_PRODUCT_TYPE : PPL_PRODUCT_TYPE,
     sender: PPL_SENDER,
     recipient: {
       name: order.customer_name,
@@ -1082,6 +1092,9 @@ async function createPplShipment(env, order) {
     shipmentSet: { numberOfShipments: 1 },
     weighedShipmentInfo: { weight: PPL_DEFAULT_WEIGHT_KG }
   };
+  if (isPickup) {
+    shipment.specificDelivery = { parcelShopCode: order.pickup_point_id };
+  }
 
   const postRes = await fetch(env.PPL_API_BASE + 'shipment/batch', {
     method: 'POST',
@@ -1192,7 +1205,8 @@ async function updateOrderStatus(request, env, cors, orderId) {
 
   if (body.status === 'zaplaceno' && env.PPL_CLIENT_ID && env.PPL_CLIENT_SECRET) {
     const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
-    if (order && order.delivery_method === 'ppl-address' && !order.ppl_shipment_number) {
+    const isPplDelivery = order && (order.delivery_method === 'ppl-address' || order.delivery_method === 'ppl-pickup');
+    if (isPplDelivery && !order.ppl_shipment_number) {
       await tryCreatePplShipment(env, order);
     }
   }

@@ -59,7 +59,9 @@ všech pěti místech současně.
 - **`shipping_settings`** — jeden řádek (`id = 1`) s `active` a `threshold`:
   doprava zdarma nad danou částkou, nastavuje se v adminu (záložka
   "Slevové kódy")
-- **`orders`** — objednávky včetně fakturační adresy a `variable_symbol`
+- **`orders`** — objednávky včetně fakturační adresy a `variable_symbol`;
+  `pickup_point_id` je kód vybrané výdejny (Zásilkovna i PPL), na rozdíl od
+  `delivery_detail`, což je jen text adresy pro zobrazení
 - **`order_items`** — položky jednotlivých objednávek
 - **`withdrawal_requests`** — oznámení o odstoupení od smlouvy z formuláře na
   `obchodni-podminky.html` (jméno, e-mail, adresa, zboží, volitelně číslo
@@ -109,16 +111,24 @@ se zákazníkovi automaticky pošle faktura (PDF, pokud je nastavený
 
 ## PPL — automatický štítek
 
-Když se objednávka s dopravou "PPL – doručení na adresu" nastaví v adminu na
-"Zaplaceno", worker sám vytvoří zásilku přes PPL myAPI2 (`orders.ppl_shipment_number`)
-a stáhne štítek (`orders.ppl_label_base64`). V adminu se u objednávky objeví
-tlačítko **Vytvořit zásilku PPL** (ruční spuštění, kdyby se to nestihlo
-automaticky) a po úspěchu **Štítek PPL** (stáhne PDF). Neúspěch se ukládá do
-`orders.ppl_error` a zobrazí se u objednávky, zásilka se nikdy nevytvoří
-dvakrát. Váha balíčku je zatím pevná (`PPL_DEFAULT_WEIGHT_KG` ve
-`worker/src/index.js`). Výběr konkrétní PPL výdejny (Parcelshop) zákazníkem
-v košíku zatím není vyřešený — tahle automatizace zatím pokrývá jen
-doručení na adresu.
+Když se objednávka s dopravou PPL ("doručení na adresu" nebo "výdejní místo")
+nastaví v adminu na "Zaplaceno", worker sám vytvoří zásilku přes PPL myAPI2
+(`orders.ppl_shipment_number`) a stáhne štítek (`orders.ppl_label_base64`).
+V adminu se u objednávky objeví tlačítko **Vytvořit zásilku PPL** (ruční
+spuštění, kdyby se to nestihlo automaticky) a po úspěchu **Štítek PPL**
+(stáhne PDF). Neúspěch se ukládá do `orders.ppl_error` a zobrazí se u
+objednávky, zásilka se nikdy nevytvoří dvakrát. Váha balíčku je zatím pevná
+(`PPL_DEFAULT_WEIGHT_KG` ve `worker/src/index.js`).
+
+U výdejního místa (`ppl-pickup`) zákazník v košíku vybere konkrétní pobočku
+přes PPL Access Point Widget (`kliennt.ppl.cz/widgetadmin`, veřejný
+`api-key` v `assets/js/cart.js`) — widget vrátí kód pobočky (`ap.code`),
+ten se uloží jako `orders.pickup_point_id` a worker ho při vytváření
+zásilky pošle jako `specificDelivery.parcelShopCode`. Typ produktu je pro
+výdejní místo jiný než na adresu (`PPL_PARCEL_SHOP_PRODUCT_TYPE` vs.
+`PPL_PRODUCT_TYPE` ve `worker/src/index.js`) — PPL podle smlouvy požaduje
+konkrétní typ, pokud `PRIV` nesedí, worker to při vytváření zásilky odmítne
+a chyba se zobrazí u objednávky v adminu.
 
 ## Recenze
 

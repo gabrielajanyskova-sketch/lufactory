@@ -1193,6 +1193,17 @@ body.lightbox-open { overflow: hidden; }
                     <span class="option-price">129 Kč</span>
                   </label>
                   <label class="option-card">
+                    <input type="radio" name="shipping" value="ppl-pickup">
+                    <span class="option-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+                    </span>
+                    <span class="option-body">
+                      <span class="option-title">PPL</span>
+                      <span class="option-desc">Doručení na výdejní místo</span>
+                    </span>
+                    <span class="option-price">76 Kč</span>
+                  </label>
+                  <label class="option-card">
                     <input type="radio" name="shipping" value="ppl-address">
                     <span class="option-icon" aria-hidden="true">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
@@ -1213,6 +1224,9 @@ body.lightbox-open { overflow: hidden; }
                     <button type="button" id="pick-branch-btn" class="btn btn--outline" hidden>Vybrat na mapě</button>
                   </div>
                 </div>
+
+                <!-- Modal — nezabírá v layoutu místo, dokud se neotevře .open() -->
+                <ppl-access-point-widget id="ppl-widget" api-key="ak_dbfb19f29db4423fb1ddccc1d7e60c5a" config='{"viewMode":"modal"}'></ppl-access-point-widget>
 
                 <h3>Platba</h3>
                 <div class="option-group" id="payment-options">
@@ -1340,6 +1354,7 @@ body.lightbox-open { overflow: hidden; }
 </aside>
 
 <script src="https://widget.packeta.com/v6/www/js/library.js"></script>
+<script src="https://www.ppl.cz/accesspointwidget/loader.js" async></script>
 <script src="/assets/js/qrcode.js"></script>
 <script src="/assets/js/cart.js"></script>
 <script src="/assets/js/main.js"></script>

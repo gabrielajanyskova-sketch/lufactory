@@ -1602,7 +1602,7 @@ body.lightbox-open { overflow: hidden; }
               '<button type="button" class="btn btn--outline save-btn" data-invoice-order="' + order.id + '" data-invoice-number="' + order.order_number + '">Faktura</button>' +
               (order.ppl_shipment_number
                 ? '<button type="button" class="btn btn--outline save-btn" data-ppl-label-order="' + order.id + '">Štítek PPL</button>'
-                : (order.delivery_method === 'ppl-address'
+                : (order.delivery_method === 'ppl-address' || order.delivery_method === 'ppl-pickup'
                     ? '<button type="button" class="btn btn--outline save-btn" data-ppl-shipment-order="' + order.id + '">Vytvořit zásilku PPL</button>'
                     : '')) +
               '<button type="button" class="icon-btn-delete" data-delete-order="' + order.id + '" title="Smazat objednávku">✕</button>' +

@@ -45,6 +45,14 @@
   // → Klientská podpora) — jen pro výběr pobočky, ne pro podávání zásilek.
   var PACKETA_API_KEY = '284305c314c8d873';
 
+  // Veřejný API klíč pro widget výdejních míst PPL (kliennt.ppl.cz/widgetadmin)
+  // — stejně jako u Packety jen pro výběr pobočky, bezpečné mít v kódu stránky.
+  var PPL_WIDGET_API_KEY = 'ak_dbfb19f29db4423fb1ddccc1d7e60c5a';
+
+  // KM kód vybrané PPL výdejny (z widgetu) — posílá se s objednávkou, aby
+  // worker věděl, kam přesně má zásilku poslat.
+  var selectedPickupPointId = null;
+
   // Účet pro QR platbu na stránce "Objednávka odeslána" — IBAN spočítaný
   // z 211573669/0300. Když se změní číslo účtu, přepočti IBAN znovu.
   var BANK_IBAN = 'CZ6503000000000211573669';
@@ -511,7 +519,7 @@
     }
 
     var pickBranchBtn = document.getElementById('pick-branch-btn');
-    if (pickBranchBtn) pickBranchBtn.hidden = shippingKey !== 'zasilkovna-pickup';
+    if (pickBranchBtn) pickBranchBtn.hidden = !PICKUP_POINT_SHIPPING[shippingKey];
   }
 
   function availableStock(id) {
@@ -650,17 +658,46 @@
     }
 
     document.querySelectorAll('input[name="shipping"], input[name="payment"]').forEach(function (input) {
-      input.addEventListener('change', renderCartPage);
+      input.addEventListener('change', function () {
+        selectedPickupPointId = null;
+        renderCartPage();
+      });
     });
 
+    var addressInput = document.getElementById('c-address');
+    if (addressInput) {
+      addressInput.addEventListener('input', function () { selectedPickupPointId = null; });
+    }
+
     var pickBranchBtn = document.getElementById('pick-branch-btn');
-    if (pickBranchBtn && typeof Packeta !== 'undefined') {
+    if (pickBranchBtn) {
       pickBranchBtn.addEventListener('click', function () {
-        Packeta.Widget.pick(PACKETA_API_KEY, function (point) {
-          if (!point) return;
-          var addressInput = document.getElementById('c-address');
-          if (addressInput) addressInput.value = point.name + ', ' + point.street + ', ' + point.city;
-        }, { country: 'cz', language: 'cs' });
+        if (selectedShippingKey() === 'ppl-pickup') {
+          var pplWidget = document.getElementById('ppl-widget');
+          if (pplWidget && typeof pplWidget.open === 'function') pplWidget.open();
+          return;
+        }
+        if (typeof Packeta !== 'undefined') {
+          Packeta.Widget.pick(PACKETA_API_KEY, function (point) {
+            if (!point) return;
+            if (addressInput) addressInput.value = point.name + ', ' + point.street + ', ' + point.city;
+          }, { country: 'cz', language: 'cs' });
+        }
+      });
+    }
+
+    var pplWidgetEl = document.getElementById('ppl-widget');
+    if (pplWidgetEl) {
+      pplWidgetEl.addEventListener('ppl-accesspointwidget-select', function (e) {
+        var ap = e.detail;
+        if (!ap) return;
+        selectedPickupPointId = ap.code;
+        if (addressInput) {
+          var parts = [ap.name];
+          if (ap.address && ap.address.street) parts.push(ap.address.street);
+          if (ap.address && ap.address.city) parts.push(ap.address.city);
+          addressInput.value = parts.join(', ');
+        }
       });
     }
 
@@ -708,7 +745,7 @@
     var payload = {
       items: cart.map(function (i) { return { productId: i.id, qty: i.qty }; }),
       discountCode: getDiscountCode() || undefined,
-      delivery: { method: selectedShippingKey(), detail: valueOf('c-address') },
+      delivery: { method: selectedShippingKey(), detail: valueOf('c-address'), pickupPointId: selectedPickupPointId || undefined },
       payment: { method: selectedPaymentKey() },
       customer: billingDetails(),
       note: valueOf('c-note')
