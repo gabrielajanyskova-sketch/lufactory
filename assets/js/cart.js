@@ -657,14 +657,34 @@
       });
     }
 
+    var addressInput = document.getElementById('c-address');
+
+    function openPickupPicker(shippingKey) {
+      if (shippingKey === 'ppl-pickup') {
+        var pplWidget = document.getElementById('ppl-widget');
+        if (pplWidget && typeof pplWidget.open === 'function') pplWidget.open();
+        return;
+      }
+      if (shippingKey === 'zasilkovna-pickup' && typeof Packeta !== 'undefined') {
+        Packeta.Widget.pick(PACKETA_API_KEY, function (point) {
+          if (!point) return;
+          if (addressInput) addressInput.value = point.name + ', ' + point.street + ', ' + point.city;
+        }, { country: 'cz', language: 'cs' });
+      }
+    }
+
     document.querySelectorAll('input[name="shipping"], input[name="payment"]').forEach(function (input) {
       input.addEventListener('change', function () {
         selectedPickupPointId = null;
         renderCartPage();
+        // Rovnou otevřít výběr pobočky, ať zákazník nemusí hledat samostatné
+        // tlačítko — jen při prvním výběru dopravy, ne při každé změně.
+        if (input.name === 'shipping' && PICKUP_POINT_SHIPPING[input.value]) {
+          openPickupPicker(input.value);
+        }
       });
     });
 
-    var addressInput = document.getElementById('c-address');
     if (addressInput) {
       addressInput.addEventListener('input', function () { selectedPickupPointId = null; });
     }
@@ -672,17 +692,7 @@
     var pickBranchBtn = document.getElementById('pick-branch-btn');
     if (pickBranchBtn) {
       pickBranchBtn.addEventListener('click', function () {
-        if (selectedShippingKey() === 'ppl-pickup') {
-          var pplWidget = document.getElementById('ppl-widget');
-          if (pplWidget && typeof pplWidget.open === 'function') pplWidget.open();
-          return;
-        }
-        if (typeof Packeta !== 'undefined') {
-          Packeta.Widget.pick(PACKETA_API_KEY, function (point) {
-            if (!point) return;
-            if (addressInput) addressInput.value = point.name + ', ' + point.street + ', ' + point.city;
-          }, { country: 'cz', language: 'cs' });
-        }
+        openPickupPicker(selectedShippingKey());
       });
     }
 
@@ -698,6 +708,11 @@
           if (ap.address && ap.address.city) parts.push(ap.address.city);
           addressInput.value = parts.join(', ');
         }
+      });
+      // Widget sám hlásí chybu (např. doména v klíči nesedí) — ať se
+      // nerozbije potichu, alespoň do konzole, dokud se neudělá hezčí UI.
+      pplWidgetEl.addEventListener('ppl-accesspointwidget-error', function (e) {
+        console.error('PPL widget error:', e.detail && e.detail.code, e.detail && e.detail.message);
       });
     }
 
