@@ -13,6 +13,22 @@ const SELLER = {
 
 const CF_ACCOUNT_ID = '452377670fd13e08b76846017d811e7e';
 
+// Odesílatel pro PPL zásilky — stejná adresa jako SELLER výše, jen rozdělená
+// na pole, protože to PPL API chce zvlášť, ne jako jeden řetězec.
+const PPL_SENDER = {
+  name: SELLER.name,
+  street: 'Na Homoli 484',
+  city: 'Nová Ves',
+  zipCode: '25063',
+  country: 'CZ'
+};
+// Pevná výchozí váha balíčku, dokud nemáme reálné vážení — stejně jako u
+// dřívější Zásilkovny, dá se upravit podle skutečnosti.
+const PPL_DEFAULT_WEIGHT_KG = 0.5;
+// Standardní balík PPL na adresu (bez dobírky, bez výdejního místa) — výběr
+// konkrétní PPL výdejny (Parcelshop) zatím v košíku není, řeší se později.
+const PPL_PRODUCT_TYPE = 'BUSS';
+
 // Worker URL musí zůstat stejné jako API_BASE v assets/js/cart.js a admin.html
 // — potřeba pro absolutní adresy fotek vracené z /api/products.
 const WORKER_BASE = 'https://lufactory-api.gabriela-janyskova.workers.dev';
@@ -131,6 +147,16 @@ export default {
       if (orderInvoiceMatch && request.method === 'GET') {
         if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
         return await getOrderInvoice(env, cors, Number(orderInvoiceMatch[1]));
+      }
+      const pplShipmentMatch = url.pathname.match(/^\/api\/admin\/orders\/(\d+)\/ppl-shipment$/);
+      if (pplShipmentMatch && request.method === 'POST') {
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
+        return await createPplShipmentRoute(env, cors, Number(pplShipmentMatch[1]));
+      }
+      const pplLabelMatch = url.pathname.match(/^\/api\/admin\/orders\/(\d+)\/ppl-label$/);
+      if (pplLabelMatch && request.method === 'GET') {
+        if (!(await isAdmin(request, env))) return json({ error: 'unauthorized' }, 401, cors);
+        return await getPplLabel(env, cors, Number(pplLabelMatch[1]));
       }
       const orderStatusMatch = url.pathname.match(/^\/api\/admin\/orders\/(\d+)$/);
       if (orderStatusMatch && request.method === 'PATCH') {
@@ -922,7 +948,7 @@ async function listOrders(env, cors) {
     `SELECT id, order_number, variable_symbol, status, customer_name, customer_email, customer_phone,
        customer_street, customer_zip, customer_city, delivery_method, delivery_detail,
        payment_method, discount_code, note, subtotal, discount_amount, shipping_price,
-       total, created_at
+       total, created_at, ppl_shipment_number, ppl_error
      FROM orders ORDER BY created_at DESC LIMIT 200`
   ).all();
   const { results: items } = await env.DB.prepare(
@@ -1006,6 +1032,125 @@ async function deleteOrder(env, cors, orderId) {
   return json({ ok: true }, 200, cors);
 }
 
+// ---------- PPL (myAPI2 na api.dhl.com) ----------
+// Štítek se vytváří automaticky, jakmile se objednávka s doručením PPL na
+// adresu označí v adminu jako "Zaplaceno" — stejný princip, jaký jsme dřív
+// zkoušeli pro Zásilkovnu, tentokrát proti ověřenému REST API, ne naslepo.
+
+function arrayBufferToBase64(buffer) {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+async function pplAccessToken(env) {
+  const res = await fetch(env.PPL_API_BASE + 'login/getAccessToken', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: env.PPL_CLIENT_ID,
+      client_secret: env.PPL_CLIENT_SECRET,
+      scope: 'myapi2'
+    })
+  });
+  if (!res.ok) throw new Error(`PPL token error: ${(await res.text()).slice(0, 300)}`);
+  const data = await res.json();
+  if (!data.access_token) throw new Error('PPL token error: no access_token in response');
+  return data.access_token;
+}
+
+async function createPplShipment(env, order) {
+  const token = await pplAccessToken(env);
+
+  const shipment = {
+    referenceId: order.order_number,
+    productType: PPL_PRODUCT_TYPE,
+    sender: PPL_SENDER,
+    recipient: {
+      name: order.customer_name,
+      street: order.customer_street,
+      city: order.customer_city,
+      zipCode: order.customer_zip,
+      country: 'CZ',
+      phone: order.customer_phone || undefined,
+      email: order.customer_email
+    },
+    shipmentSet: { numberOfShipments: 1 },
+    weighedShipmentInfo: { weight: PPL_DEFAULT_WEIGHT_KG }
+  };
+
+  const postRes = await fetch(env.PPL_API_BASE + 'shipment/batch', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      labelSettings: {
+        format: 'Pdf',
+        dpi: 300,
+        completeLabelSettings: { isCompleteLabelRequested: true, pageSize: 'A4', position: 1 }
+      },
+      shipments: [shipment]
+    })
+  });
+  if (postRes.status !== 201) {
+    throw new Error(`PPL shipment create error: ${(await postRes.text()).slice(0, 500)}`);
+  }
+  const location = postRes.headers.get('Location');
+  if (!location) throw new Error('PPL shipment create: no Location header in response');
+
+  let shipmentItem = null;
+  for (let i = 0; i < 10; i++) {
+    const pollRes = await fetch(location, { headers: { Authorization: `Bearer ${token}` } });
+    if (!pollRes.ok) throw new Error(`PPL shipment poll error: ${(await pollRes.text()).slice(0, 300)}`);
+    const pollData = await pollRes.json();
+    const item = (pollData.items || [])[0];
+    if (!item) throw new Error('PPL shipment poll: no items in response');
+    if (item.importState === 'Complete') { shipmentItem = item; break; }
+    if (item.importState === 'Error') throw new Error(`PPL shipment error: ${JSON.stringify(pollData).slice(0, 300)}`);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+  if (!shipmentItem) throw new Error('PPL shipment: časový limit na vygenerování štítku vypršel');
+
+  const labelRes = await fetch(shipmentItem.labelUrl, { headers: { Authorization: `Bearer ${token}` } });
+  if (!labelRes.ok) throw new Error(`PPL label fetch error: ${(await labelRes.text()).slice(0, 300)}`);
+  const labelBase64 = arrayBufferToBase64(await labelRes.arrayBuffer());
+
+  return { shipmentNumber: shipmentItem.shipmentNumber, labelBase64 };
+}
+
+async function tryCreatePplShipment(env, order) {
+  try {
+    const { shipmentNumber, labelBase64 } = await createPplShipment(env, order);
+    await env.DB.prepare('UPDATE orders SET ppl_shipment_number = ?, ppl_label_base64 = ?, ppl_error = NULL WHERE id = ?')
+      .bind(shipmentNumber, labelBase64, order.id).run();
+    return { ok: true, shipmentNumber };
+  } catch (err) {
+    const message = String((err && err.message) || err).slice(0, 500);
+    console.error('createPplShipment failed', message);
+    await env.DB.prepare('UPDATE orders SET ppl_error = ? WHERE id = ?').bind(message, order.id).run();
+    return { ok: false, error: message };
+  }
+}
+
+async function createPplShipmentRoute(env, cors, orderId) {
+  const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
+  if (!order) return json({ error: 'not_found' }, 404, cors);
+  if (order.ppl_shipment_number) return json({ error: 'already_created' }, 409, cors);
+  const result = await tryCreatePplShipment(env, order);
+  return json(result, result.ok ? 200 : 502, cors);
+}
+
+async function getPplLabel(env, cors, orderId) {
+  const order = await env.DB.prepare('SELECT ppl_label_base64 FROM orders WHERE id = ?').bind(orderId).first();
+  if (!order || !order.ppl_label_base64) return json({ error: 'not_found' }, 404, cors);
+  const bytes = Uint8Array.from(atob(order.ppl_label_base64), (c) => c.charCodeAt(0));
+  return new Response(bytes, {
+    status: 200,
+    headers: Object.assign({ 'Content-Type': 'application/pdf' }, cors)
+  });
+}
+
 const ORDER_STATUS_LABELS = {
   nova: 'Nová',
   zaplaceno: 'Zaplaceno',
@@ -1040,6 +1185,13 @@ async function updateOrderStatus(request, env, cors, orderId) {
       }
     } catch (err) {
       console.error('order status email failed', err);
+    }
+  }
+
+  if (body.status === 'zaplaceno' && env.PPL_CLIENT_ID && env.PPL_CLIENT_SECRET) {
+    const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
+    if (order && order.delivery_method === 'ppl-address' && !order.ppl_shipment_number) {
+      await tryCreatePplShipment(env, order);
     }
   }
 

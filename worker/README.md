@@ -34,6 +34,13 @@ Bindings a proměnné (Settings → Bindings / Variables and Secrets), viz
 - Text proměnné `MAIL_FROM`, `SHOP_NOTIFICATION_EMAIL`
 - Secrety `RESEND_API_KEY`, `ADMIN_PASSWORD`, volitelně `CF_API_TOKEN`
   (PDF faktury — bez něj se posílá faktura jako HTML příloha)
+- Volitelně `PPL_CLIENT_ID` a `PPL_CLIENT_SECRET` (secrety) + `PPL_API_BASE`
+  (text proměnná) — automatické zásilky PPL, viz níže. Bez nich se štítky
+  negenerují, nic jiného to neovlivní. `PPL_API_BASE` je teď testovací
+  (`https://api-dev.dhl.com/ecs/ppl/myapi2/`) — po ověření na testovacích
+  objednávkách a schválení od PPL se přepne jen změnou téhle proměnné na
+  `https://api.dhl.com/ecs/ppl/myapi2/` (s ostrými `PPL_CLIENT_ID`/
+  `PPL_CLIENT_SECRET`, bez úpravy kódu)
 
 ## Propojení s webem
 
@@ -99,6 +106,19 @@ Když po objednávce klesne sklad produktu na 2 ks nebo míň, přijde e-mail na
 `SHOP_NOTIFICATION_EMAIL`. Nastavením stavu objednávky na "Odesláno" v adminu
 se zákazníkovi automaticky pošle faktura (PDF, pokud je nastavený
 `CF_API_TOKEN`, jinak HTML příloha).
+
+## PPL — automatický štítek
+
+Když se objednávka s dopravou "PPL – doručení na adresu" nastaví v adminu na
+"Zaplaceno", worker sám vytvoří zásilku přes PPL myAPI2 (`orders.ppl_shipment_number`)
+a stáhne štítek (`orders.ppl_label_base64`). V adminu se u objednávky objeví
+tlačítko **Vytvořit zásilku PPL** (ruční spuštění, kdyby se to nestihlo
+automaticky) a po úspěchu **Štítek PPL** (stáhne PDF). Neúspěch se ukládá do
+`orders.ppl_error` a zobrazí se u objednávky, zásilka se nikdy nevytvoří
+dvakrát. Váha balíčku je zatím pevná (`PPL_DEFAULT_WEIGHT_KG` ve
+`worker/src/index.js`). Výběr konkrétní PPL výdejny (Parcelshop) zákazníkem
+v košíku zatím není vyřešený — tahle automatizace zatím pokrývá jen
+doručení na adresu.
 
 ## Recenze
 

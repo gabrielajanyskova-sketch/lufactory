@@ -14,11 +14,16 @@ id = "d0c4fc97b7544280b8d090bbd9dbc06f"
 [vars]
 MAIL_FROM = "lufactory <objednavky@lufactory.cz>"
 SHOP_NOTIFICATION_EMAIL = "info@lufactory.cz"
+# Testovací prostředí PPL myAPI2 — po schválení produkce přepnout na
+# "https://api.dhl.com/ecs/ppl/myapi2/" (viz README.md, "PPL — automatický štítek")
+PPL_API_BASE = "https://api-dev.dhl.com/ecs/ppl/myapi2/"
 
 # Secrety (nejdou do tohohle souboru, nastavují se zvlášť):
 #   wrangler secret put RESEND_API_KEY    — API klíč Resend, jen sending_access pro lufactory.cz
 #   wrangler secret put ADMIN_PASSWORD    — heslo do /admin.html
 #   wrangler secret put CF_API_TOKEN      — Cloudflare token s "Browser Rendering: Edit" (PDF faktury; volitelné)
+#   wrangler secret put PPL_CLIENT_ID     — PPL myAPI2 OAuth2 client_id (volitelné)
+#   wrangler secret put PPL_CLIENT_SECRET — PPL myAPI2 OAuth2 client_secret (volitelné)
 #
 # Tenhle projekt se ale nasazuje ručně přes Cloudflare dashboard (Edit code),
 # ne přímo přes "wrangler deploy" — viz README.md, "Nasazení".
