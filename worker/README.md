@@ -80,7 +80,7 @@ všech pěti místech současně.
   (`login_id`, `code`, `expires_at`, `attempts`), posílají se e-mailem na
   `SHOP_NOTIFICATION_EMAIL`, platí 10 minut, max 5 pokusů o zadání
 - **`admin_sessions`** — vydané přihlašovací tokeny (`token`, `expires_at`),
-  platí 24 hodin od přihlášení nebo dokud se admin sám neodhlásí
+  platí 30 dní od přihlášení nebo dokud se admin sám neodhlásí
 
 U 6 původních ručně napsaných produktů (houbičky, peeling, celá lufa) zůstává
 zdroj pravdy pro vzhled/text jejich **vlastní stránky** v HTML
@@ -94,7 +94,7 @@ Veškerá běžná správa (ceny, sklad, fotky, popisky, slevové kódy, stav
 objednávek, faktury, export do CSV) se dělá přes `/admin.html`, ne přes ruční
 SQL příkazy. Přihlašovací heslo je secret `ADMIN_PASSWORD` — po jeho zadání
 worker pošle na `SHOP_NOTIFICATION_EMAIL` jednorázový kód, teprve po jeho
-zadání se vydá přihlašovací token platný 24 hodin.
+zadání se vydá přihlašovací token platný 30 dní.
 
 Přímý SQL zásah do databáze (např. hromadná úprava) jde udělat přes Cloudflare
 dashboard → D1 → `lufactory-orders` → Console, nebo `wrangler d1 execute`,

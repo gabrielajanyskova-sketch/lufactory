@@ -837,10 +837,12 @@ const LOGIN_ATTEMPT_LIMIT = 8;
 const LOGIN_ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
 
 // Druhý krok přihlášení — jednorázový kód e-mailem, aby samotné uniklé
-// heslo nestačilo. Kód platí 10 minut, session pak 24 hodin.
+// heslo nestačilo. Kód platí 10 minut, session pak 30 dní — na vlastním
+// počítači se tak nemusí přihlašovat skoro vůbec, ale nový pokus (cizí
+// počítač, uniklé heslo) pořád musí projít přes kód navíc.
 const LOGIN_CODE_TTL_MS = 10 * 60 * 1000;
 const LOGIN_CODE_MAX_ATTEMPTS = 5;
-const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 function randomToken() {
   return crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
