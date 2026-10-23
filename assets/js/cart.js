@@ -42,8 +42,9 @@
   var PICKUP_POINT_SHIPPING = { 'zasilkovna-pickup': true, 'ppl-pickup': true };
 
   // Veřejný API klíč pro widget výdejních míst Zásilkovny (client.packeta.com
-  // → Klientská podpora) — jen pro výběr pobočky, ne pro podávání zásilek.
-  var PACKETA_API_KEY = '284305c314c8d873';
+  // → Informace o uživateli → Odesílatelé) — jen pro výběr pobočky, ne pro
+  // podávání zásilek.
+  var PACKETA_API_KEY = 'd82f0286ea33546e';
 
   // Veřejný API klíč pro widget výdejních míst PPL (kliennt.ppl.cz/widgetadmin)
   // — stejně jako u Packety jen pro výběr pobočky, bezpečné mít v kódu stránky.
