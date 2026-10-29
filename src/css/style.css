@@ -880,6 +880,22 @@ body.lightbox-open { overflow: hidden; }
   border: 0;
   display: block;
 }
+/* Mapa se načte až po kliknutí (bez souhlasu žádný požadavek na Google). */
+.map-placeholder {
+  height: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+  background: var(--cream);
+  color: var(--text);
+  font-size: 0.95rem;
+}
+.map-placeholder p { margin: 0; max-width: 420px; }
+.map-placeholder a { color: var(--brown-dark); text-decoration: underline; }
 
 /* ---------- cta band ---------- */
 .cta {

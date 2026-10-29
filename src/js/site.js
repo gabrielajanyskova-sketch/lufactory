@@ -8,6 +8,7 @@ import { loadStock } from './cart/stock.js';
 import { initNav } from './ui/nav.js';
 import { initLightbox } from './ui/lightbox.js';
 import { initScrollReveal } from './ui/scroll-reveal.js';
+import { initMap } from './ui/map.js';
 import { initContactForm } from './forms/contact.js';
 import { initWithdrawalForm } from './forms/withdrawal.js';
 import { initStockNotifyForms } from './forms/stock-notify.js';
@@ -30,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initProductReviews();
   initHomepageReviews();
   initScrollReveal();
+  initMap();
   initStockNotifyForms();
 
   initDynamicProductPage();
