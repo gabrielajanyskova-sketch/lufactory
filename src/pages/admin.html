@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lufactory — Administrace</title>
+<meta name="robots" content="noindex, nofollow">
+<!-- @include head -->
+<!-- @inline-css style.css -->
+<link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+
+<header class="admin-header">
+  <div class="container">
+    <h1>lufactory — administrace</h1>
+    <button type="button" class="btn btn--outline" id="logout-btn" hidden>Odhlásit</button>
+  </div>
+</header>
+
+<div id="admin-login" class="admin-login">
+  <h2>Přihlášení</h2>
+  <div id="login-step-password">
+    <input type="password" id="admin-password" placeholder="Heslo">
+    <button type="button" class="btn" id="login-btn">Přihlásit</button>
+  </div>
+  <div id="login-step-code" hidden>
+    <p class="login-code-note">Poslali jsme kód na e-mail, platí 10 minut.</p>
+    <input type="text" id="admin-code" placeholder="Kód z e-mailu" inputmode="numeric" maxlength="6">
+    <button type="button" class="btn" id="verify-code-btn">Potvrdit kód</button>
+  </div>
+  <p class="admin-error" id="login-error"></p>
+</div>
+
+<main id="admin-app" class="admin-main" hidden>
+  <div class="admin-tabs">
+    <button type="button" class="admin-tab active" data-tab="orders">Objednávky</button>
+    <button type="button" class="admin-tab" data-tab="products">Produkty a sklad</button>
+    <button type="button" class="admin-tab" data-tab="discounts">Slevové kódy</button>
+    <button type="button" class="admin-tab" data-tab="reviews">Recenze</button>
+  </div>
+
+  <section id="tab-orders">
+    <button type="button" class="btn btn--outline" id="export-orders-csv">Export do CSV</button>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Číslo</th>
+          <th>VS</th>
+          <th>Datum</th>
+          <th>Zákazník</th>
+          <th>Položky</th>
+          <th>Doprava</th>
+          <th>Celkem</th>
+          <th>Stav</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="orders-tbody"></tbody>
+    </table>
+    <p id="orders-empty" class="status-msg" hidden>Zatím žádné objednávky.</p>
+  </section>
+
+  <section id="tab-products" hidden>
+    <div id="products-list-view">
+      <button type="button" class="btn" id="open-add-product">+ Přidat produkt</button>
+      <div class="product-cards" id="products-cards"></div>
+    </div>
+
+    <div id="product-editor" hidden>
+      <a href="#" id="editor-back" class="back-link">← Zpět na produkty</a>
+      <div class="product-detail">
+        <div class="product-detail-img">
+          <label for="editor-photo-input" class="editor-photo-label">
+            <img id="editor-img" src="" alt="" hidden>
+            <div id="editor-img-placeholder" class="img-placeholder"><span>Kliknutím nahrajete fotku</span></div>
+          </label>
+          <input type="file" id="editor-photo-input" accept="image/*" hidden>
+        </div>
+        <div class="product-detail-body">
+          <div class="form-group" id="editor-id-group">
+            <label for="editor-id">ID produktu</label>
+            <input type="text" id="editor-id" placeholder="napr-novy-produkt">
+          </div>
+          <input type="text" id="editor-title" placeholder="Název produktu" class="editor-title-input">
+          <input type="number" id="editor-price" min="0" class="editor-price-input" placeholder="Cena"> Kč
+          <br>
+          <span class="stock-badge stock-badge--out" id="editor-stock-badge">Není skladem</span>
+          <div class="form-group editor-price-group">
+            <label for="editor-stock">Sklad (ks)</label>
+            <input type="number" id="editor-stock" min="0">
+          </div>
+          <div class="form-group editor-spaced-group">
+            <label for="editor-teaser">Krátká věta na kartičku (přehled produktů)</label>
+            <input type="text" id="editor-teaser" class="wide" maxlength="150" placeholder="Např. Spolehlivá při mytí nádobí, padne dobře i do menší ruky.">
+          </div>
+          <textarea id="editor-description" placeholder="Celý popis produktu na jeho vlastní stránce" class="editor-description-input" rows="6" maxlength="1000"></textarea>
+          <p class="status-msg" id="editor-description-count"></p>
+          <p class="status-msg" id="editor-msg"></p>
+          <div class="modal-actions editor-actions">
+            <button type="button" class="btn" id="editor-save">Uložit</button>
+            <button type="button" class="btn btn--outline" id="editor-cancel">Zrušit</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2>Další fotky</h2>
+        <div class="gallery editor-gallery" id="editor-gallery"></div>
+        <input type="file" id="editor-gallery-input" accept="image/*" hidden>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-discounts" hidden>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Kód</th>
+          <th>Typ</th>
+          <th>Hodnota</th>
+          <th>Aktivní</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="discounts-tbody"></tbody>
+    </table>
+
+    <form class="add-product-form" id="add-discount-form">
+      <div class="form-group">
+        <label for="new-discount-code">Kód</label>
+        <input type="text" id="new-discount-code" placeholder="LETO25" required>
+      </div>
+      <div class="form-group">
+        <label for="new-discount-type">Typ</label>
+        <select id="new-discount-type">
+          <option value="percent">Procenta</option>
+          <option value="fixed">Pevná částka (Kč)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="new-discount-value">Hodnota</label>
+        <input type="number" id="new-discount-value" min="0" required>
+      </div>
+      <button type="submit" class="btn">Přidat kód</button>
+    </form>
+    <p class="status-msg" id="add-discount-msg"></p>
+
+    <h3 class="admin-section-gap">Doprava zdarma</h3>
+    <div class="add-product-form">
+      <div class="form-group">
+        <label><input type="checkbox" id="free-shipping-active"> Aktivní</label>
+      </div>
+      <div class="form-group">
+        <label for="free-shipping-threshold">Od částky (Kč)</label>
+        <input type="number" id="free-shipping-threshold" min="0">
+      </div>
+      <button type="button" class="btn" id="save-shipping-settings">Uložit</button>
+    </div>
+    <p class="status-msg" id="shipping-settings-msg"></p>
+  </section>
+
+  <section id="tab-reviews" hidden>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Produkt</th>
+          <th>Zákazník</th>
+          <th>Hodnocení</th>
+          <th>Komentář</th>
+          <th>Stav</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="reviews-tbody"></tbody>
+    </table>
+    <p id="reviews-empty" class="status-msg" hidden>Zatím žádné recenze.</p>
+  </section>
+</main>
+
+<script src="/assets/js/admin.js"></script>
+
+</body>
+</html>

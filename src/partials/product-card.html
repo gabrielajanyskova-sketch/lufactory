@@ -1,0 +1,18 @@
+<article class="product-card{{featuredClass}}">
+  <a href="{{url}}" class="product-img"><img src="{{image}}" alt="{{imageAlt}}" width="640" height="480" loading="lazy"><span>{{card.label}}</span></a>
+  <div class="product-body">
+    <h3><a href="{{url}}">{{cardTitle}}</a></h3>
+    <span class="product-dim">{{card.dim}}</span>
+    <p>{{card.teaser}}</p>
+    <span class="product-price">{{price}} Kč</span>
+    <span class="stock-badge stock-badge--in" data-stock-badge="{{id}}">Skladem</span>
+    <div class="add-to-cart-row">
+      <div class="qty-stepper" data-qty-for="{{id}}">
+        <button type="button" data-action="dec" aria-label="Ubrat kus">−</button>
+        <input type="number" value="1" min="1" data-qty-input aria-label="Počet kusů">
+        <button type="button" data-action="inc" aria-label="Přidat kus">+</button>
+      </div>
+      <button type="button" class="btn btn--outline" data-add-to-cart data-id="{{id}}" data-name="{{name}}" data-price="{{price}}">Přidat do košíku</button>
+    </div>
+  </div>
+</article>

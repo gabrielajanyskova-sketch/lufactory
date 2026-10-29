@@ -1,0 +1,25 @@
+<header class="site-header">
+  <div class="container">
+    <a href="/index.html" class="logo"><img src="/assets/img/logo.webp" alt="lufactory" width="200" height="84"></a>
+    <nav class="main-nav">
+      <ul>
+        <li><a href="/produkty.html">Produkty</a></li>
+        <li><a href="{{navBase}}#o-mne">O mně</a></li>
+        <li><a href="{{navBase}}#o-houbickach">Co je lufa</a></li>
+{{#home}}        <li><a href="#faq">Časté otázky</a></li>
+        <li><a href="{{navBase}}#kontakt">Kontakt</a></li>
+      </ul>
+    </nav>
+    <div class="header-actions">
+      <button class="cart-toggle" aria-label="Košík" aria-haspopup="dialog" aria-controls="cart-panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 6h2l2.4 12.2a2 2 0 0 0 2 1.8h8.2a2 2 0 0 0 2-1.6L21 8H6"/>
+          <circle cx="10" cy="21" r="1"/>
+          <circle cx="18" cy="21" r="1"/>
+        </svg>
+        <span class="cart-count" hidden>0</span>
+      </button>
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false"><span class="nav-toggle-icon"></span></button>
+    </div>
+  </div>
+</header>

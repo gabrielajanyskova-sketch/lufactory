@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{metaTitle}} | lufactory</title>
+<meta name="description" content="{{metaDescription}}">
+<link rel="canonical" href="{{absUrl}}">
+<meta property="og:type" content="product">
+<meta property="og:site_name" content="lufactory">
+<meta property="og:locale" content="cs_CZ">
+<meta property="og:title" content="{{metaTitle}} | lufactory">
+<meta property="og:description" content="{{metaDescription}}">
+<meta property="og:url" content="{{absUrl}}">
+<meta property="og:image" content="{{absImage}}">
+<meta name="twitter:card" content="summary_large_image">
+<!-- @include head -->
+<!-- @inline-css style.css -->
+<script type="application/ld+json" data-product-schema="{{id}}">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{name}}",
+  "description": "{{schemaDescription}}",
+  "image": "{{absImage}}",
+  "offers": { "@type": "Offer", "priceCurrency": "CZK", "price": "{{price}}", "availability": "https://schema.org/InStock", "url": "{{absUrl}}" }
+}
+</script>
+</head>
+<body>
+<!-- @include header -->
+
+<main>
+  <section class="section">
+    <div class="container">
+      <a href="/produkty.html" class="back-link">← Zpět na produkty</a>
+
+      <div class="product-detail">
+        <div class="product-detail-img">
+          <img src="{{image}}" alt="{{imageAlt}}" width="640" height="480">
+        </div>
+        <div class="product-detail-body">
+          <span class="eyebrow">{{eyebrow}}</span>
+          <h1>{{h1}}</h1>
+          <span class="product-dim">{{dim}}</span>
+          <p class="product-price-lg">{{price}} Kč</p>
+          <span class="stock-badge stock-badge--in" data-stock-badge="{{id}}">Skladem</span>
+
+{{descriptionParagraphs}}
+
+          <div class="add-to-cart-row">
+            <div class="qty-stepper" data-qty-for="{{id}}">
+              <button type="button" data-action="dec" aria-label="Ubrat kus">−</button>
+              <input type="number" value="1" min="1" data-qty-input aria-label="Počet kusů">
+              <button type="button" data-action="inc" aria-label="Přidat kus">+</button>
+            </div>
+            <button type="button" class="btn" data-add-to-cart data-id="{{id}}" data-name="{{name}}" data-price="{{price}}">Přidat do košíku</button>
+          </div>
+          <div class="stock-notify" data-stock-notify="{{id}}" hidden>
+            <form class="stock-notify-form">
+              <input type="email" placeholder="Váš e-mail" required>
+              <button type="submit" class="btn btn--outline">Dej mi vědět, až bude skladem</button>
+            </form>
+            <p class="stock-notify-success" hidden>Dáme vám vědět, až bude skladem!</p>
+          </div>
+        </div>
+      </div>
+
+      <h2>Další fotky</h2>
+      <div class="gallery">
+{{galleryImages}}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="product-reviews-section" hidden>
+    <div class="container">
+      <div id="product-reviews"></div>
+    </div>
+  </section>
+
+  <section class="section section--cream">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">Tip</span>
+        <h2>Mohlo by se vám líbit</h2>
+      </div>
+      <div class="product-grid">
+{{relatedCards}}
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- @include footer -->
+
+<!-- @include cart-panel -->
+
+<script src="/assets/js/site.js"></script>
+</body>
+</html>

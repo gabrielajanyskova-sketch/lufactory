@@ -1,0 +1,297 @@
+[
+  {
+    "id": "houbicka-mala",
+    "name": "Houbička na nádobí – malá (3 ks)",
+    "price": 120,
+    "image": "/assets/img/product-mala.webp",
+    "imageAlt": "Houbička na nádobí – malá",
+    "metaTitle": "Houbička na nádobí – malá",
+    "metaDescription": "Malá houbička na nádobí z pravé lufy, balení 3 ks, 9–11 cm. Ručně vyráběná, 100% přírodní, bez plastu.",
+    "schemaDescription": "Balení 3 houbiček z lufy, 9–11 cm, na mytí nádobí.",
+    "eyebrow": "Houbička na nádobí",
+    "h1": "Houbička na nádobí — malá",
+    "dim": "balení 3 ks, 9–11 cm",
+    "description": [
+      "<p>Malá houbička na nádobí je ideální pro ruční mytí nádobí a další úklid v domácnosti. Pohodlně padne i do menší ruky. Balení obsahuje 3 kusy, každý šířky cca 6 cm a délky 9–11 cm v suchém, stlačeném stavu.</p>",
+      "<p>Houbička z lufy je 100% přírodní, bez plastů. Šňůrka je ze 100% bavlny. Po namočení se „nafoukne\", zvětší svůj objem a zjemní. Jelikož jde o přírodní materiál, houbičky se od sebe mírně liší a jsou tvarovány ručně.</p>"
+    ],
+    "gallery": [
+      {
+        "src": "/assets/img/gallery-mala-1.webp",
+        "full": "/assets/img/gallery-mala-1-full.webp",
+        "alt": "Malá houbička z lufy v ruce",
+        "width": 700,
+        "height": 700
+      },
+      {
+        "src": "/assets/img/gallery-mala-2.webp",
+        "full": "/assets/img/gallery-mala-2-full.webp",
+        "alt": "Mytí talíře malou houbičkou z lufy",
+        "width": 700,
+        "height": 700
+      },
+      {
+        "src": "/assets/img/gallery-mala-3.webp",
+        "full": "/assets/img/gallery-mala-3-full.webp",
+        "alt": "Detail vlhké malé houbičky z lufy",
+        "width": 700,
+        "height": 700
+      },
+      {
+        "src": "/assets/img/gallery-mala-4.webp",
+        "full": "/assets/img/gallery-mala-4-full.webp",
+        "alt": "Malá houbička z lufy v ruce",
+        "width": 700,
+        "height": 700
+      }
+    ],
+    "related": [
+      "houbicka-mix",
+      "houbicka-velka",
+      "peeling"
+    ],
+    "card": {
+      "label": "malá, 9–11 cm",
+      "dim": "balení 3 ks, 9–11 cm",
+      "teaser": "Spolehlivá při mytí nádobí, padne dobře i do menší ruky."
+    }
+  },
+  {
+    "id": "houbicka-stredni",
+    "name": "Houbička na nádobí – střední (3 ks)",
+    "price": 120,
+    "image": "/assets/img/product-stredni.webp",
+    "imageAlt": "Houbička na nádobí – střední",
+    "metaTitle": "Houbička na nádobí – střední",
+    "metaDescription": "Střední houbička na nádobí z pravé lufy, balení 3 ks, 11–13 cm. Ručně vyráběná, 100% přírodní, bez plastu.",
+    "schemaDescription": "Balení 3 houbiček z lufy, 11–13 cm, na nádobí i úklid koupelny.",
+    "eyebrow": "Houbička na nádobí",
+    "h1": "Houbička na nádobí — střední",
+    "dim": "balení 3 ks, 11–13 cm",
+    "description": [
+      "<p>Střední houbička na nádobí je univerzální volba pro většinu domácností — poradí si s mytím nádobí i úklidem koupelny. Balení obsahuje 3 kusy o šířce cca 6 cm a délce 11–13 cm v suchém, stlačeném stavu.</p>",
+      "<p>Houbička z lufy je 100% přírodní, bez plastů. Šňůrka je ze 100% bavlny. Po namočení se „nafoukne\", zvětší svůj objem a zjemní. Jelikož jde o přírodní materiál, houbičky se od sebe mírně liší a jsou tvarovány ručně.</p>"
+    ],
+    "gallery": [
+      {
+        "src": "/assets/img/gallery-stredni-1.webp",
+        "alt": "Střední houbička z lufy v misce",
+        "width": 700,
+        "height": 700
+      },
+      {
+        "src": "/assets/img/gallery-stredni-2.webp",
+        "alt": "Detail struktury střední houbičky z lufy",
+        "width": 700,
+        "height": 700
+      },
+      {
+        "src": "/assets/img/gallery-stredni-3.webp",
+        "alt": "Střední houbička z lufy v ruce",
+        "width": 700,
+        "height": 700
+      }
+    ],
+    "related": [
+      "houbicka-mix",
+      "houbicka-mala",
+      "cela-lufa"
+    ],
+    "card": {
+      "label": "střední, 11–13 cm",
+      "dim": "balení 3 ks, 11–13 cm",
+      "teaser": "Univerzální velikost — na nádobí i úklid koupelny."
+    }
+  },
+  {
+    "id": "houbicka-velka",
+    "name": "Houbička na nádobí – velká (3 ks)",
+    "price": 120,
+    "image": "/assets/img/product-velka.webp",
+    "imageAlt": "Houbička na nádobí – velká",
+    "metaTitle": "Houbička na nádobí – velká",
+    "metaDescription": "Velká houbička na nádobí z pravé lufy, balení 3 ks, nad 13 cm. Ručně vyráběná, 100% přírodní, bez plastu.",
+    "schemaDescription": "Balení 3 houbiček z lufy, nad 13 cm, na úklid koupelny i domácnosti.",
+    "eyebrow": "Houbička na nádobí",
+    "h1": "Houbička na nádobí — velká",
+    "dim": "balení 3 ks, nad 13 cm",
+    "description": [
+      "<p>Velká houbička na nádobí je určená pro náročnější úklid — kromě mytí nádobí zvládne i větší plochy v koupelně nebo zbytku domácnosti. Balení obsahuje 3 kusy o šířce cca 6 cm a délce nad 13 cm v suchém, stlačeném stavu.</p>",
+      "<p>Houbička z lufy je 100% přírodní, bez plastů. Šňůrka je ze 100% bavlny. Po namočení se „nafoukne\", zvětší svůj objem a zjemní. Jelikož jde o přírodní materiál, houbičky se od sebe mírně liší a jsou tvarovány ručně.</p>"
+    ],
+    "gallery": [
+      {
+        "src": "/assets/img/gallery-velka-1.webp",
+        "alt": "Velká houbička z lufy ve tvaru srdce v dlaních",
+        "width": 700,
+        "height": 700
+      },
+      {
+        "src": "/assets/img/gallery-velka-2.webp",
+        "alt": "Velká houbička z lufy na talíři",
+        "width": 700,
+        "height": 700
+      },
+      {
+        "src": "/assets/img/gallery-velka-3.webp",
+        "alt": "Velká houbička z lufy v ruce",
+        "width": 700,
+        "height": 700
+      }
+    ],
+    "related": [
+      "houbicka-mix",
+      "houbicka-stredni",
+      "peeling"
+    ],
+    "card": {
+      "label": "velká, nad 13 cm",
+      "dim": "balení 3 ks, nad 13 cm",
+      "teaser": "Poradí si s úklidem koupelny i zbytku domácnosti."
+    }
+  },
+  {
+    "id": "houbicka-mix",
+    "name": "Houbička na nádobí – mix velikostí (3 ks)",
+    "price": 120,
+    "image": "/assets/img/product-mix.webp",
+    "imageAlt": "Houbičky na nádobí – mix velikostí",
+    "metaTitle": "Houbička na nádobí – mix velikostí",
+    "metaDescription": "Houbičky na nádobí v mixu velikostí z pravé lufy, balení 3 ks (malá, střední, velká). Ručně vyráběné, 100% přírodní, bez plastu.",
+    "schemaDescription": "Balení 3 houbiček z lufy v mixu velikostí malá, střední a velká.",
+    "eyebrow": "Houbička na nádobí",
+    "h1": "Houbička na nádobí — mix velikostí",
+    "dim": "balení 3 ks, malá + střední + velká",
+    "description": [
+      "<p>Nejste si jistí, jaká velikost vám bude vyhovovat nebo potřebujete každou velikost? V tomto mixu najdete po 1 kusu od každé velikosti.</p>",
+      "<p>Houbička z lufy je 100% přírodní, bez plastů. Šňůrka je ze 100% bavlny. Po namočení se „nafoukne\", zvětší svůj objem a zjemní. Jelikož jde o přírodní materiál, houbičky se od sebe mírně liší a jsou tvarovány ručně.</p>"
+    ],
+    "gallery": [
+      {
+        "src": "/assets/img/gallery-mix-1.webp",
+        "alt": "Houbičky z lufy v mixu velikostí naskládané na sobě",
+        "width": 700,
+        "height": 700
+      },
+      {
+        "src": "/assets/img/gallery-mix-2.webp",
+        "alt": "Houbičky z lufy v mixu velikostí v ruce",
+        "width": 700,
+        "height": 700
+      },
+      {
+        "src": "/assets/img/gallery-mix-3.webp",
+        "alt": "Houbičky z lufy v mixu velikostí v misce",
+        "width": 700,
+        "height": 700
+      }
+    ],
+    "related": [
+      "houbicka-mala",
+      "peeling",
+      "cela-lufa"
+    ],
+    "card": {
+      "label": "mix velikostí",
+      "dim": "balení 3 ks, malá + střední + velká",
+      "teaser": "Nejste si jistí velikostí? Vyzkoušejte všechny tři najednou."
+    }
+  },
+  {
+    "id": "peeling",
+    "name": "Peelingová houbička na tělo",
+    "price": 50,
+    "image": "/assets/img/product-peeling.webp",
+    "imageAlt": "Peelingová houbička na tělo",
+    "metaTitle": "Peelingová houbička na tělo",
+    "metaDescription": "Peelingová houbička na tělo z pravé lufy, cca 11 × 12 cm. Přírodní alternativa plastové žínky, ručně vyráběná.",
+    "schemaDescription": "Houbička z lufy, cca 11 × 12 cm — přírodní alternativa plastové žínky, jemný peeling ve sprše.",
+    "eyebrow": "Tělová péče",
+    "h1": "Peelingová houbička na tělo",
+    "dim": "1 ks, cca 11 × 12 cm",
+    "description": [
+      "<p>Peelingová houbička na tělo je přírodní alternativa plastové žínky do sprchy. Rozměr cca 11 × 12 cm v suchém, stlačeném stavu.</p>",
+      "<p>Houbička z lufy je 100% přírodní, bez plastů. Šňůrka je ze 100% bavlny. Po namočení se „nafoukne\", zvětší svůj objem a zjemní. Jelikož jde o přírodní materiál, houbičky se od sebe mírně liší a jsou tvarovány ručně.</p>"
+    ],
+    "gallery": [
+      {
+        "src": "/assets/img/gallery-peeling-1.webp",
+        "alt": "Peelingová houbička z lufy při koupeli",
+        "width": 700,
+        "height": 700
+      },
+      {
+        "src": "/assets/img/gallery-peeling-2.webp",
+        "alt": "Peeling ramene peelingovou houbičkou z lufy",
+        "width": 700,
+        "height": 700
+      },
+      {
+        "src": "/assets/img/gallery-peeling-3.webp",
+        "alt": "Peelingová houbička z lufy pod tekoucí vodou",
+        "width": 700,
+        "height": 700
+      }
+    ],
+    "related": [
+      "houbicka-mix",
+      "cela-lufa",
+      "houbicka-mala"
+    ],
+    "card": {
+      "label": "tělový peeling",
+      "dim": "1 ks, cca 11 × 12 cm",
+      "teaser": "Přírodní alternativa plastové žínky — jemný peeling ve sprše."
+    }
+  },
+  {
+    "id": "cela-lufa",
+    "name": "Celá lufa",
+    "price": 150,
+    "image": "/assets/img/product-cela-lufa.webp",
+    "imageAlt": "Celá lufa",
+    "metaTitle": "Celá lufa",
+    "metaDescription": "Celá lisovaná lufa, cca 40–50 cm dlouhá — vyrobte si houbičky podle sebe.",
+    "schemaDescription": "Celá lisovaná lufa, cca 40–50 cm dlouhá — vyrobte si houbičky podle sebe.",
+    "eyebrow": "Vyrob si sám",
+    "h1": "Celá lufa",
+    "dim": "1 ks, celá lisovaná lufa, cca 40–50 cm dlouhá",
+    "description": [
+      "<p>Z celé lufy o této velikosti vyrobíte např. 1 peelingovou houbičku a dalších minimálně 5 houbiček na nádobí.</p>",
+      "<p>Lufy pro moji dílnu Lufactory pochází z Egypta, kde má rostlina díky teplému a slunečnému podnebí dost času vytvořit ta nejkvalitnější pevná a hustá vlákna.</p>"
+    ],
+    "gallery": [
+      {
+        "src": "/assets/img/gallery-cela-lufa-1.webp",
+        "full": "/assets/img/gallery-cela-lufa-1-full.webp",
+        "alt": "Celá usušená lufa v ruce",
+        "width": 700,
+        "height": 700
+      },
+      {
+        "src": "/assets/img/gallery-cela-lufa-2.webp",
+        "full": "/assets/img/gallery-cela-lufa-2-full.webp",
+        "alt": "Více kusů celé usušené lufy naskládaných na sobě",
+        "width": 700,
+        "height": 700
+      },
+      {
+        "src": "/assets/img/gallery-cela-lufa-3.webp",
+        "full": "/assets/img/gallery-cela-lufa-3-full.webp",
+        "alt": "Nikola s náručí celých usušených luf",
+        "width": 700,
+        "height": 700
+      }
+    ],
+    "related": [
+      "houbicka-mix",
+      "peeling",
+      "houbicka-velka"
+    ],
+    "card": {
+      "label": "celá lufa",
+      "dim": "1 ks, celá lisovaná lufa, cca 40–50 cm dlouhá",
+      "teaser": "Vyrobte si houbičky podle sebe."
+    }
+  }
+]
