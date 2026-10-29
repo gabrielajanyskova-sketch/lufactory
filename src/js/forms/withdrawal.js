@@ -1,7 +1,7 @@
 // Formulář pro odstoupení od smlouvy (obchodni-podminky.html) — sestaví
 // zákonné prohlášení z vyplněných údajů, místo aby ho zákazník psal sám.
 import { API_BASE } from '../config.js';
-import { postJson } from '../util.js';
+import { postJson, honeypot } from '../util.js';
 
 export function initWithdrawalForm() {
   const form = document.getElementById('withdrawal-form');
@@ -42,7 +42,8 @@ export function initWithdrawalForm() {
       address: val('w-address'),
       orderNumber: val('w-order'),
       receivedDate: val('w-received'),
-      goods: val('w-goods')
+      goods: val('w-goods'),
+      hp: honeypot(form)
     }).then((ok) => {
       if (ok) {
         form.hidden = true;

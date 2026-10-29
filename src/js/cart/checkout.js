@@ -1,7 +1,7 @@
 // Stránka /kosik — doprava, platba, slevový kód, fakturační údaje,
 // výběr výdejního místa a odeslání objednávky přes worker (s mailto zálohou).
 import { API_BASE, SHIPPING, PICKUP_POINT_SHIPPING, PACKETA_API_KEY, BANK_IBAN } from '../config.js';
-import { formatPrice } from '../util.js';
+import { formatPrice, honeypot } from '../util.js';
 import {
   getCart, cartSubtotal, discountAmount, discountEntry, getDiscountCode, setDiscountCode,
   rememberDiscount, clearCart, onCartChange
@@ -145,6 +145,9 @@ function renderCartPage() {
   const addressFields = document.getElementById('address-fields');
   if (addressFields) {
     addressFields.hidden = !PICKUP_POINT_SHIPPING[shippingKey];
+    // Výdejní místo je u výdejen povinné (skryté pole povinné být nesmí).
+    const addressInput = document.getElementById('c-address');
+    if (addressInput) addressInput.required = !!PICKUP_POINT_SHIPPING[shippingKey];
     if (PICKUP_POINT_SHIPPING[shippingKey]) {
       const selectedRadio = document.querySelector('input[name="shipping"][value="' + shippingKey + '"]');
       const optionCard = selectedRadio && selectedRadio.closest('.option-card');
@@ -205,7 +208,8 @@ function submitOrderViaApi() {
     delivery: { method: selectedShippingKey(), detail: valueOf('c-address'), pickupPointId: selectedPickupPointId || undefined },
     payment: { method: selectedPaymentKey() },
     customer: billingDetails(),
-    note: valueOf('c-note')
+    note: valueOf('c-note'),
+    hp: honeypot(document.getElementById('checkout-form'))
   };
   return fetch(API_BASE + '/api/orders', {
     method: 'POST',
@@ -343,6 +347,12 @@ function wireSubmit() {
   if (!submitOrderBtn) return;
   submitOrderBtn.addEventListener('click', () => {
     const form = document.getElementById('checkout-form');
+    // PPL potřebuje kód pobočky z widgetu — ručně napsaný text nestačí.
+    const addressInput = document.getElementById('c-address');
+    if (addressInput) {
+      const needsPplPoint = selectedShippingKey() === 'ppl-pickup' && !selectedPickupPointId;
+      addressInput.setCustomValidity(needsPplPoint ? 'Vyberte prosím výdejní místo PPL tlačítkem „Vybrat na mapě“.' : '');
+    }
     if (form && !form.reportValidity()) return;
 
     submitOrderBtn.disabled = true;

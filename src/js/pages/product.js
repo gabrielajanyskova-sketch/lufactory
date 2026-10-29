@@ -69,6 +69,7 @@ export function initDynamicProductPage() {
             '</div>' +
             '<div class="stock-notify" data-stock-notify="' + safeId + '" hidden>' +
               '<form class="stock-notify-form">' +
+                '<div class="hp-field" aria-hidden="true"><label>Nevyplňujte <input type="text" name="lf_hp" tabindex="-1" autocomplete="off"></label></div>' +
                 '<input type="email" placeholder="Váš e-mail" aria-label="E-mail pro upozornění na naskladnění" required>' +
                 '<button type="submit" class="btn btn--outline">Dej mi vědět, až bude skladem</button>' +
               '</form>' +

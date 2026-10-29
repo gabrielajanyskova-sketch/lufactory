@@ -9,11 +9,10 @@ export function formatPrice(n) {
   return n.toLocaleString('cs-CZ') + ' Kč';
 }
 
-// fetch → { ok, data } bez ohledu na HTTP status; síťová chyba → { ok: false }.
-export function fetchJson(url, options) {
-  return fetch(url, options)
-    .then((r) => r.json().then((data) => ({ ok: r.ok, data })))
-    .catch(() => ({ ok: false, data: null }));
+// Hodnota skrytého pole proti robotům (.hp-field) — worker požadavek s vyplněným polem zahodí.
+export function honeypot(form) {
+  const input = form && form.querySelector('input[name="lf_hp"]');
+  return input ? input.value : '';
 }
 
 // fetch → true/false podle r.ok, síťová chyba → false.

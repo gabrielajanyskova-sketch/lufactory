@@ -105,7 +105,7 @@
                 <div id="address-fields" class="form-group" hidden>
                   <label for="c-address">Výdejní místo</label>
                   <div class="discount-row">
-                    <input type="text" id="c-address" placeholder="Název a adresa pobočky">
+                    <input type="text" id="c-address" placeholder="Název a adresa pobočky" autocomplete="off">
                     <button type="button" id="pick-branch-btn" class="btn btn--outline" hidden>Vybrat na mapě</button>
                   </div>
                 </div>
@@ -141,39 +141,40 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label for="c-first-name">Jméno</label>
-                    <input type="text" id="c-first-name" required>
+                    <input type="text" id="c-first-name" autocomplete="given-name" required>
                   </div>
                   <div class="form-group">
                     <label for="c-last-name">Příjmení</label>
-                    <input type="text" id="c-last-name" required>
+                    <input type="text" id="c-last-name" autocomplete="family-name" required>
                   </div>
                 </div>
                 <div class="form-group">
                   <label for="c-street">Ulice a číslo popisné</label>
-                  <input type="text" id="c-street" required>
+                  <input type="text" id="c-street" autocomplete="street-address" required>
                 </div>
                 <div class="form-row">
                   <div class="form-group">
                     <label for="c-zip">PSČ</label>
-                    <input type="text" id="c-zip" required>
+                    <input type="text" id="c-zip" inputmode="numeric" autocomplete="postal-code" pattern="\s*\d{3}\s?\d{2}\s*" title="PSČ ve tvaru 123 45" required>
                   </div>
                   <div class="form-group">
                     <label for="c-city">Město</label>
-                    <input type="text" id="c-city" required>
+                    <input type="text" id="c-city" autocomplete="address-level2" required>
                   </div>
                 </div>
                 <div class="form-group">
                   <label for="c-email">E-mail</label>
-                  <input type="email" id="c-email" required>
+                  <input type="email" id="c-email" autocomplete="email" required>
                 </div>
                 <div class="form-group">
                   <label for="c-phone">Telefon</label>
-                  <input type="tel" id="c-phone" required>
+                  <input type="tel" id="c-phone" autocomplete="tel" required>
                 </div>
                 <div class="form-group">
                   <label for="c-note">Poznámka k objednávce</label>
                   <textarea id="c-note"></textarea>
                 </div>
+                <div class="hp-field" aria-hidden="true"><label>Nevyplňujte <input type="text" name="lf_hp" tabindex="-1" autocomplete="off"></label></div>
               </form>
             </div>
 

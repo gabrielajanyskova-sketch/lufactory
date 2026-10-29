@@ -1,7 +1,7 @@
 // Kontaktní formulář na hlavní stránce — odeslání přes worker, při chybě
 // záloha na mailto.
 import { API_BASE } from '../config.js';
-import { postJson } from '../util.js';
+import { postJson, honeypot } from '../util.js';
 
 export function initContactForm() {
   const form = document.querySelector('.contact-form');
@@ -25,7 +25,8 @@ export function initContactForm() {
     postJson(API_BASE + '/api/contact', {
       name: form.name.value.trim(),
       email: form.email.value.trim(),
-      message: form.message.value.trim()
+      message: form.message.value.trim(),
+      hp: honeypot(form)
     }).then((ok) => {
       if (ok) {
         form.hidden = true;

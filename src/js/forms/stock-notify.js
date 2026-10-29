@@ -2,7 +2,7 @@
 // .stock-notify box podle aktuálního skladu, tady se jen zapojí odeslání.
 // Volatelné znovu po vykreslení obsahu (pages/product.js).
 import { API_BASE } from '../config.js';
-import { postJson } from '../util.js';
+import { postJson, honeypot } from '../util.js';
 
 export function initStockNotifyForms() {
   document.querySelectorAll('.stock-notify-form').forEach((form) => {
@@ -19,7 +19,7 @@ export function initStockNotifyForms() {
       const submitBtn = form.querySelector('button');
       submitBtn.disabled = true;
 
-      postJson(API_BASE + '/api/stock-notify', { productId, email: emailInput.value.trim() }).then((ok) => {
+      postJson(API_BASE + '/api/stock-notify', { productId, email: emailInput.value.trim(), hp: honeypot(form) }).then((ok) => {
         if (ok) {
           form.hidden = true;
           box.querySelector('.stock-notify-success').hidden = false;
