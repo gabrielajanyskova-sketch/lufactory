@@ -1,0 +1,17 @@
+{
+  "url": "https://www.lufactory.cz",
+  "name": "lufactory",
+  "description": "Ručně vyráběné houbičky z pravé lufy — přírodní alternativa plastových hub na mytí nádobí i těla.",
+  "email": "info@lufactory.cz",
+  "logo": "/assets/img/logo.webp",
+  "sameAs": ["https://www.instagram.com/lufactory.cz/"],
+  "seller": {
+    "name": "Ing. Nikola Drnková",
+    "ico": "09999035",
+    "streetAddress": "Na Homoli 484",
+    "addressLocality": "Nová Ves",
+    "postalCode": "250 63",
+    "addressCountry": "CZ"
+  },
+  "returnDays": 14
+}

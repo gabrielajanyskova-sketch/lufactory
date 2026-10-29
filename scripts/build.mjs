@@ -5,18 +5,27 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as esbuild from 'esbuild';
+import { createSchemas } from './schema.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, 'src');
 const DIST = path.join(ROOT, 'dist');
-const SITE_URL = 'https://www.lufactory.cz';
-
 const read = (p) => fs.readFileSync(path.join(SRC, p), 'utf8');
+const site = JSON.parse(read('data/site.json'));
+const SITE_URL = site.url;
 const products = JSON.parse(read('data/products.json'));
 const productsById = Object.fromEntries(products.map((p) => [p.id, p]));
 
 function productUrl(p) {
   return `/produkty/${p.id}`;
+}
+
+const schemas = createSchemas(site, productUrl);
+
+function productById(id) {
+  const p = productsById[id];
+  if (!p) throw new Error(`Neznámý produkt: ${id}`);
+  return p;
 }
 
 // {{name}} a {{a.b}} — hodnoty z dat jsou HTML (důvěryhodný obsah z repozitáře).
@@ -43,8 +52,7 @@ function partial(name, flags = {}) {
 }
 
 function card(id, featured) {
-  const p = productsById[id];
-  if (!p) throw new Error(`Neznámý produkt v kartě: ${id}`);
+  const p = productById(id);
   return fill(partial('product-card'), {
     ...p,
     url: productUrl(p),
@@ -53,9 +61,12 @@ function card(id, featured) {
   });
 }
 
+const DIRECTIVE = /^( *)<!-- @(\w[\w-]*) ?(.*?) -->$/gm;
+
 // Direktivy na samostatném řádku; odsazení direktivy se přenese na vložený blok.
+// FAQ schema se skládá z hotové stránky, proto až ve druhém průchodu.
 function render(html) {
-  return html.replace(/^( *)<!-- @(\w[\w-]*) ?(.*?) -->$/gm, (m, pad, directive, args) => {
+  const firstPass = html.replace(DIRECTIVE, (m, pad, directive, args) => {
     const [name, ...rest] = args.split(/\s+/).filter(Boolean);
     let out;
     if (directive === 'include') {
@@ -64,11 +75,24 @@ function render(html) {
       out = `<style>\n${read(`css/${name}`).trim()}\n</style>`;
     } else if (directive === 'card') {
       out = card(name, rest.includes('featured'));
+    } else if (directive === 'schema' && name === 'faq') {
+      return m;
+    } else if (directive === 'schema') {
+      out = schemaBlock(name, rest[0]);
     } else {
       throw new Error(`Neznámá direktiva: ${m}`);
     }
     return indent(out, pad);
   });
+  return firstPass.replace(DIRECTIVE, (m, pad) => indent(schemas.faq(firstPass), pad));
+}
+
+function schemaBlock(name, id) {
+  if (name === 'organization') return schemas.organization();
+  if (name === 'product-list') return schemas.productList(products);
+  if (name === 'product') return schemas.product(productById(id));
+  if (name === 'breadcrumbs') return schemas.breadcrumbs(productById(id));
+  throw new Error(`Neznámé schema: ${name}`);
 }
 
 function renderProductPage(p) {

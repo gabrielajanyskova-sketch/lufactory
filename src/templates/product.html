@@ -16,16 +16,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <!-- @include head -->
 <!-- @inline-css style.css -->
-<script type="application/ld+json" data-product-schema="{{id}}">
-{
-  "@context": "https://schema.org",
-  "@type": "Product",
-  "name": "{{name}}",
-  "description": "{{schemaDescription}}",
-  "image": "{{absImage}}",
-  "offers": { "@type": "Offer", "priceCurrency": "CZK", "price": "{{price}}", "availability": "https://schema.org/InStock", "url": "{{absUrl}}" }
-}
-</script>
+<!-- @schema product {{id}} -->
+<!-- @schema breadcrumbs {{id}} -->
 </head>
 <body>
 <!-- @include header -->
