@@ -2,7 +2,7 @@ const SITE_URL = 'https://www.lufactory.cz';
 
 const BANK_ACCOUNT = '211573669/0300';
 // IBAN spočítaný z BANK_ACCOUNT — musí zůstat stejné jako BANK_IBAN v
-// assets/js/cart.js. Mění se jen když se změní číslo účtu.
+// src/js/config.js. Mění se jen když se změní číslo účtu.
 const BANK_IBAN = 'CZ6503000000000211573669';
 
 const SELLER = {
@@ -33,11 +33,11 @@ const PPL_PRODUCT_TYPE = 'BUSS';
 // uvidíme u objednávky v adminu (žádné tiché selhání).
 const PPL_PARCEL_SHOP_PRODUCT_TYPE = 'PRIV';
 
-// Worker URL musí zůstat stejné jako API_BASE v assets/js/cart.js a admin.html
+// Worker URL musí zůstat stejné jako API_BASE v src/js/config.js
 // — potřeba pro absolutní adresy fotek vracené z /api/products.
 const WORKER_BASE = 'https://lufactory-api.gabriela-janyskova.workers.dev';
 
-// Musí zůstat stejné jako SHIPPING v assets/js/cart.js — tady se cena dopravy
+// Musí zůstat stejné jako SHIPPING v src/js/config.js — tady se cena dopravy
 // ověřuje server-side (nikdy se nevěří ceně poslané klientem).
 const SHIPPING = {
   pickup: { label: 'Osobní odběr (Nová Ves u Prahy / Praha 8, Čimice)', price: 0 },
@@ -47,14 +47,70 @@ const SHIPPING = {
   'ppl-address': { label: 'PPL – doručení na adresu', price: 106 }
 };
 
-// Musí zůstat stejné jako STATIC_PRODUCT_IDS v assets/js/main.js — šest
+// Musí zůstat stejné jako STATIC_PRODUCT_IDS v src/js/config.js — šest
 // původních produktů má vlastní stránku, zbytek generickou šablonu.
 const STATIC_PRODUCT_IDS = ['houbicka-mala', 'houbicka-stredni', 'houbicka-velka', 'houbicka-mix', 'peeling', 'cela-lufa'];
 
 function productPageUrl(productId) {
   return STATIC_PRODUCT_IDS.includes(productId)
-    ? `${SITE_URL}/produkty/${productId}.html`
-    : `${SITE_URL}/produkty/produkt.html?id=${encodeURIComponent(productId)}`;
+    ? `${SITE_URL}/produkty/${productId}`
+    : `${SITE_URL}/produkty/produkt?id=${encodeURIComponent(productId)}`;
+}
+
+// ---------- ochrana veřejných formulářů ----------
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function isValidEmail(value) {
+  return typeof value === 'string' && value.length <= 254 && EMAIL_RE.test(value);
+}
+
+// Ořízne mezery a omezí délku — nic z formuláře nesmí být neomezeně dlouhé.
+function clip(value, max) {
+  return String(value == null ? '' : value).trim().slice(0, max);
+}
+
+// Skryté pole lf_hp na webu (posílá se jako `hp`): člověk ho nevidí ani na
+// něj nenaTabuje, roboti vyplňující všechna pole ano.
+function isBot(body) {
+  return !!(body && body.hp);
+}
+
+// Limit požadavků na IP adresu: [počet, okno v ms].
+const RATE_LIMITS = {
+  orders: [10, 60 * 60 * 1000],
+  contact: [5, 60 * 60 * 1000],
+  withdrawal: [5, 60 * 60 * 1000],
+  'stock-notify': [10, 60 * 60 * 1000],
+  reviews: [10, 60 * 60 * 1000]
+};
+
+let rateLimitTableReady = false;
+
+// Jeden atomický upsert na požadavek; tabulka se založí sama při prvním použití.
+async function isRateLimited(request, env, bucket) {
+  const [limit, windowMs] = RATE_LIMITS[bucket];
+  if (!rateLimitTableReady) {
+    await env.DB.prepare(
+      'CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, window_start INTEGER NOT NULL)'
+    ).run();
+    rateLimitTableReady = true;
+  }
+  const key = bucket + ':' + (request.headers.get('CF-Connecting-IP') || 'unknown');
+  const now = Date.now();
+  const windowEdge = now - windowMs;
+  const row = await env.DB.prepare(
+    `INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?)
+     ON CONFLICT(key) DO UPDATE SET
+       count = CASE WHEN window_start < ? THEN 1 ELSE count + 1 END,
+       window_start = CASE WHEN window_start < ? THEN ? ELSE window_start END
+     RETURNING count`
+  ).bind(key, now, windowEdge, windowEdge, now).first();
+  return row.count > limit;
+}
+
+function tooManyRequests(cors) {
+  return json({ error: 'too_many_requests' }, 429, cors);
 }
 
 export default {
@@ -90,15 +146,19 @@ export default {
         return await updateShippingSettings(request, env, cors);
       }
       if (url.pathname === '/api/orders' && request.method === 'POST') {
+        if (await isRateLimited(request, env, 'orders')) return tooManyRequests(cors);
         return await createOrder(request, env, cors);
       }
       if (url.pathname === '/api/withdrawal' && request.method === 'POST') {
+        if (await isRateLimited(request, env, 'withdrawal')) return tooManyRequests(cors);
         return await submitWithdrawal(request, env, cors);
       }
       if (url.pathname === '/api/contact' && request.method === 'POST') {
+        if (await isRateLimited(request, env, 'contact')) return tooManyRequests(cors);
         return await submitContact(request, env, cors);
       }
       if (url.pathname === '/api/stock-notify' && request.method === 'POST') {
+        if (await isRateLimited(request, env, 'stock-notify')) return tooManyRequests(cors);
         return await submitStockNotify(request, env, cors);
       }
 
@@ -107,6 +167,7 @@ export default {
         return await getReviewInvite(env, cors, reviewInviteMatch[1]);
       }
       if (url.pathname === '/api/reviews' && request.method === 'POST') {
+        if (await isRateLimited(request, env, 'reviews')) return tooManyRequests(cors);
         return await submitReviews(request, env, cors);
       }
       if (url.pathname === '/api/reviews/latest' && request.method === 'GET') {
@@ -214,7 +275,9 @@ export default {
 
       return json({ error: 'not_found' }, 404, cors);
     } catch (err) {
-      return json({ error: 'server_error', message: String((err && err.message) || err) }, 500, cors);
+      // Detail chyby jen do logu workeru, ne veřejně do odpovědi.
+      console.error('unhandled', url.pathname, err);
+      return json({ error: 'server_error' }, 500, cors);
     }
   }
 };
@@ -334,21 +397,51 @@ function generateOrderNumber() {
   };
 }
 
+const PAYMENT_METHODS = ['transfer', 'cash'];
+const PICKUP_POINT_METHODS = ['zasilkovna-pickup', 'ppl-pickup'];
+const MAX_ORDER_LINES = 20;
+const MAX_LINE_QTY = 99;
+
 async function createOrder(request, env, cors) {
   const body = await request.json();
+  if (isBot(body)) return json({ error: 'rejected' }, 400, cors);
 
-  if (!body.customer || !body.customer.name || !body.customer.email
-    || !body.customer.street || !body.customer.zip || !body.customer.city) {
+  const c = body.customer || {};
+  body.customer = {
+    name: clip(c.name, 200),
+    email: clip(c.email, 254),
+    phone: clip(c.phone, 40),
+    street: clip(c.street, 200),
+    zip: clip(c.zip, 20),
+    city: clip(c.city, 100)
+  };
+  body.note = clip(body.note, 2000);
+  if (!body.customer.name || !body.customer.street || !body.customer.zip || !body.customer.city) {
     return json({ error: 'missing_customer_fields' }, 400, cors);
   }
-  if (!Array.isArray(body.items) || body.items.length === 0) {
+  if (!isValidEmail(body.customer.email)) {
+    return json({ error: 'invalid_email' }, 400, cors);
+  }
+  if (!Array.isArray(body.items) || body.items.length === 0 || body.items.length > MAX_ORDER_LINES) {
     return json({ error: 'empty_cart' }, 400, cors);
   }
   if (!body.delivery || !SHIPPING[body.delivery.method]) {
     return json({ error: 'invalid_delivery_method' }, 400, cors);
   }
-  if (!body.payment || !body.payment.method) {
-    return json({ error: 'missing_payment_method' }, 400, cors);
+  body.delivery.detail = clip(body.delivery.detail, 300);
+  body.delivery.pickupPointId = body.delivery.pickupPointId ? clip(body.delivery.pickupPointId, 64) : null;
+  if (PICKUP_POINT_METHODS.includes(body.delivery.method) && !body.delivery.detail) {
+    return json({ error: 'missing_pickup_point' }, 400, cors);
+  }
+  // PPL zásilku na výdejní místo nejde bez kódu pobočky z widgetu vytvořit.
+  if (body.delivery.method === 'ppl-pickup' && !body.delivery.pickupPointId) {
+    return json({ error: 'missing_pickup_point' }, 400, cors);
+  }
+  if (!body.payment || !PAYMENT_METHODS.includes(body.payment.method)) {
+    return json({ error: 'invalid_payment_method' }, 400, cors);
+  }
+  if (body.payment.method === 'cash' && body.delivery.method !== 'pickup') {
+    return json({ error: 'invalid_payment_method' }, 400, cors);
   }
 
   // Look up real prices/titles/stock server-side — never trust client-supplied prices.
@@ -358,7 +451,7 @@ async function createOrder(request, env, cors) {
       'SELECT product_id, title, price, stock_qty FROM products WHERE product_id = ?'
     ).bind(line.productId).first();
     if (!product) return json({ error: 'unknown_product', productId: line.productId }, 400, cors);
-    const qty = Math.max(1, parseInt(line.qty, 10) || 1);
+    const qty = Math.min(MAX_LINE_QTY, Math.max(1, parseInt(line.qty, 10) || 1));
     if (product.stock_qty < qty) {
       return json({ error: 'insufficient_stock', productId: line.productId, available: product.stock_qty }, 409, cors);
     }
@@ -380,45 +473,67 @@ async function createOrder(request, env, cors) {
   const total = Math.max(0, subtotal - discount) + shipping.price;
   const { orderNumber, variableSymbol } = generateOrderNumber();
 
-  const insert = await env.DB.prepare(
-    `INSERT INTO orders (order_number, variable_symbol, status, customer_name, customer_email, customer_phone,
-       customer_street, customer_zip, customer_city,
-       delivery_method, delivery_detail, pickup_point_id, payment_method, discount_code, note,
-       subtotal, discount_amount, shipping_price, total)
-     VALUES (?, ?, 'nova', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).bind(
-    orderNumber,
-    variableSymbol,
-    body.customer.name,
-    body.customer.email,
-    body.customer.phone || '',
-    body.customer.street || '',
-    body.customer.zip || '',
-    body.customer.city || '',
-    body.delivery.method,
-    body.delivery.detail || '',
-    body.delivery.pickupPointId || null,
-    body.payment.method,
-    (body.discountCode || '').toUpperCase() || null,
-    body.note || '',
-    subtotal,
-    discount,
-    shipping.price,
-    total
-  ).run();
-
-  const orderId = insert.meta.last_row_id;
-  const itemStmts = items.map((item) =>
-    env.DB.prepare(
-      'INSERT INTO order_items (order_id, product_id, title, price, qty) VALUES (?, ?, ?, ?, ?)'
-    ).bind(orderId, item.productId, item.title, item.price, item.qty)
-  );
-  const stockStmts = items.map((item) =>
+  // Sklad se odečte ještě před uložením objednávky podmíněným UPDATE —
+  // dvě souběžné objednávky tak nemůžou prodat tentýž poslední kus (kontrola
+  // výše je jen rychlá odpověď). Když se některý řádek nepovede, už odečtené
+  // kusy se vrátí.
+  const stockResults = await env.DB.batch(items.map((item) =>
     env.DB.prepare(
       'UPDATE products SET stock_qty = stock_qty - ? WHERE product_id = ? AND stock_qty >= ?'
     ).bind(item.qty, item.productId, item.qty)
-  );
-  await env.DB.batch(itemStmts.concat(stockStmts));
+  ));
+  const reserved = stockResults.map((r) => !!(r.meta && r.meta.changes > 0));
+  const restoreStock = () => {
+    const stmts = items.filter((_, i) => reserved[i]).map((item) =>
+      env.DB.prepare('UPDATE products SET stock_qty = stock_qty + ? WHERE product_id = ?').bind(item.qty, item.productId)
+    );
+    return stmts.length ? env.DB.batch(stmts) : null;
+  };
+  const failed = reserved.indexOf(false);
+  if (failed !== -1) {
+    await restoreStock();
+    return json({ error: 'insufficient_stock', productId: items[failed].productId, available: 0 }, 409, cors);
+  }
+
+  let insert;
+  try {
+    insert = await env.DB.prepare(
+      `INSERT INTO orders (order_number, variable_symbol, status, customer_name, customer_email, customer_phone,
+         customer_street, customer_zip, customer_city,
+         delivery_method, delivery_detail, pickup_point_id, payment_method, discount_code, note,
+         subtotal, discount_amount, shipping_price, total)
+       VALUES (?, ?, 'nova', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      orderNumber,
+      variableSymbol,
+      body.customer.name,
+      body.customer.email,
+      body.customer.phone || '',
+      body.customer.street || '',
+      body.customer.zip || '',
+      body.customer.city || '',
+      body.delivery.method,
+      body.delivery.detail || '',
+      body.delivery.pickupPointId || null,
+      body.payment.method,
+      (body.discountCode || '').toUpperCase() || null,
+      body.note || '',
+      subtotal,
+      discount,
+      shipping.price,
+      total
+    ).run();
+  } catch (err) {
+    await restoreStock();
+    throw err;
+  }
+
+  const orderId = insert.meta.last_row_id;
+  await env.DB.batch(items.map((item) =>
+    env.DB.prepare(
+      'INSERT INTO order_items (order_id, product_id, title, price, qty) VALUES (?, ?, ?, ?, ?)'
+    ).bind(orderId, item.productId, item.title, item.price, item.qty)
+  ));
 
   if (env.RESEND_API_KEY) {
     // E-mail je jen doprovodný krok — objednávka a sklad jsou už uložené,
@@ -468,7 +583,7 @@ function emailLayout(innerHtml) {
 }
 
 // Stejný SPD (Short Payment Descriptor) formát jako buildPaymentQrSvg v
-// assets/js/cart.js, jen vykreslený přes veřejné qrserver.com API místo
+// src/js/cart/checkout.js, jen vykreslený přes veřejné qrserver.com API místo
 // místní JS knihovny — e-mail neumí spustit JavaScript, potřebuje hotový obrázek.
 function paymentQrImageUrl(amount, variableSymbol) {
   const spd = 'SPD*1.0*ACC:' + BANK_IBAN + '*AM:' + amount.toFixed(2) + '*CC:CZK*X-VS:' + variableSymbol + '*MSG:Lufactory';
@@ -571,16 +686,19 @@ async function sendOrderEmails(env, { orderNumber, variableSymbol, body, items, 
 
 async function submitWithdrawal(request, env, cors) {
   const body = await request.json();
-  const name = String(body.name || '').trim();
-  const email = String(body.email || '').trim();
-  const address = String(body.address || '').trim();
-  const goods = String(body.goods || '').trim();
-  const orderNumber = String(body.orderNumber || '').trim();
-  const receivedDate = String(body.receivedDate || '').trim();
+  // Robotovi tváříme úspěch, ať nezkouší jiné cesty.
+  if (isBot(body)) return json({ ok: true }, 200, cors);
+  const name = clip(body.name, 200);
+  const email = clip(body.email, 254);
+  const address = clip(body.address, 300);
+  const goods = clip(body.goods, 2000);
+  const orderNumber = clip(body.orderNumber, 40);
+  const receivedDate = clip(body.receivedDate, 20);
 
   if (!name || !email || !address || !goods) {
     return json({ error: 'missing_fields' }, 400, cors);
   }
+  if (!isValidEmail(email)) return json({ error: 'invalid_email' }, 400, cors);
 
   // Uložit vždy, i kdyby e-mail selhal — jde o právně důležité oznámení,
   // nesmí zmizet jen proto, že Resend zrovna nejde.
@@ -634,13 +752,15 @@ async function sendWithdrawalEmails(env, { name, email, address, orderNumber, re
 
 async function submitContact(request, env, cors) {
   const body = await request.json();
-  const name = String(body.name || '').trim();
-  const email = String(body.email || '').trim();
-  const message = String(body.message || '').trim();
+  if (isBot(body)) return json({ ok: true }, 200, cors);
+  const name = clip(body.name, 200);
+  const email = clip(body.email, 254);
+  const message = clip(body.message, 5000);
 
   if (!name || !email || !message) {
     return json({ error: 'missing_fields' }, 400, cors);
   }
+  if (!isValidEmail(email)) return json({ error: 'invalid_email' }, 400, cors);
   if (!env.RESEND_API_KEY || !env.SHOP_NOTIFICATION_EMAIL) {
     return json({ error: 'mail_not_configured' }, 503, cors);
   }
@@ -774,9 +894,11 @@ async function deleteReview(env, cors, id) {
 
 async function submitStockNotify(request, env, cors) {
   const body = await request.json();
-  const productId = String(body.productId || '').trim();
-  const email = String(body.email || '').trim();
+  if (isBot(body)) return json({ ok: true }, 200, cors);
+  const productId = clip(body.productId, 100);
+  const email = clip(body.email, 254);
   if (!productId || !email) return json({ error: 'missing_fields' }, 400, cors);
+  if (!isValidEmail(email)) return json({ error: 'invalid_email' }, 400, cors);
 
   const product = await env.DB.prepare('SELECT product_id FROM products WHERE product_id = ?').bind(productId).first();
   if (!product) return json({ error: 'unknown_product' }, 400, cors);
@@ -853,8 +975,10 @@ function randomToken() {
   return crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
 }
 
+// Kryptograficky náhodný 6místný kód (Math.random není pro bezpečnost vhodný).
 function randomLoginCode() {
-  return String(Math.floor(100000 + Math.random() * 900000));
+  const n = crypto.getRandomValues(new Uint32Array(1))[0];
+  return String(100000 + (n % 900000));
 }
 
 async function handleAdminLogin(request, env, cors) {
@@ -1215,7 +1339,7 @@ async function updateOrderStatus(request, env, cors, orderId) {
 }
 
 async function sendReviewRequestEmail(env, order, token) {
-  const link = `${SITE_URL}/recenze.html?token=${token}`;
+  const link = `${SITE_URL}/recenze?token=${token}`;
   const html = emailLayout(`
     <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Jak se vám houbičky líbí?</p>
     <p style="margin:0 0 16px;">Doufáme, že jste s objednávkou č. <strong>${escapeHtml(order.order_number)}</strong> spokojeni. Budeme moc rádi, když nám napíšete pár slov hodnocení — pomůže to dalším zákazníkům při výběru.</p>

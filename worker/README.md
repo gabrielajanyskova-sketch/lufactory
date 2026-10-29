@@ -44,10 +44,27 @@ Bindings a proměnné (Settings → Bindings / Variables and Secrets), viz
 
 ## Propojení s webem
 
-`API_BASE` v `assets/js/cart.js`, `assets/js/main.js`, `admin.html`,
-`produkty/produkt.html` a `recenze.html` musí ukazovat na URL tohohle
-workeru (`https://lufactory-api.<subdomain>.workers.dev`). Musí sedět na
-všech pěti místech současně.
+`API_BASE` v `src/js/config.js` (jediné místo na webu) musí ukazovat na URL
+tohohle workeru (`https://lufactory-api.<subdomain>.workers.dev`), stejně
+jako `WORKER_BASE` v `src/index.js`. `SHIPPING`, `BANK_IBAN` a
+`STATIC_PRODUCT_IDS` jsou ve workeru zkopírované z `src/js/config.js` —
+`npm run check` v kořeni repozitáře ohlásí, když se rozejdou.
+
+## Ochrana veřejných formulářů
+
+Objednávky, kontakt, odstoupení od smlouvy, upozornění na naskladnění a
+recenze mají limit požadavků na IP adresu (`RATE_LIMITS` v `src/index.js`,
+např. 10 objednávek / 5 dotazů za hodinu). Počítadla jsou v tabulce
+**`rate_limits`**, kterou si worker založí sám při prvním požadavku.
+
+Formuláře na webu posílají skryté pole `hp` (past na roboty): vyplněné =
+požadavek se zahodí (objednávka dostane chybu, ostatní formuláře tichý
+úspěch). Worker dál ověřuje formát e-mailu, délku polí, způsob platby
+(`transfer`/`cash`, hotově jen u osobního odběru) a u výdejních míst vyplněnou
+pobočku (u PPL i kód z widgetu).
+
+Sklad se odečítá podmíněně ještě před uložením objednávky — dvě souběžné
+objednávky tak nemůžou prodat tentýž poslední kus.
 
 ## Databáze (`lufactory-orders`)
 
@@ -133,7 +150,7 @@ a chyba se zobrazí u objednávky v adminu.
 ## Recenze
 
 Nastavením stavu objednávky na "Vyřízeno" se zákazníkovi pošle e-mail s
-odkazem na `recenze.html?token=...`, kde může ohodnotit každý koupený
+odkazem na `/recenze?token=...`, kde může ohodnotit každý koupený
 produkt hvězdičkami a napsat komentář. Recenze čekají v adminu (záložka
 "Recenze") na schválení, než se zobrazí veřejně na stránce produktu — teprve
 schválené se počítají do průměrného hodnocení a do schema.org
