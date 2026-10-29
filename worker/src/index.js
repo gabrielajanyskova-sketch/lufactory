@@ -85,6 +85,8 @@ const RATE_LIMITS = {
   reviews: [10, 60 * 60 * 1000]
 };
 
+const RATE_LIMIT_RETENTION_MS = 24 * 60 * 60 * 1000;
+
 let rateLimitTableReady = false;
 
 // Jeden atomický upsert na požadavek; tabulka se založí sama při prvním použití.
@@ -96,6 +98,8 @@ async function isRateLimited(request, env, bucket) {
     ).run();
     rateLimitTableReady = true;
   }
+  // IP adresy se neuchovávají déle než 24 hodin (viz zásady ochrany osobních údajů).
+  await env.DB.prepare('DELETE FROM rate_limits WHERE window_start < ?').bind(Date.now() - RATE_LIMIT_RETENTION_MS).run();
   const key = bucket + ':' + (request.headers.get('CF-Connecting-IP') || 'unknown');
   const now = Date.now();
   const windowEdge = now - windowMs;
