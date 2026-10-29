@@ -177,6 +177,16 @@ for (const canonical of canonicals) {
 const robots = fs.readFileSync(path.join(DIST, 'robots.txt'), 'utf8');
 if (!robots.includes(`Sitemap: ${site.url}/sitemap.xml`)) errors.push('robots.txt: chybí odkaz na sitemapu');
 
+// ---------- security.txt (RFC 9116) ----------
+const securityTxtPath = path.join(DIST, '.well-known/security.txt');
+if (!fs.existsSync(securityTxtPath)) {
+  errors.push('chybí .well-known/security.txt');
+} else {
+  const expires = (fs.readFileSync(securityTxtPath, 'utf8').match(/^Expires: (.+)$/m) || [])[1];
+  const daysLeft = expires ? (new Date(expires) - Date.now()) / 86400000 : -1;
+  if (!(daysLeft > 30)) errors.push('security.txt: Expires chybí nebo vyprší do 30 dnů — prodluž datum v src/public/.well-known/security.txt');
+}
+
 // ---------- _headers ----------
 const headers = fs.readFileSync(path.join(DIST, '_headers'), 'utf8');
 headers.split('\n').forEach((line, i) => {

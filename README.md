@@ -88,6 +88,12 @@ v provozu (konzole prohlížeče bez hlášek „Content-Security-Policy“) lze
 `Content-Security-Policy-Report-Only` přejmenovat na `Content-Security-Policy`.
 Při přidání nové externí služby (analytika, video, …) je potřeba ji v CSP povolit.
 
+### security.txt
+
+`src/public/.well-known/security.txt` (kontakt pro hlášení bezpečnostních chyb)
+má datum `Expires` — jednou ročně ho prodluž. `npm run check` začne hlásit
+chybu 30 dní před vypršením.
+
 ## Košík a objednávka
 
 Košík je v `localStorage`; zboží není rezervované, množství se vždy porovnává
