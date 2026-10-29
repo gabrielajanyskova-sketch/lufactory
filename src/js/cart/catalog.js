@@ -2,28 +2,31 @@
 // doplní jako další karty, aby se objevily bez úpravy kódu webu.
 import { onStockLoaded } from './stock.js';
 import { initAddToCart } from './add-to-cart.js';
+import { escapeHtml } from '../util.js';
 
 function buildDynamicProductCard(id, data) {
   const article = document.createElement('article');
   article.className = 'product-card';
   const detailUrl = '/produkty/produkt.html?id=' + encodeURIComponent(id);
+  // Název, popis i fotka jsou zadané v adminu — vždy escapovat.
+  const title = escapeHtml(data.title);
   const imgHtml = data.imageUrl
-    ? '<img src="' + data.imageUrl + '" alt="' + data.title.replace(/"/g, '&quot;') + '" loading="lazy">'
+    ? '<img src="' + escapeHtml(data.imageUrl) + '" alt="' + title + '" loading="lazy">'
     : '<div class="img-placeholder"></div>';
   article.innerHTML =
     '<a href="' + detailUrl + '" class="product-img">' + imgHtml + '</a>' +
     '<div class="product-body">' +
-      '<h3><a href="' + detailUrl + '">' + data.title + '</a></h3>' +
-      (data.teaser ? '<p>' + data.teaser + '</p>' : '') +
-      '<span class="product-price">' + data.price + ' Kč</span>' +
-      '<span class="stock-badge stock-badge--out" data-stock-badge="' + id + '">Není skladem</span>' +
+      '<h3><a href="' + detailUrl + '">' + title + '</a></h3>' +
+      (data.teaser ? '<p>' + escapeHtml(data.teaser) + '</p>' : '') +
+      '<span class="product-price">' + Number(data.price) + ' Kč</span>' +
+      '<span class="stock-badge stock-badge--out" data-stock-badge="' + escapeHtml(id) + '">Není skladem</span>' +
       '<div class="add-to-cart-row">' +
-        '<div class="qty-stepper" data-qty-for="' + id + '">' +
+        '<div class="qty-stepper" data-qty-for="' + escapeHtml(id) + '">' +
           '<button type="button" data-action="dec" aria-label="Ubrat kus" disabled>−</button>' +
           '<input type="number" value="1" min="1" data-qty-input aria-label="Počet kusů" disabled>' +
           '<button type="button" data-action="inc" aria-label="Přidat kus" disabled>+</button>' +
         '</div>' +
-        '<button type="button" class="btn btn--outline" data-add-to-cart data-id="' + id + '" data-name="' + data.title.replace(/"/g, '&quot;') + '" data-price="' + data.price + '" disabled>Přidat do košíku</button>' +
+        '<button type="button" class="btn btn--outline" data-add-to-cart data-id="' + escapeHtml(id) + '" data-name="' + title + '" data-price="' + Number(data.price) + '" disabled>Přidat do košíku</button>' +
       '</div>' +
     '</div>';
   initAddToCart(article);

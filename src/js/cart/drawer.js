@@ -1,5 +1,5 @@
 // Výsuvný košík v záhlaví a sdílené vykreslení položek (i pro /kosik.html).
-import { formatPrice } from '../util.js';
+import { escapeHtml, formatPrice } from '../util.js';
 import { getCart, setQty, removeFromCart, cartCount, cartSubtotal, onCartChange } from './store.js';
 import { availableStock, reconcileCartWithStock } from './stock.js';
 import { showStockToast } from './toast.js';
@@ -10,7 +10,7 @@ function buildCartItemEl(item) {
   li.className = 'cart-item';
   li.innerHTML =
     '<div class="cart-item-info">' +
-      '<span class="cart-item-name">' + item.name + '</span>' +
+      '<span class="cart-item-name">' + escapeHtml(item.name) + '</span>' +
       '<span class="cart-item-price">' + formatPrice(item.price) + ' / ks</span>' +
     '</div>' +
     '<div class="cart-item-controls">' +

@@ -1,7 +1,8 @@
+// Bezpečné pro text i pro hodnoty atributů v uvozovkách.
+const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+
 export function escapeHtml(value) {
-  const div = document.createElement('div');
-  div.textContent = value == null ? '' : String(value);
-  return div.innerHTML;
+  return String(value == null ? '' : value).replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
 }
 
 export function formatPrice(n) {

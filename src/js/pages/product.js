@@ -1,6 +1,7 @@
 // produkty/produkt.html?id=... — generická stránka pro produkty přidané
 // přes admin; obsah se vykreslí z /api/products.
 import { API_BASE } from '../config.js';
+import { escapeHtml } from '../util.js';
 import { initAddToCart } from '../cart/add-to-cart.js';
 import { loadStock } from '../cart/stock.js';
 import { initLightbox } from '../ui/lightbox.js';
@@ -30,19 +31,23 @@ export function initDynamicProductPage() {
 
       document.title = p.title + ' | lufactory';
 
+      // Vše z adminu se escapuje — název, popis i adresy fotek.
+      const title = escapeHtml(p.title);
+      const safeId = escapeHtml(id);
+      const price = Number(p.price);
       const imgHtml = p.imageUrl
-        ? '<img src="' + p.imageUrl + '" alt="' + p.title.replace(/"/g, '&quot;') + '">'
+        ? '<img src="' + escapeHtml(p.imageUrl) + '" alt="' + title + '">'
         : '<div class="img-placeholder"></div>';
 
       const descriptionHtml = (p.description || '')
         .split(/\n\s*\n/)
         .filter((para) => para.trim())
-        .map((para) => '<p>' + para.replace(/\n/g, '<br>') + '</p>')
+        .map((para) => '<p>' + escapeHtml(para).replace(/\n/g, '<br>') + '</p>')
         .join('');
 
       const galleryHtml = (p.galleryUrls && p.galleryUrls.length)
         ? '<h2>Další fotky</h2><div class="gallery">' +
-            p.galleryUrls.map((url) => '<img src="' + url + '" alt="' + p.title.replace(/"/g, '&quot;') + '" loading="lazy">').join('') +
+            p.galleryUrls.map((url) => '<img src="' + escapeHtml(url) + '" alt="' + title + '" loading="lazy">').join('') +
           '</div>'
         : '';
 
@@ -50,19 +55,19 @@ export function initDynamicProductPage() {
         '<div class="product-detail">' +
           '<div class="product-detail-img">' + imgHtml + '</div>' +
           '<div class="product-detail-body">' +
-            '<h1>' + p.title + '</h1>' +
-            '<p class="product-price-lg">' + p.price + ' Kč</p>' +
-            '<span class="stock-badge stock-badge--out" data-stock-badge="' + id + '">Není skladem</span>' +
+            '<h1>' + title + '</h1>' +
+            '<p class="product-price-lg">' + price + ' Kč</p>' +
+            '<span class="stock-badge stock-badge--out" data-stock-badge="' + safeId + '">Není skladem</span>' +
             descriptionHtml +
             '<div class="add-to-cart-row">' +
-              '<div class="qty-stepper" data-qty-for="' + id + '">' +
+              '<div class="qty-stepper" data-qty-for="' + safeId + '">' +
                 '<button type="button" data-action="dec" aria-label="Ubrat kus" disabled>−</button>' +
                 '<input type="number" value="1" min="1" data-qty-input aria-label="Počet kusů" disabled>' +
                 '<button type="button" data-action="inc" aria-label="Přidat kus" disabled>+</button>' +
               '</div>' +
-              '<button type="button" class="btn" data-add-to-cart data-id="' + id + '" data-name="' + p.title.replace(/"/g, '&quot;') + '" data-price="' + p.price + '" disabled>Přidat do košíku</button>' +
+              '<button type="button" class="btn" data-add-to-cart data-id="' + safeId + '" data-name="' + title + '" data-price="' + price + '" disabled>Přidat do košíku</button>' +
             '</div>' +
-            '<div class="stock-notify" data-stock-notify="' + id + '" hidden>' +
+            '<div class="stock-notify" data-stock-notify="' + safeId + '" hidden>' +
               '<form class="stock-notify-form">' +
                 '<input type="email" placeholder="Váš e-mail" required>' +
                 '<button type="submit" class="btn btn--outline">Dej mi vědět, až bude skladem</button>' +

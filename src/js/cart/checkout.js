@@ -70,6 +70,18 @@ function updateFreeShippingUi(subtotal, freeShippingApplies) {
   }
 }
 
+// Mezisoučet, sleva, doprava (včetně dopravy zdarma) a celkem — stejný
+// výpočet pro souhrn na stránce i pro mailto zálohu.
+function orderTotals(cart) {
+  const subtotal = cartSubtotal(cart);
+  const discount = discountAmount(subtotal);
+  const shippingKey = selectedShippingKey();
+  const shipping = SHIPPING[shippingKey] || SHIPPING.pickup;
+  const freeShippingApplies = shippingSettings.active && shippingSettings.threshold > 0 && subtotal >= shippingSettings.threshold;
+  const shippingPrice = freeShippingApplies ? 0 : shipping.price;
+  return { subtotal, discount, shippingKey, shipping, freeShippingApplies, shippingPrice, total: Math.max(0, subtotal - discount) + shippingPrice };
+}
+
 function renderCartPage() {
   reconcileCartWithStock();
   const cart = getCart();
@@ -87,13 +99,7 @@ function renderCartPage() {
   const itemsEl = document.getElementById('cart-page-items');
   if (itemsEl) renderCartItems(itemsEl, cart);
 
-  const subtotal = cartSubtotal(cart);
-  const discount = discountAmount(subtotal);
-  const shippingKey = selectedShippingKey();
-  const shipping = SHIPPING[shippingKey] || SHIPPING.pickup;
-  const freeShippingApplies = shippingSettings.active && shippingSettings.threshold > 0 && subtotal >= shippingSettings.threshold;
-  const shippingPrice = freeShippingApplies ? 0 : shipping.price;
-  const total = Math.max(0, subtotal - discount) + shippingPrice;
+  const { subtotal, discount, shippingKey, freeShippingApplies, shippingPrice, total } = orderTotals(cart);
   updateFreeShippingUi(subtotal, freeShippingApplies);
 
   const discountInput = document.getElementById('discount-code');
@@ -164,12 +170,8 @@ function billingDetails() {
 
 function buildOrderMailto() {
   const cart = getCart();
-  const subtotal = cartSubtotal(cart);
-  const discount = discountAmount(subtotal);
-  const shippingKey = selectedShippingKey();
-  const shipping = SHIPPING[shippingKey] || SHIPPING.pickup;
+  const { subtotal, discount, shippingKey, shipping, shippingPrice, total } = orderTotals(cart);
   const paymentLabel = selectedPaymentKey() === 'cash' ? 'Hotově při osobním odběru' : 'Bankovním převodem';
-  const total = Math.max(0, subtotal - discount) + shipping.price;
 
   const customer = billingDetails();
   const address = valueOf('c-address');
@@ -179,7 +181,7 @@ function buildOrderMailto() {
   lines.push('');
   lines.push('Mezisoučet: ' + formatPrice(subtotal));
   if (discount > 0) lines.push('Sleva (' + getDiscountCode() + '): −' + formatPrice(discount));
-  lines.push('Doprava (' + shipping.label + '): ' + (shipping.price === 0 ? 'zdarma' : formatPrice(shipping.price)));
+  lines.push('Doprava (' + shipping.label + '): ' + (shippingPrice === 0 ? 'zdarma' : formatPrice(shippingPrice)));
   lines.push('Celkem: ' + formatPrice(total));
   lines.push('');
   lines.push('Platba: ' + paymentLabel);
