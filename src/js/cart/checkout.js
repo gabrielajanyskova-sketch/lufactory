@@ -1,4 +1,4 @@
-// Stránka /kosik.html — doprava, platba, slevový kód, fakturační údaje,
+// Stránka /kosik — doprava, platba, slevový kód, fakturační údaje,
 // výběr výdejního místa a odeslání objednávky přes worker (s mailto zálohou).
 import { API_BASE, SHIPPING, PICKUP_POINT_SHIPPING, PACKETA_API_KEY, BANK_IBAN } from '../config.js';
 import { formatPrice } from '../util.js';
@@ -223,7 +223,7 @@ function submitOrderViaApi() {
 // SPD (Short Payment Descriptor) — český standard pro QR platby, podporovaný
 // všemi tuzemskými bankovními aplikacemi. Naskenováním se vyplní částka,
 // účet i variabilní symbol, klient nic neopisuje ručně. Knihovna qrcode se
-// načítá jen na /kosik.html (assets/js/qrcode.js).
+// načítá jen na /kosik (assets/js/qrcode.js).
 function buildPaymentQrSvg(amount, variableSymbol) {
   const spd = 'SPD*1.0*ACC:' + BANK_IBAN + '*AM:' + amount.toFixed(2) + '*CC:CZK*X-VS:' + variableSymbol + '*MSG:Lufactory';
   const qr = window.qrcode(0, 'M');
@@ -253,7 +253,7 @@ function showOrderSuccess(result) {
       '<h2>Objednávka odeslána</h2>' +
       '<p>Číslo objednávky <strong>' + result.orderNumber + '</strong>. Potvrzení jsme poslali na váš e-mail, brzy se ozveme s dalšími informacemi.</p>' +
       qrBlock +
-      '<a href="/produkty.html" class="btn">Zpět na produkty</a>' +
+      '<a href="/produkty" class="btn">Zpět na produkty</a>' +
     '</div>';
 }
 

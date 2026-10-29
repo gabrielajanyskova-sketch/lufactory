@@ -5,7 +5,7 @@ const DISCOUNT_KEY = 'lufactory_discount';
 
 const listeners = [];
 
-// Košík (záhlaví) i stránka /kosik.html se překreslí po každé změně.
+// Košík (záhlaví) i stránka /kosik se překreslí po každé změně.
 export function onCartChange(fn) {
   listeners.push(fn);
 }

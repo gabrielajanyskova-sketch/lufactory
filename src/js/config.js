@@ -34,6 +34,6 @@ export const STATIC_PRODUCT_IDS = ['houbicka-mala', 'houbicka-stredni', 'houbick
 
 export function productUrl(productId) {
   return STATIC_PRODUCT_IDS.indexOf(productId) !== -1
-    ? '/produkty/' + productId + '.html'
-    : '/produkty/produkt.html?id=' + encodeURIComponent(productId);
+    ? '/produkty/' + productId
+    : '/produkty/produkt?id=' + encodeURIComponent(productId);
 }

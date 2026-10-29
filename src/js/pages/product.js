@@ -8,7 +8,7 @@ import { initLightbox } from '../ui/lightbox.js';
 import { initProductReviews } from '../reviews/product-reviews.js';
 import { initStockNotifyForms } from '../forms/stock-notify.js';
 
-const NOT_FOUND = '<p>Produkt nebyl nalezen. <a href="/produkty.html">Zpět na produkty</a></p>';
+const NOT_FOUND = '<p>Produkt nebyl nalezen. <a href="/produkty">Zpět na produkty</a></p>';
 
 export function initDynamicProductPage() {
   const root = document.getElementById('product-detail-root');
@@ -86,6 +86,6 @@ export function initDynamicProductPage() {
       initStockNotifyForms();
     })
     .catch(() => {
-      root.innerHTML = '<p>Produkt se nepodařilo načíst. <a href="/produkty.html">Zpět na produkty</a></p>';
+      root.innerHTML = '<p>Produkt se nepodařilo načíst. <a href="/produkty">Zpět na produkty</a></p>';
     });
 }

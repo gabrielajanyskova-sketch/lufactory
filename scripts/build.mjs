@@ -16,7 +16,7 @@ const products = JSON.parse(read('data/products.json'));
 const productsById = Object.fromEntries(products.map((p) => [p.id, p]));
 
 function productUrl(p) {
-  return `/produkty/${p.id}.html`;
+  return `/produkty/${p.id}`;
 }
 
 // {{name}} a {{a.b}} — hodnoty z dat jsou HTML (důvěryhodný obsah z repozitáře).
@@ -39,7 +39,7 @@ function indent(text, prefix) {
 
 function partial(name, flags = {}) {
   const raw = read(`partials/${name}.html`).replace(/\n$/, '');
-  return applyLineFlags(raw, flags).replaceAll('{{navBase}}', flags.home ? '' : '/index.html');
+  return applyLineFlags(raw, flags).replaceAll('{{navBase}}', flags.home ? '' : '/');
 }
 
 function card(id, featured) {
@@ -87,7 +87,7 @@ function renderProductPage(p) {
 
 // Indexovatelné stránky v pořadí, v jakém mají být v sitemapě.
 function sitemap() {
-  const urls = ['/', '/produkty.html', ...products.map(productUrl), '/obchodni-podminky.html', '/ochrana-osobnich-udaju.html'];
+  const urls = ['/', '/produkty', ...products.map(productUrl), '/obchodni-podminky', '/ochrana-osobnich-udaju'];
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     + urls.map((u) => `  <url>\n    <loc>${SITE_URL}${u}</loc>\n  </url>\n`).join('')
     + '</urlset>\n';
@@ -127,7 +127,7 @@ for (const file of walk(pagesDir)) {
   write(path.relative(pagesDir, file), render(fs.readFileSync(file, 'utf8')));
 }
 for (const p of products) {
-  write(productUrl(p).slice(1), renderProductPage(p));
+  write(`produkty/${p.id}.html`, renderProductPage(p));
 }
 write('sitemap.xml', sitemap());
 

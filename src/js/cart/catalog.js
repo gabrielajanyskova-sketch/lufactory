@@ -7,7 +7,7 @@ import { escapeHtml } from '../util.js';
 function buildDynamicProductCard(id, data) {
   const article = document.createElement('article');
   article.className = 'product-card';
-  const detailUrl = '/produkty/produkt.html?id=' + encodeURIComponent(id);
+  const detailUrl = '/produkty/produkt?id=' + encodeURIComponent(id);
   // Název, popis i fotka jsou zadané v adminu — vždy escapovat.
   const title = escapeHtml(data.title);
   const imgHtml = data.imageUrl

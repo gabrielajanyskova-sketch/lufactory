@@ -1,4 +1,4 @@
-// Výsuvný košík v záhlaví a sdílené vykreslení položek (i pro /kosik.html).
+// Výsuvný košík v záhlaví a sdílené vykreslení položek (i pro /kosik).
 import { escapeHtml, formatPrice } from '../util.js';
 import { getCart, setQty, removeFromCart, cartCount, cartSubtotal, onCartChange } from './store.js';
 import { availableStock, reconcileCartWithStock } from './stock.js';
