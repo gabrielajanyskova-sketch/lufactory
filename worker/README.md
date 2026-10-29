@@ -32,6 +32,8 @@ Bindings a proměnné (Settings → Bindings / Variables and Secrets), viz
 - D1 databáze `lufactory-orders` → binding `DB`
 - KV namespace `lufactory-product-images` → binding `IMAGES`
 - Text proměnné `MAIL_FROM`, `SHOP_NOTIFICATION_EMAIL`
+- Volitelně text proměnná `ADMIN_LOGIN_EMAIL` — adresa, kam chodí
+  přihlašovací kód do adminu; bez ní chodí na `SHOP_NOTIFICATION_EMAIL`
 - Secrety `RESEND_API_KEY`, `ADMIN_PASSWORD`, volitelně `CF_API_TOKEN`
   (PDF faktury — bez něj se posílá faktura jako HTML příloha)
 - Volitelně `PPL_CLIENT_ID` a `PPL_CLIENT_SECRET` (secrety) + `PPL_API_BASE`
@@ -80,7 +82,7 @@ všech pěti místech současně.
   heslem — vytvoř SQL příkazem níže, jinak přihlašování skončí chybou
 - **`login_codes`** — jednorázové 6místné kódy pro druhý krok přihlášení
   (`login_id`, `code`, `expires_at`, `attempts`), posílají se e-mailem na
-  `SHOP_NOTIFICATION_EMAIL`, platí 10 minut, max 5 pokusů o zadání
+  `ADMIN_LOGIN_EMAIL` (nebo `SHOP_NOTIFICATION_EMAIL`, když není nastavená), platí 10 minut, max 5 pokusů o zadání
 - **`admin_sessions`** — vydané přihlašovací tokeny (`token`, `expires_at`),
   platí 30 dní od přihlášení nebo dokud se admin sám neodhlásí
 
@@ -95,7 +97,7 @@ databázi a dostávají generickou stránku `produkty/produkt.html?id=...`.
 Veškerá běžná správa (ceny, sklad, fotky, popisky, slevové kódy, stav
 objednávek, faktury, export do CSV) se dělá přes `/admin.html`, ne přes ruční
 SQL příkazy. Přihlašovací heslo je secret `ADMIN_PASSWORD` — po jeho zadání
-worker pošle na `SHOP_NOTIFICATION_EMAIL` jednorázový kód, teprve po jeho
+worker pošle na `ADMIN_LOGIN_EMAIL` (jinak `SHOP_NOTIFICATION_EMAIL`) jednorázový kód, teprve po jeho
 zadání se vydá přihlašovací token platný 30 dní.
 
 Přímý SQL zásah do databáze (např. hromadná úprava) jde udělat přes Cloudflare

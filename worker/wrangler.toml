@@ -14,6 +14,8 @@ id = "d0c4fc97b7544280b8d090bbd9dbc06f"
 [vars]
 MAIL_FROM = "lufactory <objednavky@lufactory.cz>"
 SHOP_NOTIFICATION_EMAIL = "info@lufactory.cz"
+# Volitelně: kam chodí přihlašovací kód do adminu (jinak SHOP_NOTIFICATION_EMAIL)
+# ADMIN_LOGIN_EMAIL = "..."
 # Testovací prostředí PPL myAPI2 — po schválení produkce přepnout na
 # "https://api.dhl.com/ecs/ppl/myapi2/" (viz README.md, "PPL — automatický štítek")
 PPL_API_BASE = "https://api-dev.dhl.com/ecs/ppl/myapi2/"

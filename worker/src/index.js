@@ -895,9 +895,12 @@ async function handleAdminLogin(request, env, cors) {
     'INSERT INTO login_codes (login_id, code, expires_at, attempts) VALUES (?, ?, ?, 0)'
   ).bind(loginId, code, expiresAt).run();
 
-  if (env.RESEND_API_KEY && env.SHOP_NOTIFICATION_EMAIL) {
+  // Kód může chodit na jinou adresu než objednávky (ADMIN_LOGIN_EMAIL),
+  // bez ní zůstává na SHOP_NOTIFICATION_EMAIL.
+  const loginEmail = env.ADMIN_LOGIN_EMAIL || env.SHOP_NOTIFICATION_EMAIL;
+  if (env.RESEND_API_KEY && loginEmail) {
     await sendResendEmail(env, {
-      to: env.SHOP_NOTIFICATION_EMAIL,
+      to: loginEmail,
       subject: 'Přihlašovací kód do adminu lufactory.cz',
       html: emailLayout(`
         <p style="margin:0 0 16px;font-size:17px;color:#2e2419;">Kód pro dokončení přihlášení do adminu:</p>
