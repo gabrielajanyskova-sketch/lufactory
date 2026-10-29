@@ -1,99 +1,107 @@
 # lufactory.cz — e-shop
 
-Ručně vyráběné houbičky z lufy — statický web (HTML/CSS/JS, bez frameworku)
-nasazovaný na Cloudflare Pages přímo z tohoto repozitáře, s Cloudflare
+Ručně vyráběné houbičky z lufy — statický web sestavovaný jednoduchým buildem
+(Node + esbuild, bez frameworku) a nasazovaný na Cloudflare Pages, s Cloudflare
 Workerem (`worker/`) jako backendem pro objednávky, sklad a administraci.
 
-Doména `lufactory.cz` běží přes Cloudflare (nameservery, DNS, Pages i
-Worker na stejném účtu).
+## Rychlý start
+
+```bash
+npm ci            # jednou po naklonování
+npm run build     # sestaví web ze src/ do dist/
+npm run check     # zkontroluje dist/ (meta údaje, odkazy, JSON-LD, HTML, …)
+npm run serve     # náhled dist/ na http://localhost:8080 (chová se jako Pages)
+```
+
+`dist/` je generovaný výstup — needituje se a není v gitu.
 
 ## Struktura
 
 ```
-index.html                    hlavní stránka (hero, produkty, o mně, o houbičkách, kontakt)
-produkty.html                  plný katalog — 6 ručně napsaných produktů + cokoliv přidané v adminu
-produkty/*.html                vlastní stránka pro každý z 6 původních produktů
-produkty/produkt.html          generická stránka pro produkty přidané přes admin (?id=...)
-kosik.html                     košík, doprava, platba, fakturační údaje, odeslání
-recenze.html                   hodnocení objednávky zákazníkem (odkaz z e-mailu, ?token=...)
-admin.html                     administrace — objednávky, produkty/sklad/fotky, slevové kódy, recenze
-obchodni-podminky.html         obchodní podmínky, formulář pro odstoupení od smlouvy
-ochrana-osobnich-udaju.html    zásady zpracování osobních údajů (GDPR)
-assets/css/style.css           zdroj pravdy pro styly (design tokeny v :root) — do
-                                HTML stránek se vkládá přímo (viz "Úprava CSS" níže)
-assets/js/main.js              mobilní menu, kontaktní formulář, lightbox pro galerie
-assets/js/cart.js              košík, checkout, živý sklad, napojení na worker/api
-assets/js/qrcode.js            knihovna třetí strany pro QR platbu v košíku
-assets/img/                    fotky produktů a webu
-worker/                        Cloudflare Worker + D1 + KV — objednávky, sklad, admin API
-scripts/inline-css.py          viz "Úprava CSS" níže
-_headers                       cache-control pro Cloudflare Pages, viz "Nasazení" níže
-robots.txt, sitemap.xml, llms.txt   SEO/AI crawler soubory
+src/
+  pages/              stránky (index, produkty, kosik, obchodni-podminky, …, produkty/produkt)
+  templates/product.html   šablona stránky produktu (generuje se pro každý produkt z dat)
+  partials/           opakované bloky: head, header, footer, cart-panel, product-card
+  data/products.json  6 produktů: názvy, ceny, popisy, fotky, karty, „mohlo by se líbit“
+  data/site.json      údaje o firmě (název, IČO, adresa) pro schema.org
+  css/style.css       styly webu (vkládají se do každé stránky jako <style>)
+  css/admin.css       styly jen pro administraci
+  js/                 JavaScript po modulech (cart/, forms/, ui/, reviews/, pages/, admin/)
+  js/config.js        jediné místo pro adresu API, ceny dopravy, IBAN, ID produktů
+  public/             kopíruje se beze změny: obrázky, písma, robots.txt, llms.txt, _headers
+scripts/
+  build.mjs           sestavení (partials, generované stránky, sitemap, schema, bundly)
+  schema.mjs          strukturovaná data (OnlineStore, Product, FAQPage, BreadcrumbList, …)
+  check.mjs           kontrola výstupu
+  serve.mjs           lokální náhled
+worker/               Cloudflare Worker + D1 + KV — objednávky, sklad, admin API
+.github/workflows/    automatický build + kontrola při každém pushi
 ```
 
-## Úprava CSS
+### Jak to skládá build
 
-Kvůli rychlosti načítání (žádný samostatný požadavek na CSS navíc) je obsah
-`assets/css/style.css` vložený přímo do `<style>` v každé HTML stránce, ne
-jen odkazovaný přes `<link>`. `style.css` zůstává zdroj pravdy — po každé
-úpravě spusť:
+Ve stránkách jsou direktivy na samostatném řádku:
 
-```bash
-python3 scripts/inline-css.py
-```
+| Direktiva | Co udělá |
+|---|---|
+| `<!-- @include header -->` | vloží `src/partials/header.html` (`header home` = varianta pro hlavní stránku) |
+| `<!-- @inline-css style.css -->` | vloží `src/css/style.css` jako `<style>` |
+| `<!-- @card peeling featured -->` | karta produktu z `products.json` (`featured` = zvýrazněná) |
+| `<!-- @schema organization -->` | JSON-LD (`organization`, `faq`, `product-list`, `product ID`, `breadcrumbs ID`) |
 
-To přepíše `<style>` blok ve všech HTML stránkách podle aktuálního obsahu
-`style.css`. Bez spuštění skriptu se úprava CSS v HTML stránkách neprojeví.
+FAQ schema se skládá z viditelných otázek (`.faq-item`) na stránce, takže se
+nemůže rozejít s textem. Odkazy na `/assets/js/*.js` a `/assets/css/*.css` build
+přepíše na verze s hashem v názvu (dlouhá cache v prohlížeči).
 
-## Sklad, ceny, produkty, slevy, objednávky
+## Běžné úpravy
 
-Všechno se spravuje přes **`/admin.html`** (zaheslované, heslo je secret
-`ADMIN_PASSWORD` na workeru) — žádné ruční SQL příkazy nejsou potřeba pro
-běžný provoz:
+- **Text nebo layout stránky** — `src/pages/<stránka>.html`.
+- **Hlavička, patička, menu, košík** — `src/partials/`, změna platí pro všechny stránky.
+- **Produkt (text, fotky, cena na stránce)** — `src/data/products.json`; stránka
+  `produkty/<id>`, karty i sitemapa se vygenerují samy. Nový statický produkt
+  přidej i do `STATIC_PRODUCT_IDS` v `src/js/config.js` a ve workeru (kontrola to hlídá).
+- **Nová stránka** — nový soubor v `src/pages/` (vzor: `obchodni-podminky.html`);
+  indexovatelné stránky doplň do `sitemap()` v `scripts/build.mjs`.
+- **Styly** — `src/css/style.css`.
+- **Cena dopravy** — `src/js/config.js` **i** `SHIPPING` ve `worker/src/index.js`.
+- **Sklad, ceny, slevy, objednávky, recenze, nové produkty** — přes `/admin`
+  (zaheslované), viz `worker/README.md`. Produkty přidané v adminu dostanou
+  stránku `produkty/produkt?id=...` bez úpravy kódu.
 
-- **Objednávky** — přehled, změna stavu (posílá e-mail zákazníkovi, u
-  "Odesláno" i fakturu), smazání, export do CSV, odkaz na fakturu
-- **Produkty a sklad** — cena, počet kusů, popis, fotka (hlavní i galerie),
-  přidání nového produktu
-- **Slevové kódy** — přidání, aktivace/deaktivace, smazání
-
-Nový produkt přidaný v adminu se automaticky objeví v `produkty.html` a
-dostane vlastní stránku (`produkty/produkt.html?id=...`) — beze změny kódu.
-Šest původních produktů má svou vlastní ručně psanou stránku s galerií a
-zůstává tak i nadále (bohatší obsah, než umí generická šablona).
-
-Dokud u produktu není žádný kus skladem, tlačítko „Přidat do košíku" je
-neaktivní a zobrazuje se „Není skladem" — bezpečný výchozí stav.
-
-## Košík a objednávka
-
-`assets/js/cart.js` drží obsah košíku v `localStorage`. Zboží v košíku není
-nijak rezervované, takže se množství vždy porovnává proti aktuálnímu API —
-pokud mezitím někdo koupí poslední kus (nebo si zákazník naklikal víc, než
-je skladem), množství se v košíku samo upraví dolů a zobrazí se, co přesně
-se změnilo. Objednávka jde
-přes `worker/` (skutečné ceny, sklad a slevy ověřené server-side, uložení do
-D1, e-mailové potvrzení přes Resend) — pokud by worker byl nedostupný, web se
-sám přepne na mailto, takže se nic nikdy „nerozbije".
+Před commitem: `npm run build && npm run check`. Totéž běží automaticky na
+GitHubu (Actions) u každého pushe.
 
 ## Nasazení
 
-- **Web (Pages):** repo je připojené na Cloudflare Pages (Workers & Pages →
-  lufactory), nasazuje se automaticky při každém pushi do `main`
-- **Worker:** nasazuje se ručně, viz `worker/README.md` — `wrangler deploy`
-  z tohohle prostředí nejde (síťové omezení), takže se kód vkládá přímo do
-  Cloudflare dashboardu
+- **Web (Cloudflare Pages)** — připojené na tento repozitář, nasazuje se při
+  pushi do `main`. Nastavení projektu (Workers & Pages → lufactory → Settings →
+  Builds): **Build command `npm run build`, Build output directory `dist`**.
+- **Worker** — nasazuje se ručně vložením `worker/src/index.js` v dashboardu,
+  viz `worker/README.md`.
 
-Soubor `_headers` v kořeni říká Cloudflare Pages, ať si HTML stránky a
-`assets/js/*` nikdy neukládá jako "starou verzi na později" v prohlížeči —
-vždycky se ověří, jestli není novější verze, takže se po nasazení nové
-verze hned projeví (fotky v `assets/img/` se naopak cachují dlouho, ty se
-skoro nemění).
+### Hlavičky a CSP (`src/public/_headers`)
+
+HSTS, X-Frame-Options, Permissions-Policy a Content-Security-Policy (skripty jen
+z vlastní domény). Na `/kosik` je plná politika zatím jen `Report-Only`, protože
+widgety Zásilkovny a PPL načítají vlastní zdroje: po ověření výběru pobočky
+v provozu (konzole prohlížeče bez hlášek „Content-Security-Policy“) lze řádek
+`Content-Security-Policy-Report-Only` přejmenovat na `Content-Security-Policy`.
+Při přidání nové externí služby (analytika, video, …) je potřeba ji v CSP povolit.
+
+## Košík a objednávka
+
+Košík je v `localStorage`; zboží není rezervované, množství se vždy porovnává
+s aktuálním skladem z API. Objednávka jde přes worker (ceny, sklad a slevy
+ověřené server-side, D1, e-mail přes Resend); při nedostupnosti workeru web
+nabídne odeslání e-mailem (mailto).
+
+## Soukromí
+
+Písma jsou hostovaná na vlastní doméně, mapa Google se načte až po kliknutí,
+web nepoužívá cookies ani analytiku — cookie lišta proto není potřeba.
 
 ## Další kroky / nápady
 
-- Platby zatím řešené ručně (bankovní převod s QR kódem / hotově) —
-  platební bránu (Comgate/GoPay) napojit později, až bude potřeba
-- Sledování objednávky pro zákazníka (zadá číslo objednávky + e-mail, uvidí
-  stav) — ať nemusí psát „kde je moje objednávka"
-- Automatický export/záloha databáze objednávek
+- Platební brána (Comgate/GoPay) — zatím převod s QR kódem / hotově
+- Sledování objednávky pro zákazníka
+- Automatická záloha databáze objednávek
