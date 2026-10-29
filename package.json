@@ -5,13 +5,14 @@
   "description": "lufactory.cz — statický e-shop (Cloudflare Pages) + worker",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "check": "node scripts/check.mjs",
+    "check": "node scripts/check.mjs && html-validate \"dist/**/*.html\"",
     "serve": "node scripts/serve.mjs"
   },
   "engines": {
     "node": ">=20"
   },
   "devDependencies": {
-    "esbuild": "0.28.2"
+    "esbuild": "0.28.2",
+    "html-validate": "11.16.1"
   }
 }

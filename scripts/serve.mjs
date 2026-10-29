@@ -14,7 +14,8 @@ const TYPES = {
   '.xml': 'application/xml', '.txt': 'text/plain; charset=utf-8', '.json': 'application/json'
 };
 
-// Zjednodušené čtení _headers (cesty s * a hlavičky pod nimi).
+// Zjednodušené čtení _headers: cesty s *, "! Název" hlavičku odebere,
+// pravidla s doménou (https://...) se lokálně přeskočí.
 function headersFor(urlPath) {
   const file = path.join(ROOT, '_headers');
   if (!fs.existsSync(file)) return {};
@@ -23,8 +24,11 @@ function headersFor(urlPath) {
   for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
     if (!line.trim() || line.trim().startsWith('#')) continue;
     if (!/^\s/.test(line)) {
-      const pattern = line.trim().replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
-      matches = new RegExp('^' + pattern + '$').test(urlPath);
+      const rule = line.trim();
+      const pattern = rule.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+      matches = !/^https?:/.test(rule) && new RegExp('^' + pattern + '$').test(urlPath);
+    } else if (matches && line.trim().startsWith('! ')) {
+      delete out[line.trim().slice(2).trim()];
     } else if (matches) {
       const i = line.indexOf(':');
       const key = line.slice(0, i).trim();

@@ -133,25 +133,39 @@ function walk(dir) {
 fs.rmSync(DIST, { recursive: true, force: true });
 fs.cpSync(path.join(SRC, 'public'), DIST, { recursive: true });
 
-// JavaScript (moduly → jeden soubor na stránku) a samostatné CSS adminu.
-const common = { bundle: true, minify: true, target: 'es2018', logLevel: 'warning' };
-await esbuild.build({
-  ...common,
-  entryPoints: { site: 'src/js/site.js', admin: 'src/js/admin/index.js' },
-  outdir: path.join(DIST, 'assets/js'),
-  format: 'iife',
-  absWorkingDir: ROOT
-});
+// JavaScript (moduly → jeden soubor) a samostatné CSS adminu. Názvy souborů
+// nesou hash obsahu (site-AB12CD34.js), takže se dají cachovat natrvalo a po
+// změně si prohlížeč stáhne novou verzi; odkazy v HTML se přepíšou níže.
+const assetMap = {};
+async function bundle(entryPoints, outdir, extra = {}) {
+  const result = await esbuild.build({
+    bundle: true, minify: true, target: 'es2018', logLevel: 'warning', absWorkingDir: ROOT,
+    entryPoints, outdir: path.join(DIST, outdir), entryNames: '[name]-[hash]', metafile: true, ...extra
+  });
+  for (const [file, info] of Object.entries(result.metafile.outputs)) {
+    if (!info.entryPoint) continue;
+    const name = path.basename(info.entryPoint).replace('index.js', 'admin.js');
+    assetMap[`/${outdir}/${name}`] = '/' + path.relative(DIST, path.join(ROOT, file));
+  }
+}
+await bundle({ site: 'src/js/site.js', admin: 'src/js/admin/index.js' }, 'assets/js', { format: 'iife' });
 // Knihovna třetí strany s globální funkcí qrcode() — jen minifikace.
-await esbuild.build({ ...common, bundle: false, entryPoints: ['src/js/vendor/qrcode.js'], outfile: path.join(DIST, 'assets/js/qrcode.js'), absWorkingDir: ROOT });
-await esbuild.build({ ...common, entryPoints: ['src/css/admin.css'], outfile: path.join(DIST, 'assets/css/admin.css'), absWorkingDir: ROOT });
+await bundle(['src/js/vendor/qrcode.js'], 'assets/js', { bundle: false });
+await bundle(['src/css/admin.css'], 'assets/css');
+
+function withHashedAssets(html) {
+  return html.replace(/(src|href)="(\/assets\/(?:js|css)\/[\w.-]+)"/g, (m, attr, url) => {
+    if (!assetMap[url]) throw new Error(`Neznámý soubor ${url} — chybí v buildu?`);
+    return `${attr}="${assetMap[url]}"`;
+  });
+}
 
 const pagesDir = path.join(SRC, 'pages');
 for (const file of walk(pagesDir)) {
-  write(path.relative(pagesDir, file), render(fs.readFileSync(file, 'utf8')));
+  write(path.relative(pagesDir, file), withHashedAssets(render(fs.readFileSync(file, 'utf8'))));
 }
 for (const p of products) {
-  write(`produkty/${p.id}.html`, renderProductPage(p));
+  write(`produkty/${p.id}.html`, withHashedAssets(renderProductPage(p)));
 }
 write('sitemap.xml', sitemap());
 

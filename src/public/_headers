@@ -1,17 +1,35 @@
-/*.html
-  Cache-Control: no-cache
+# Hlavičky pro Cloudflare Pages (https://developers.cloudflare.com/pages/configuration/headers/).
+# Pages sám přidává X-Content-Type-Options: nosniff, Referrer-Policy
+# a pro HTML Cache-Control: public, max-age=0, must-revalidate (vždy čerstvé).
+# Řádek nesmí přesáhnout 2000 znaků.
 
-/
-  Cache-Control: no-cache
+/*
+  Strict-Transport-Security: max-age=31536000
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), payment=(), usb=(), browsing-topics=()
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://lufactory-api.gabriela-janyskova.workers.dev; frame-src https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
 
-/produkty/*.html
-  Cache-Control: no-cache
+# Košík načítá widgety Zásilkovny a PPL, jejichž vnitřní zdroje nejdou z
+# repozitáře ověřit — tady se plná politika jen hlásí do konzole prohlížeče
+# (Report-Only) a vynucuje se jen základ. Po ověření widgetů v provozu lze
+# řádek Report-Only přejmenovat na Content-Security-Policy (viz README).
+/kosik
+  ! Content-Security-Policy
+  Content-Security-Policy: object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' https://widget.packeta.com https://www.ppl.cz; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https://lufactory-api.gabriela-janyskova.workers.dev https://*.packeta.com https://*.ppl.cz; frame-src https://widget.packeta.com https://*.ppl.cz; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
+# Soubory s hashem v názvu (assets/js/site-XXXX.js) a písma se nemění.
 /assets/js/*
-  Cache-Control: no-cache
-
+  Cache-Control: public, max-age=31536000, immutable
 /assets/css/*
-  Cache-Control: no-cache
+  Cache-Control: public, max-age=31536000, immutable
+/assets/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
 
+# Fotky nemají hash v názvu — při výměně fotky ji ulož pod novým názvem.
 /assets/img/*
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+# Adresa lufactory.pages.dev je kopie webu — do vyhledávačů jen www.lufactory.cz.
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex
