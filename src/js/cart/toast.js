@@ -9,6 +9,7 @@ export function showStockToast(message) {
     toast = document.createElement('div');
     toast.id = 'stock-toast';
     toast.className = 'stock-toast';
+    toast.setAttribute('role', 'status');
     document.body.appendChild(toast);
   }
   toast.textContent = message;

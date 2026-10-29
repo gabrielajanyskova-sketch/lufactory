@@ -69,10 +69,10 @@ export function initDynamicProductPage() {
             '</div>' +
             '<div class="stock-notify" data-stock-notify="' + safeId + '" hidden>' +
               '<form class="stock-notify-form">' +
-                '<input type="email" placeholder="Váš e-mail" required>' +
+                '<input type="email" placeholder="Váš e-mail" aria-label="E-mail pro upozornění na naskladnění" required>' +
                 '<button type="submit" class="btn btn--outline">Dej mi vědět, až bude skladem</button>' +
               '</form>' +
-              '<p class="stock-notify-success" hidden>Dáme vám vědět, až bude skladem!</p>' +
+              '<p class="stock-notify-success" role="status" hidden>Dáme vám vědět, až bude skladem!</p>' +
             '</div>' +
           '</div>' +
         '</div>' +

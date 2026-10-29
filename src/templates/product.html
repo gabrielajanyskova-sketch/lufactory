@@ -30,7 +30,7 @@
 <body>
 <!-- @include header -->
 
-<main>
+<main id="main">
   <section class="section">
     <div class="container">
       <a href="/produkty.html" class="back-link">← Zpět na produkty</a>
@@ -58,10 +58,10 @@
           </div>
           <div class="stock-notify" data-stock-notify="{{id}}" hidden>
             <form class="stock-notify-form">
-              <input type="email" placeholder="Váš e-mail" required>
+              <input type="email" placeholder="Váš e-mail" aria-label="E-mail pro upozornění na naskladnění" required>
               <button type="submit" class="btn btn--outline">Dej mi vědět, až bude skladem</button>
             </form>
-            <p class="stock-notify-success" hidden>Dáme vám vědět, až bude skladem!</p>
+            <p class="stock-notify-success" role="status" hidden>Dáme vám vědět, až bude skladem!</p>
           </div>
         </div>
       </div>

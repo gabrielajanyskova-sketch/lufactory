@@ -74,12 +74,39 @@ export function renderCart() {
   if (totalEl) totalEl.textContent = formatPrice(cartSubtotal(cart));
 }
 
+// Zbytek stránky je při otevřeném košíku neaktivní (inert), aby fokus
+// klávesnicí zůstal uvnitř panelu; po zavření se vrátí, kde byl.
+let returnFocusTo = null;
+
+export function setBackgroundInert(inert) {
+  document.querySelectorAll('body > header, body > main, body > footer, body > .skip-link').forEach((el) => {
+    el.inert = inert;
+  });
+}
+
 export function openCart() {
+  const panel = document.getElementById('cart-panel');
+  if (!panel || document.body.classList.contains('cart-open')) return;
+  returnFocusTo = document.activeElement;
   document.body.classList.add('cart-open');
+  panel.inert = false;
+  setBackgroundInert(true);
+  const toggle = document.querySelector('.cart-toggle');
+  if (toggle) toggle.setAttribute('aria-expanded', 'true');
+  const closeBtn = panel.querySelector('.cart-close');
+  if (closeBtn) closeBtn.focus({ preventScroll: true });
 }
 
 export function closeCart() {
+  const panel = document.getElementById('cart-panel');
+  if (!panel || !document.body.classList.contains('cart-open')) return;
   document.body.classList.remove('cart-open');
+  panel.inert = true;
+  setBackgroundInert(false);
+  const toggle = document.querySelector('.cart-toggle');
+  if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  if (returnFocusTo && document.contains(returnFocusTo)) returnFocusTo.focus({ preventScroll: true });
+  returnFocusTo = null;
 }
 
 export function initDrawer() {

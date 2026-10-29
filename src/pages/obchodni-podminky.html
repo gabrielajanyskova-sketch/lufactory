@@ -20,12 +20,12 @@
 <body>
 <!-- @include header -->
 
-<main>
+<main id="main">
   <section class="hero hero--small">
     <img class="hero-img" src="/assets/img/hero.webp" srcset="/assets/img/hero-640.webp 640w, /assets/img/hero-1280.webp 1280w, /assets/img/hero.webp 1920w" sizes="100vw" alt="" width="1920" height="1920" fetchpriority="high">
     <div class="container">
       <div class="hero-text">
-        <div class="hero-badge">Obchodní podmínky</div>
+        <h1 class="hero-badge">Obchodní podmínky</h1>
       </div>
     </div>
   </section>
@@ -105,7 +105,7 @@
             <button type="submit" class="btn legal-form-submit">Odeslat odstoupení od smlouvy</button>
             <p class="form-note">Po odeslání vám pošleme potvrzení na e-mail a brzy se vám ozveme.</p>
           </form>
-          <p class="legal-form-success" id="withdrawal-success" hidden>Odstoupení od smlouvy jsme přijali — potvrzení jsme poslali na váš e-mail. Brzy se vám ozveme.</p>
+          <p class="legal-form-success" id="withdrawal-success" role="status" hidden>Odstoupení od smlouvy jsme přijali — potvrzení jsme poslali na váš e-mail. Brzy se vám ozveme.</p>
           <p class="legal-form-alt">Nebo nám můžete napsat přímo na <a href="mailto:info@lufactory.cz">info@lufactory.cz</a>.</p>
         </div>
 

@@ -1,3 +1,5 @@
+import { setBackgroundInert } from '../cart/drawer.js';
+
 // Zvětšení fotek z .gallery po kliknutí, s listováním mezi fotkami téže
 // galerie. Každá stránka má nejvýš jednu .gallery, takže stačí jeden lightbox.
 let lightbox = null;
@@ -8,6 +10,10 @@ export function initLightbox() {
 
   lightbox = document.createElement('div');
   lightbox.className = 'lightbox';
+  lightbox.setAttribute('role', 'dialog');
+  lightbox.setAttribute('aria-modal', 'true');
+  lightbox.setAttribute('aria-label', 'Fotogalerie');
+  lightbox.inert = true;
   lightbox.innerHTML =
     '<button type="button" class="lightbox-close" aria-label="Zavřít">×</button>' +
     '<button type="button" class="lightbox-prev" aria-label="Předchozí fotka">‹</button>' +
@@ -29,15 +35,32 @@ export function initLightbox() {
     show(index);
     lightbox.classList.add('is-open');
     document.body.classList.add('lightbox-open');
+    lightbox.inert = false;
+    setBackgroundInert(true);
+    lightbox.querySelector('.lightbox-close').focus({ preventScroll: true });
   }
 
   function close() {
+    if (!lightbox.classList.contains('is-open')) return;
     lightbox.classList.remove('is-open');
     document.body.classList.remove('lightbox-open');
+    lightbox.inert = true;
+    setBackgroundInert(false);
+    images[currentIndex].focus({ preventScroll: true });
   }
 
+  // Fotky jdou otevřít i klávesnicí (Tab + Enter/mezerník).
   images.forEach((img, i) => {
+    img.tabIndex = 0;
+    img.setAttribute('role', 'button');
+    img.setAttribute('aria-label', 'Zvětšit fotku: ' + (img.alt || ''));
     img.addEventListener('click', () => { open(i); });
+    img.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        open(i);
+      }
+    });
   });
 
   lightbox.querySelector('.lightbox-close').addEventListener('click', close);
