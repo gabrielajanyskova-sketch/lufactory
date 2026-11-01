@@ -53,7 +53,16 @@ export function createSchemas(site, productUrl) {
       '@type': 'OfferShippingDetails',
       shippingLabel: s.label,
       shippingRate: { '@type': 'MonetaryAmount', value: s.price, currency: 'CZK' },
-      shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'CZ' }
+      shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'CZ' },
+      deliveryTime: {
+        '@type': 'ShippingDeliveryTime',
+        businessDays: {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((day) => `https://schema.org/${day}`)
+        },
+        handlingTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 3, unitCode: 'DAY' },
+        transitTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 2, unitCode: 'DAY' }
+      }
     }));
 
   const returnPolicy = {
@@ -61,7 +70,8 @@ export function createSchemas(site, productUrl) {
     applicableCountry: 'CZ',
     returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
     merchantReturnDays: site.returnDays,
-    returnMethod: 'https://schema.org/ReturnByMail'
+    returnMethod: 'https://schema.org/ReturnByMail',
+    returnFees: 'https://schema.org/ReturnShippingFees'
   };
 
   function product(p) {
