@@ -251,11 +251,11 @@
     "image": "/assets/img/product-cela-lufa.webp",
     "imageAlt": "Celá lufa",
     "metaTitle": "Celá lufa",
-    "metaDescription": "Celá lisovaná lufa, cca 40–50 cm dlouhá — vyrobte si houbičky podle sebe.",
-    "schemaDescription": "Celá lisovaná lufa, cca 40–50 cm dlouhá — vyrobte si houbičky podle sebe.",
+    "metaDescription": "Celá lisovaná lufa, cca 40 cm dlouhá — vyrobte si houbičky podle sebe.",
+    "schemaDescription": "Celá lisovaná lufa, cca 40 cm dlouhá — vyrobte si houbičky podle sebe.",
     "eyebrow": "Vyrob si sám",
     "h1": "Celá lufa",
-    "dim": "1 ks, celá lisovaná lufa, cca 40–50 cm dlouhá",
+    "dim": "1 ks, celá lisovaná lufa, cca 40 cm dlouhá",
     "description": [
       "<p>Z celé lufy o této velikosti vyrobíte např. 1 peelingovou houbičku a dalších minimálně 5 houbiček na nádobí.</p>",
       "<p>Lufy pro moji dílnu Lufactory pochází z Egypta, kde má rostlina díky teplému a slunečnému podnebí dost času vytvořit ta nejkvalitnější pevná a hustá vlákna.</p>"
@@ -290,7 +290,7 @@
     ],
     "card": {
       "label": "celá lufa",
-      "dim": "1 ks, celá lisovaná lufa, cca 40–50 cm dlouhá",
+      "dim": "1 ks, celá lisovaná lufa, cca 40 cm dlouhá",
       "teaser": "Vyrobte si houbičky podle sebe."
     }
   }
