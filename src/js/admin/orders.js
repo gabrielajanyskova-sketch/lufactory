@@ -21,7 +21,15 @@ const SHIPPING_LABELS = {
   'ppl-address': 'PPL – doručení na adresu'
 };
 
-function orderRowHtml(order) {
+// Kód výdejny / boxu PPL (KM…) z widgetu — zadává se při ručním odeslání.
+function pickupPointHtml(order) {
+  if (order.delivery_method !== 'ppl-pickup' || !order.pickup_point_id) return '';
+  const code = escapeHtml(order.pickup_point_id);
+  return '<br><small>Kód: <strong>' + code + '</strong></small> ' +
+    '<button type="button" class="copy-btn" data-copy="' + code + '" title="Zkopírovat kód výdejního místa">Kopírovat</button>';
+}
+
+function orderRowHtml(order, pplApi) {
   const itemsHtml = '<div class="order-items-list">' + order.items.map((i) =>
     '<div class="order-item-row"><span class="nowrap-cell">' + escapeHtml(i.title) + '</span><span class="order-item-qty">' + i.qty + ' ks</span></div>'
   ).join('') + '</div>';
@@ -40,14 +48,14 @@ function orderRowHtml(order) {
       escapeHtml(order.customer_street) + ', ' + escapeHtml(order.customer_zip) + ' ' + escapeHtml(order.customer_city) + '<br>' +
       escapeHtml(order.customer_email) + '<br>' + escapeHtml(order.customer_phone || '') + '</small></td>' +
     '<td>' + itemsHtml + '</td>' +
-    '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + escapeHtml(order.delivery_detail) + '</small>' : '') + '</td>' +
+    '<td>' + shippingLabel + (order.delivery_detail ? '<br><small>' + escapeHtml(order.delivery_detail) + '</small>' : '') + pickupPointHtml(order) + '</td>' +
     '<td>' + formatPrice(order.total) + '</td>' +
     '<td><select data-order-id="' + order.id + '">' + statusOptions + '</select></td>' +
     '<td><div class="order-actions">' +
       '<button type="button" class="btn btn--outline save-btn" data-invoice-order="' + order.id + '">Faktura</button>' +
       (order.ppl_shipment_number
         ? '<button type="button" class="btn btn--outline save-btn" data-ppl-label-order="' + order.id + '">Štítek PPL</button>'
-        : (isPpl ? '<button type="button" class="btn btn--outline save-btn" data-ppl-shipment-order="' + order.id + '">Vytvořit zásilku PPL</button>' : '')) +
+        : (isPpl && pplApi ? '<button type="button" class="btn btn--outline save-btn" data-ppl-shipment-order="' + order.id + '">Vytvořit zásilku PPL</button>' : '')) +
       '<button type="button" class="icon-btn-delete" data-delete-order="' + order.id + '" title="Smazat objednávku">✕</button>' +
     '</div>' +
     (order.ppl_error
@@ -83,12 +91,21 @@ export function loadOrders() {
       empty.hidden = true;
       data.orders.forEach((order) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = orderRowHtml(order);
+        tr.innerHTML = orderRowHtml(order, data.pplApi === true);
         tbody.appendChild(tr);
       });
 
       tbody.querySelectorAll('button[data-invoice-order]').forEach((btn) => {
         wireOpenFile(btn, '/api/admin/orders/' + btn.dataset.invoiceOrder + '/invoice', 'Faktura');
+      });
+
+      tbody.querySelectorAll('button[data-copy]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          navigator.clipboard.writeText(btn.dataset.copy).then(() => {
+            btn.textContent = 'Zkopírováno';
+            setTimeout(() => { btn.textContent = 'Kopírovat'; }, 1500);
+          }).catch(() => { window.prompt('Kód výdejního místa:', btn.dataset.copy); });
+        });
       });
 
       tbody.querySelectorAll('button[data-ppl-label-order]').forEach((btn) => {
