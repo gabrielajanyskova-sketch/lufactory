@@ -25,6 +25,11 @@ const PPL_SENDER = {
 // Pevná výchozí váha balíčku, dokud nemáme reálné vážení — stejně jako u
 // dřívější Zásilkovny, dá se upravit podle skutečnosti.
 const PPL_DEFAULT_WEIGHT_KG = 0.5;
+// Zakládání zásilek přes PPL API (na firemní smlouvu, PPL pak posílá fakturu).
+// Vypnuto: balíky se posílají ručně jako soukromá osoba na výdejně PPL / ppl.cz
+// na výdejnu nebo box, který si zákazník vybral v košíku (widget běží dál,
+// kód výdejny je v adminu u objednávky). Zapnutí = true + secrety PPL_CLIENT_*.
+const PPL_API_ENABLED = false;
 // Standardní balík PPL na adresu (bez dobírky).
 const PPL_PRODUCT_TYPE = 'BUSS';
 // Balík na výdejní místo — podle PPL dokumentace musí být jiný typ produktu
@@ -1094,7 +1099,7 @@ async function listOrders(env, cors) {
     (itemsByOrder[item.order_id] = itemsByOrder[item.order_id] || []).push(item);
   }
   const withItems = orders.map((o) => Object.assign({}, o, { items: itemsByOrder[o.id] || [] }));
-  return json({ orders: withItems }, 200, cors);
+  return json({ orders: withItems, pplApi: pplApiEnabled(env) }, 200, cors);
 }
 
 // Středník, ne čárka — český Excel s čárkou jako oddělovačem nepočítá a
@@ -1168,15 +1173,18 @@ async function deleteOrder(env, cors, orderId) {
 }
 
 // ---------- PPL (myAPI2 na api.dhl.com) ----------
-// Štítek se vytváří automaticky, jakmile se objednávka s doručením PPL na
-// adresu označí v adminu jako "Zaplaceno" — stejný princip, jaký jsme dřív
-// zkoušeli pro Zásilkovnu, tentokrát proti ověřenému REST API, ne naslepo.
+// Je-li PPL_API_ENABLED, štítek se vytváří automaticky, jakmile se objednávka
+// s doručením PPL označí v adminu jako "Zaplaceno".
 
 function arrayBufferToBase64(buffer) {
   let binary = '';
   const bytes = new Uint8Array(buffer);
   for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
   return btoa(binary);
+}
+
+function pplApiEnabled(env) {
+  return PPL_API_ENABLED && Boolean(env.PPL_CLIENT_ID && env.PPL_CLIENT_SECRET);
 }
 
 async function pplAccessToken(env) {
@@ -1280,6 +1288,7 @@ async function createPplShipmentRoute(env, cors, orderId) {
   const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
   if (!order) return json({ error: 'not_found' }, 404, cors);
   if (order.ppl_shipment_number) return json({ error: 'already_created' }, 409, cors);
+  if (!pplApiEnabled(env)) return json({ error: 'ppl_api_disabled' }, 409, cors);
   const result = await tryCreatePplShipment(env, order);
   return json(result, result.ok ? 200 : 502, cors);
 }
@@ -1331,7 +1340,7 @@ async function updateOrderStatus(request, env, cors, orderId) {
     }
   }
 
-  if (body.status === 'zaplaceno' && env.PPL_CLIENT_ID && env.PPL_CLIENT_SECRET) {
+  if (body.status === 'zaplaceno' && pplApiEnabled(env)) {
     const order = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
     const isPplDelivery = order && (order.delivery_method === 'ppl-address' || order.delivery_method === 'ppl-pickup');
     if (isPplDelivery && !order.ppl_shipment_number) {

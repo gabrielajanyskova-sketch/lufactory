@@ -63,6 +63,11 @@ body { background: var(--cream); }
   width: 100%; margin-top: 18px; padding: 10px 12px; border: 1px solid var(--border);
   border-radius: 8px; font-family: inherit; font-size: 1rem; color: var(--text); resize: vertical;
 }
+.copy-btn {
+  margin-top: 2px; padding: 2px 8px; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--white); color: var(--text-muted); font: inherit; font-size: 12px; cursor: pointer;
+}
+.copy-btn:hover { color: var(--text); }
 .order-actions { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; }
 .shipping-error-note {
   margin: 6px 0 0;

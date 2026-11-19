@@ -35,7 +35,7 @@ Bindings a proměnné (Settings → Bindings / Variables and Secrets), viz
 - Secrety `RESEND_API_KEY`, `ADMIN_PASSWORD`, volitelně `CF_API_TOKEN`
   (PDF faktury — bez něj se posílá faktura jako HTML příloha)
 - Volitelně `PPL_CLIENT_ID` a `PPL_CLIENT_SECRET` (secrety) + `PPL_API_BASE`
-  (text proměnná) — automatické zásilky PPL, viz níže. Bez nich se štítky
+  (text proměnná) — automatické zásilky PPL (teď vypnuté, viz níže). Bez nich se štítky
   negenerují, nic jiného to neovlivní. `PPL_API_BASE` je teď testovací
   (`https://api-dev.dhl.com/ecs/ppl/myapi2/`) — po ověření na testovacích
   objednávkách a schválení od PPL se přepne jen změnou téhle proměnné na
@@ -126,6 +126,19 @@ Když po objednávce klesne sklad produktu na 2 ks nebo míň, přijde e-mail na
 se zákazníkovi automaticky pošle faktura (PDF, pokud je nastavený
 `CF_API_TOKEN`, jinak HTML příloha).
 
+## PPL — ruční odeslání (API vypnuté)
+
+Zásilky přes PPL API (firemní smlouva → faktura od PPL) jsou vypnuté
+konstantou `PPL_API_ENABLED = false` ve `worker/src/index.js`. Balíky se
+posílají ručně jako soukromá osoba (výdejna PPL / ppl.cz). Zákazník si v
+košíku dál vybírá výdejnu nebo box na mapě; v adminu je u objednávky
+„PPL – výdejní místo“ název, adresa a **kód** (KM…) s tlačítkem
+**Kopírovat** pro zadání při odeslání. Tlačítko „Vytvořit zásilku PPL“ se
+nezobrazuje a automatické vytvoření při „Zaplaceno“ neproběhne.
+
+Zapnutí zpět: `PPL_API_ENABLED = true` a nastavené secrety `PPL_CLIENT_*`.
+Dál popsané chování platí jen pro zapnuté API.
+
 ## PPL — automatický štítek
 
 Když se objednávka s dopravou PPL ("doručení na adresu" nebo "výdejní místo")
@@ -139,7 +152,7 @@ objednávky, zásilka se nikdy nevytvoří dvakrát. Váha balíčku je zatím p
 
 U výdejního místa (`ppl-pickup`) zákazník v košíku vybere konkrétní pobočku
 přes PPL Access Point Widget (`kliennt.ppl.cz/widgetadmin`, veřejný
-`api-key` v `assets/js/cart.js`) — widget vrátí kód pobočky (`ap.code`),
+`api-key` v `src/pages/kosik.html`) — widget vrátí kód pobočky (`ap.code`),
 ten se uloží jako `orders.pickup_point_id` a worker ho při vytváření
 zásilky pošle jako `specificDelivery.parcelShopCode`. Typ produktu je pro
 výdejní místo jiný než na adresu (`PPL_PARCEL_SHOP_PRODUCT_TYPE` vs.
